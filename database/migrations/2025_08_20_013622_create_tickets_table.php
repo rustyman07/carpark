@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->string('TICKETNO', 20);
             $table->string('PLATENO', 20);
-            $table->string('QRCODE', 255);
+            $table->string('QRCODE', 255)->nullable();
             $table->integer('PARKYEAR');
             $table->integer('PARKMONTH');
             $table->integer('PARKDAY');
