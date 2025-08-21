@@ -107,4 +107,17 @@ public function store(Request $request)
     {
         //
     }
+
+
+
+    public function showLogs()
+    {
+       return inertia('Logs/Index', [
+        'Tickets' => Ticket::where('CANCELLED', 0)
+                         ->select('TICKETNO', 'PLATENO', 'PARKDATETIME')
+                         ->orderByDesc('created_at')
+                         ->get()
+]);
+
+    }
 }

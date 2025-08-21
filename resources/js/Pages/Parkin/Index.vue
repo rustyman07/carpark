@@ -1,7 +1,8 @@
 <template>
-  <div>
-    <p>Time: {{ time }}</p>
-    <p>Date: {{ date }}</p>
+  <div style=" padding: 100px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+<div>
+      <h1> {{ time }}</h1>
+    <h1>{{ date }}</h1>
 
     <v-text-field
       v-model="plateNo"
@@ -10,9 +11,10 @@
       variant="underlined"
     />
 
-    <v-btn size="x-large" @click="createTicket">
+    <v-btn size="x-large" @click="createTicket"  block color="blue-darken-4">
       New Ticket
-    </v-btn>
+    </v-btn >
+</div>
   </div>
 </template>
 
@@ -32,7 +34,8 @@ let intervalId;
 // Function to update time and date every second
 const updateTime = () => {
   const now = dayjs();
-  time.value = now.format('hh:mm:ss A');   // 12-hour clock with seconds
+//  time.value = now.format('hh:mm:ss A');   // 12-hour clock with seconds
+    time.value = now.format('hh:mm:ss '); 
   date.value = now.format('MMMM D, YYYY'); // e.g., August 20, 2025
 };
 

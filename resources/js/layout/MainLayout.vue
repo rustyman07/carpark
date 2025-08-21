@@ -2,7 +2,7 @@
   <v-card>
     <v-layout>
       <!-- App Bar -->
-      <v-app-bar color="primary">
+      <v-app-bar color="blue-darken-4">
         <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
 
         <v-toolbar-title>Carpark</v-toolbar-title>
@@ -41,11 +41,11 @@
 </v-navigation-drawer>
 
       <!-- Main Content -->
-      <v-main style="height: 500px;">
-        <v-card-text>
+      <v-main style="height: 100vh;">
+        
           <!-- ✅ Page content goes here -->
           <slot />
-        </v-card-text>
+      
       </v-main>
     </v-layout>
   </v-card>
@@ -60,6 +60,7 @@ const items = [
   { title: 'Home', route: 'home' },
   { title: 'Park In', route: 'parkin.index' },
   { title: 'Park Out', route: 'parkout' },
+  { title: 'Parking Logs', route: 'logs' },
 //   { title: 'Ticket Logs', route: 'buzz' },
 ]
 
