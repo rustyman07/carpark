@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <!-- Date Picker -->
+    <!-- Date + Type Filters -->
     <div class="d-flex ga-4">
       <v-text-field
         type="date"
@@ -8,7 +8,7 @@
         label="From"
         variant="underlined"
         persistent-placeholder
-      ></v-text-field>
+      />
 
       <v-text-field
         type="date"
@@ -16,7 +16,7 @@
         label="To"
         variant="underlined"
         persistent-placeholder
-      ></v-text-field>
+      />
 
       <v-select
         label="Select"
@@ -26,13 +26,10 @@
         v-model="selectedType"
       />
 
-      <v-select
-        label="Shift"
-        :items="shifts"
-        item-title="label"
-        item-value="value"
-        v-model="selectedShift"
-      />
+      <!-- Filter Button -->
+      <v-btn color="primary" @click="applyFilter">
+        Search
+      </v-btn>
     </div>
 
     <!-- Table -->
@@ -41,26 +38,41 @@
         :headers="headers"
         :items="items"
         class="elevation-1"
+         hide-default-footer
       />
+       <div class="d-flex justify-center pa-4" v-if="nextPageUrl">
+        <v-btn color="primary" @click="loadMore">
+          Load More
+        </v-btn>
+      </div>
     </v-card>
   </v-container>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref ,onMounted} from 'vue'
+import { router } from '@inertiajs/vue3'
+import dayjs from "dayjs";
 
 const props = defineProps({
-  Tickets: {
-    type: Array,
-    default: () => [],
-  }
+  Tickets: Object,  // because of pagination
+  filters: Object,
 })
 
-const dateFrom = ref(new Date().toISOString().split("T")[0])
-const dateTo = ref(new Date().toISOString().split("T")[0])
+onMounted(() => {
+  applyFilter()
+})
 
-const selectedType = ref(1)
-const selectedShift = ref(1)
+
+const items = ref([...props.Tickets.data]); 
+const nextPageUrl = ref(props.Tickets.next_page_url);
+
+
+const today = new Date().toISOString().split("T")[0]
+const dateFrom = ref(today)
+const dateTo = ref(today)
+const selectedType = ref('PARK-IN')
+
 
 const headers = [
   { key: 'TICKETNO', title: 'Ticket No' },
@@ -69,32 +81,58 @@ const headers = [
 ]
 
 const types = [
-  { label: "PARK-IN", value: 1 },
-  { label: "PARK-OUT", value: 2 }
+  { label: 'PARK-IN', value: 'PARK-IN' },
+  { label: 'PARK-OUT', value: 'PARK-OUT' }
 ]
 
-const shifts = [
-  { label: "6AM-2PM", value: 1 },
-  { label: "2PM-10PM", value: 2 },
-  { label: "10PM-6AM", value: 3 },
-  { label: "6AM-6PM", value: 4 },
-  { label: "6PM-6AM", value: 5 }
-]
+const loadMore = () => {
+  if (!nextPageUrl.value) return;
 
-// Computed items that automatically update when filters change
-const items = computed(() => {
-  return props.Tickets
-    .filter(t => {
-      const parkDate = new Date(t.PARKDATETIME).toISOString().split("T")[0]
-      return parkDate >= dateFrom.value &&
-             parkDate <= dateTo.value 
-            //  t.TYPE === selectedType.value &&
-            //  t.SHIFT === selectedShift.value
-    })
-    .map(t => ({
-      TICKETNO: t.TICKETNO,
-      PLATENO: t.PLATENO,
-      PARKDATETIME: new Date(t.PARKDATETIME).toLocaleString()
-    }))
-})
+  router.visit(nextPageUrl.value, {
+    preserveScroll: true,
+    preserveState: true,
+    only: ["Tickets"], 
+    onSuccess: (page) => {
+      console.log("Fetched:", page.props.Tickets.data);
+
+      // 🔹 format before appending
+      const formatted = page.props.Tickets.data.map(ticket => ({
+        ...ticket,
+        PARKDATETIME: dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY")
+      }));
+
+     items.value = [...items.value, ...formatted];
+      nextPageUrl.value = page.props.Tickets.next_page_url;
+
+      console.log("All items now:", items.value);
+    },
+  });
+};
+
+
+
+function applyFilter() {
+  router.get('/logs', {
+    dateFrom: dateFrom.value,
+    dateTo: dateTo.value,
+    type: selectedType.value,
+  }, {
+    preserveState: true,
+    replace: true,
+    // onSuccess: (page) => {
+    //   items.value = [...page.props.Tickets.data];
+    //   nextPageUrl.value = page.props.Tickets.next_page_url;
+    // }
+
+    onSuccess: (page) => {
+  items.value = page.props.Tickets.data.map(ticket => ({
+    ...ticket,
+  PARKDATETIME: dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY")
+  }));
+  nextPageUrl.value = page.props.Tickets.next_page_url;
+}
+  })
+}
 </script>
+
+

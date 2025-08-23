@@ -19,14 +19,23 @@ const vuetify = createVuetify({
 });
 
 createInertiaApp({
-    resolve: (name) => {
-        const pages = import.meta.glob("./Pages/**/*.vue", { eager: true });
+ resolve: (name) => {
+    const pages = import.meta.glob("./Pages/**/*.vue", { eager: true });
 
-        let page = pages[`./Pages/${name}.vue`];
+    console.log("Looking for:", name);
+    console.log("Available:", Object.keys(pages));
 
-        page.default.layout ??= MainLayout;
-        return page;
-    },
+    const page = pages[`./Pages/${name}.vue`];
+
+    if (!page) {
+        throw new Error(`Page not found: ${name}`);
+    }
+
+    // assign layout
+    page.default.layout ??= MainLayout;
+
+    return page.default; // ✅ return the actual component, not the module
+},
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)

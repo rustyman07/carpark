@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 use App\Models\Ticket;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Carbon\Carbon;  
 class TicketController extends Controller
 {
     /**
@@ -108,16 +109,106 @@ public function store(Request $request)
         //
     }
 
-
-
-    public function showLogs()
+    public function showLogs(Request $request)
     {
-       return inertia('Logs/Index', [
-        'Tickets' => Ticket::where('CANCELLED', 0)
-                         ->select('TICKETNO', 'PLATENO', 'PARKDATETIME')
-                         ->orderByDesc('created_at')
-                         ->get()
-]);
+
+        $type     = $request->input('type', 'PARK-IN'); // default
+        $dateFrom = $request->input('dateFrom');
+        $dateTo   = $request->input('dateTo');
+
+        $query = Ticket::where('CANCELLED', 0)
+            ->select('TICKETNO', 'PLATENO', 'PARKDATETIME', 'PARKOUTDATETIME')
+            ->orderByDesc('created_at');
+
+        $dateColumn = $type === 'PARK-IN' ? 'PARKDATETIME' : 'PARKOUTDATETIME';
+
+        // Only apply filter if values are provided
+        if ($dateFrom && $dateTo) {
+            $query->whereDate($dateColumn, '>=', $dateFrom)
+                ->whereDate($dateColumn, '<=', $dateTo);
+        }
+
+        return inertia('Logs/Index', [
+            'Tickets' => $query->paginate(1),
+
+        ]);
 
     }
+
+    public function park_out(Request $request)
+    {
+        return inertia('Parkout/Index',);
+
+    }
+
+
+    public function submit_park_out(Request $request)
+    {
+        
+
+         $data = $request->validate([
+        'TICKETNO' => 'required|string',
+        'PARKOUTYEAR' => 'nullable|integer',
+        'PARKOUTMONTH' => 'nullable|integer',
+        'PARKOUTDAY' => 'nullable|integer',
+        'PARKOUTHOUR' => 'nullable|integer',
+        'PARKOUTMINUTE' => 'nullable|integer',
+        'PARKOUTSECOND' => 'nullable|integer',
+    ]);
+
+        if (
+        isset($data['PARKOUTYEAR'], $data['PARKOUTMONTH'], $data['PARKOUTDAY'], 
+              $data['PARKOUTHOUR'], $data['PARKOUTMINUTE'], $data['PARKOUTSECOND'])
+    ) {
+        $data['PARKOUTDATETIME'] = \Carbon\Carbon::create(
+            $data['PARKOUTYEAR'],
+            $data['PARKOUTMONTH'],
+            $data['PARKOUTDAY'],
+            $data['PARKOUTHOUR'],
+            $data['PARKOUTMINUTE'],
+            $data['PARKOUTSECOND']
+        );
+    } else {
+        // fallback to now if parts are missing
+        $data['PARKOUTDATETIME'] = now();
+    }
+
+$settings = Setting::find(1);
+      
+    // ✅ Find ticket by TICKETNO
+    $ticket = Ticket::where('TICKETNO', $data['TICKETNO'])->first();
+
+    if (!$ticket) {
+        return response()->json(['error' => 'Ticket not found'], 404);
+    }
+
+
+
+    // Optionally, update the ticket with PARKOUTDATETIME
+    $ticket->PARKOUTDATETIME = $data['PARKOUTDATETIME'];
+
+    $parkDateTime = Carbon::parse($ticket->PARKDATETIME);
+    $parkDateOutTime = Carbon::parse($ticket->PARKOUTDATETIME);
+
+
+    $days = $parkDateTime->diffInDays($parkDateOutTime) + 1;
+
+    $ticket->PARKFEE = $days *  (float)$settings->FEE;
+
+
+    $ticket->save();
+
+//   return inertia('Parkout/Index', [
+//             'ticket' => $ticket,
+//              'success' => true,
+
+//         ]);
+//echo $ticket->PARKFEE;
+return inertia('Parkout/Index', [
+    'ticket' => $ticket,
+    'success' => true,
+]);
+    }
+
+
 }
