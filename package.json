@@ -16,6 +16,7 @@
         "@inertiajs/vue3": "^2.1.2",
         "@mdi/font": "^7.4.47",
         "dayjs": "^1.11.13",
+        "material-symbols": "^0.34.1",
         "sass": "^1.90.0",
         "sass-loader": "^13.0.2",
         "vuetify": "^3.9.5",

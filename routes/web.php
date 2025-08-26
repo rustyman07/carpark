@@ -7,8 +7,8 @@ use App\Http\Controllers\TicketController;
 Route::get('/', fn () => Inertia::render('Home/Index'))->name('home');
 Route::get('logs', [TicketController::class, 'showLogs'])->name('logs');
 Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
-Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('submit.parkout');
-// Route::get('logs/search', [TicketController::class, 'search_logs'])->name('search_logs');
+Route::post('submit/parkout', [TicketController::class, 'submit_park_out']);
+Route::post('submit/payment',[TicketController::class,'submit_payment'])->name('submit.payment');
 Route::resource('parkin',TicketController::class);
 
 

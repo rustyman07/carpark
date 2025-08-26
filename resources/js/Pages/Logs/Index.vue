@@ -39,6 +39,7 @@
         :items="items"
         class="elevation-1"
          hide-default-footer
+       :items-per-page="items.length"
       />
        <div class="d-flex justify-center pa-4" v-if="nextPageUrl">
         <v-btn color="primary" @click="loadMore">

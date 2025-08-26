@@ -6,6 +6,8 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;  
+use Inertia\Inertia;
+
 class TicketController extends Controller
 {
     /**
@@ -45,7 +47,7 @@ public function store(Request $request)
     // Combine into a single datetime if all parts exist
     if (
         isset($data['PARKYEAR'], $data['PARKMONTH'], $data['PARKDAY'], 
-              $data['PARKHOUR'], $data['PARKMINUTE'], $data['PARKSECOND'])
+              $data['PARKOUTHOUR'], $data['PARKMINUTE'], $data['PARKSECOND'])
     ) {
         $data['PARKDATETIME'] = \Carbon\Carbon::create(
             $data['PARKYEAR'],
@@ -60,6 +62,7 @@ public function store(Request $request)
         $data['PARKDATETIME'] = now();
     }
 
+    $data['PARKDATETIME'] = $data['PARKDATETIME']->format('Y-m-d H:i:s');
     $data['CANCELLED'] = 0;
      $data['TICKETNO'] = 0;
     // Use transaction to ensure atomicity
@@ -129,86 +132,124 @@ public function store(Request $request)
         }
 
         return inertia('Logs/Index', [
-            'Tickets' => $query->paginate(1),
+            'Tickets' => $query->paginate(5),
 
         ]);
 
     }
 
-    public function park_out(Request $request)
-    {
-        return inertia('Parkout/Index',);
+        public function park_out()
+        {
+    
+            return inertia('Parkout/Index', [
+                'ticket' => session('ticket'),
+                'success' => session('success'),
+            ]);
+        }
 
-    }
 
-
-    public function submit_park_out(Request $request)
-    {
-        
-
-         $data = $request->validate([
-        'TICKETNO' => 'required|string',
-        'PARKOUTYEAR' => 'nullable|integer',
-        'PARKOUTMONTH' => 'nullable|integer',
-        'PARKOUTDAY' => 'nullable|integer',
-        'PARKOUTHOUR' => 'nullable|integer',
+public function submit_park_out(Request $request)
+{
+    // 1️⃣ Validate input
+    $data = $request->validate([
+        'PLATENO'       => 'required|string|exists:tickets,PLATENO',
+        'PARKOUTYEAR'   => 'nullable|integer',
+        'PARKOUTMONTH'  => 'nullable|integer',
+        'PARKOUTDAY'    => 'nullable|integer',
+        'PARKOUTHOUR'   => 'nullable|integer',
         'PARKOUTMINUTE' => 'nullable|integer',
         'PARKOUTSECOND' => 'nullable|integer',
+    ], [
+        'PLATENO.required' => 'Plate number is required',
+        'PLATENO.exists'   => 'Plate number not found',
     ]);
 
-        if (
-        isset($data['PARKOUTYEAR'], $data['PARKOUTMONTH'], $data['PARKOUTDAY'], 
-              $data['PARKOUTHOUR'], $data['PARKOUTMINUTE'], $data['PARKOUTSECOND'])
-    ) {
-        $data['PARKOUTDATETIME'] = \Carbon\Carbon::create(
-            $data['PARKOUTYEAR'],
-            $data['PARKOUTMONTH'],
-            $data['PARKOUTDAY'],
-            $data['PARKOUTHOUR'],
-            $data['PARKOUTMINUTE'],
-            $data['PARKOUTSECOND']
-        );
-    } else {
-        // fallback to now if parts are missing
-        $data['PARKOUTDATETIME'] = now();
-    }
+    // 2️⃣ Compute PARKOUTDATETIME (use provided or fallback to now)
+    $data['PARKOUTDATETIME'] = isset(
+        $data['PARKOUTYEAR'],
+        $data['PARKOUTMONTH'],
+        $data['PARKOUTDAY'],
+        $data['PARKOUTHOUR'],
+        $data['PARKOUTMINUTE'],
+        $data['PARKOUTSECOND']
+    ) ? \Carbon\Carbon::create(
+        $data['PARKOUTYEAR'],
+        $data['PARKOUTMONTH'],
+        $data['PARKOUTDAY'],
+        $data['PARKOUTHOUR'],
+        $data['PARKOUTMINUTE'],
+        $data['PARKOUTSECOND']
+    ) : now();
 
-$settings = Setting::find(1);
-      
-    // ✅ Find ticket by TICKETNO
-    $ticket = Ticket::where('TICKETNO', $data['TICKETNO'])->first();
+    // 3️⃣ Fetch latest active ticket (business rule)
+    $ticket = Ticket::where('PLATENO', $data['PLATENO'])
+        ->latest('PARKDATETIME')
+        ->first();
 
     if (!$ticket) {
-        return response()->json(['error' => 'Ticket not found'], 404);
+        return redirect()->route('parkout')->with([
+            'ticket'  => null,
+            'success' => false,
+        ]);
     }
 
+    // 4️⃣ Calculate fee
+    $settings = Setting::find(1); 
+    $ticket->PARKOUTDATETIME = $data['PARKOUTDATETIME']->format('Y-m-d H:i:s');
 
+    $days = ($data['PARKOUTDAY'] - $ticket->PARKDAY) + 1;
+    $ticket->PARKFEE = (int) $days * (float) $settings->FEE;
 
-    // Optionally, update the ticket with PARKOUTDATETIME
-    $ticket->PARKOUTDATETIME = $data['PARKOUTDATETIME'];
+    // Update ticket
+    $ticket->fill([
+        'PARKOUTYEAR'   => $data['PARKOUTYEAR'],
+        'PARKOUTMONTH'  => $data['PARKOUTMONTH'],
+        'PARKOUTDAY'    => $data['PARKOUTDAY'],
+        'PARKOUTHOUR'   => $data['PARKOUTHOUR'],
+        'PARKOUTMINUTE' => $data['PARKOUTMINUTE'],
+        'PARKOUTSECOND' => $data['PARKOUTSECOND'],
+    ])->save();
 
-    $parkDateTime = Carbon::parse($ticket->PARKDATETIME);
-    $parkDateOutTime = Carbon::parse($ticket->PARKOUTDATETIME);
+    // 5️⃣ Success response
+    return redirect()->route('parkout')->with([
+        'ticket'  => $ticket,
+        'success' => true,
+    ]);
+}
+    public function submit_payment(Request $request){
+        $data = $request->validate([
+            'ID' => 'required|exists:tickets,id',
+        ], [
+            'ID.exists' => 'Invalid Payment.',
+        ]);
 
+        $ticket = Ticket::find($request->input('ID'));
 
-    $days = $parkDateTime->diffInDays($parkDateOutTime) + 1;
+                // Update ticket
+        $ticket->fill([
+            'REMARKS'   => 'PAID',
+            'ISPARKOUT'  => 1,
+            // 'PARKOUTBY'  => 
+        ])->save();
 
-    $ticket->PARKFEE = $days *  (float)$settings->FEE;
+        // return inertia('Parkout/Index', [
+        //          'ticket'  => $ticket,
+        //         'success' => true,
+        //     ]);
 
+// return back()->with([
+//         'ticket' => $ticket,
+//         'success' => true,
+//     ]);
 
-    $ticket->save();
+         return Inertia::render('Parkout/Index', [
+        'ticket' => $ticket,
+        // 'success' => true,
+        'successMessage' => 'Payment successful!', // <-- pass actual string
+    ]);
 
-//   return inertia('Parkout/Index', [
-//             'ticket' => $ticket,
-//              'success' => true,
-
-//         ]);
-//echo $ticket->PARKFEE;
-return inertia('Parkout/Index', [
-    'ticket' => $ticket,
-    'success' => true,
-]);
     }
+
 
 
 }
