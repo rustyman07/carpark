@@ -120,12 +120,13 @@ public function store(Request $request)
         $dateTo   = $request->input('dateTo');
 
         $query = Ticket::where('CANCELLED', 0)
+            ->where('ISPARKOUT',$type ==='PARK-IN'? 0 : 1)
             ->select('TICKETNO', 'PLATENO', 'PARKDATETIME', 'PARKOUTDATETIME')
             ->orderByDesc('created_at');
 
         $dateColumn = $type === 'PARK-IN' ? 'PARKDATETIME' : 'PARKOUTDATETIME';
 
-        // Only apply filter if values are provided
+
         if ($dateFrom && $dateTo) {
             $query->whereDate($dateColumn, '>=', $dateFrom)
                 ->whereDate($dateColumn, '<=', $dateTo);
@@ -246,6 +247,26 @@ public function submit_park_out(Request $request)
         'ticket' => $ticket,
         // 'success' => true,
         'successMessage' => 'Payment successful!', // <-- pass actual string
+    ]);
+
+    }
+
+
+    public function scanQR(Request $request){
+
+        $data = $request->validate([
+            'QRCODE' => 'required|exist:ticket:QRCODE'
+        ],[
+
+            'QRCODE.required' =>'QR Code is required',
+            'QRCODE.exist' => 'QR Code not found in the system.',
+        ]);
+
+         $ticket = Ticket::where('QRCODE', $validated['QRCODE'])->first();
+
+         return back()->with([
+        'ticket' => $ticket,
+        'success' => true,
     ]);
 
     }

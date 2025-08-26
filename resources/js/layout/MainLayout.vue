@@ -38,13 +38,13 @@
 </div>
 
 <v-layout
-  class="d-flex flex-column align-center justify-center ga-4 mt-16 "
+  class="d-flex flex-column   ga-4 mt-16 "
 >
-  <v-list class="d-flex flex-column justify-center">
+  <v-list class="d-flex flex-column justify-center wfull">
     <v-list-item v-for="item in items" :key="item.title">
       <Link
         :href="route(item.route)"
-        class="sidebar-link block px-4 py-2 rounded wfull d-flex align-center ga-4"
+        class="sidebar-link px-2 py-2 rounded  d-flex align-center ga-8 wfull"
       >
         <span style="font-size: 32px;" class="text-blue-darken-4 material-symbols-outlined">
           {{ item.icon }}

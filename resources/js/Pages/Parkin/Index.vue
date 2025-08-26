@@ -11,10 +11,21 @@
         variant="underlined"
       />
       <span v-if="form.errors.PLATENO" style="color: red;">{{ form.errors.PLATENO }}</span>
-
+  <v-layout class="d-flex flex-column ga-2">
       <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" :disabled="form.processing">
         New Ticket
       </v-btn>
+      <v-layout class="d-flex ga-2 align-center">
+          <v-divider thickness="2"></v-divider>   <span>OR</span><v-divider thickness="2"></v-divider>
+      </v-layout>     
+      <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" :disabled="form.processing">
+        Scan 
+      </v-btn>
+
+  </v-layout>
+
+
+
     </div>
   </div>
 </template>

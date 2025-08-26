@@ -20,7 +20,7 @@
 
 <v-layout class="d-flex flex-column align-center justify-center pa-16 h-100">
 
-    <div>
+    
 
       <!-- <h5 v-if="success && ticket">Ticket Fee: {{ ticket.PARKFEE }}</h5> -->
  
@@ -35,16 +35,26 @@
     Ticket Fee: {{ formatFee(ticket.PARKFEE) }}
   </v-card-text>
 
-  <v-layout class="d-flex justify-space-between mt-2">
+  <v-layout class="d-flex justify-space-between mt-2 ga-4">
     <v-btn @click="submitPayment" color="blue-darken-4">
-      Pay
+      Cash
     </v-btn>
-
+      <!-- <v-btn @click="submitPayment" color="blue-darken-4">
+      Scan QR Code
+    </v-btn> -->
+      <Link
+        :href="route('scanQR')"
+        class="blue-darken-4"
+        
+        >
+        
+    
+       Scan QR Code
+    </Link>
   <v-btn @click ="cancelPayment" color="red-darken-2">Cancel</v-btn>
 
   </v-layout>
 </v-card>
-
       <div v-else>
         <v-text-field
           class="text-h1"
@@ -58,13 +68,14 @@
         </v-btn>
       </div>
 
-    </div>
+     
   </v-layout>
 </template>
 
 <script setup>
 import { useForm, usePage, } from '@inertiajs/vue3';
 import { computed,onMounted ,ref,watch} from 'vue';
+import { route } from 'ziggy-js'
 import dayjs from 'dayjs';
 import { Link,router } from '@inertiajs/vue3'
 
@@ -78,6 +89,7 @@ const showErrorCard = ref(false);
 const ticketId = ref(null);
 const messages = ref([]);
 const text = ref('hhh')
+const isScanQR = ref(false);
 // setting ID to use tot form2id
 watch(ticket, (newTicket) => {
   if (newTicket) {
@@ -126,6 +138,8 @@ const form2 = useForm({
 })
 
 
+
+
 const clearError = () => {
   errorCardMsg.value = ''
   showErrorCard.value = false
@@ -154,8 +168,13 @@ form.post('/submit/parkout', {
 
 
 
+
+
+
+
+
 const submitPayment = () =>{
- form2.ID = ticketId.value
+   form2.ID = ticketId.value
   clearError();
   form2.post('/submit/payment',{
     onSuccess:()=>{
@@ -176,7 +195,14 @@ const submitPayment = () =>{
 
   })
 
-   
+   const scanQR = () =>{
+    isScanQR.value = true;
+
+   }
+
+
+
+
 
 }
 
