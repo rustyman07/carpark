@@ -42,7 +42,7 @@
       <!-- <v-btn @click="submitPayment" color="blue-darken-4">
       Scan QR Code
     </v-btn> -->
-      <Link
+      <!-- <Link
         :href="route('scanQR')"
         class="blue-darken-4"
         
@@ -50,7 +50,7 @@
         
     
        Scan QR Code
-    </Link>
+    </Link> -->
   <v-btn @click ="cancelPayment" color="red-darken-2">Cancel</v-btn>
 
   </v-layout>

@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('card_templates', function (Blueprint $table) {
             $table->id();
+             $table->string('CARDNAME',100);
             $table->integer('NOOFDAYS')->default(0);
             $table->decimal('PRICE',10,2)->default(0.00);
-            $table->decimal('DISCOUNT',10,2)->default(0.00);
+            $table->decimal('DISCOUNT',10,2)->nullable()->default(0.00);
             $table->decimal('AMOUNT',10,2)->default(0.00);
             $table->boolean('CANCELLED')->default(0);     
             $table->integer('CANCELLEDBY')->nullable();
             $table->dateTime('CANCELLEDDATETIME')->nullable();
-           $table->integer('CREATEDBY')->nullable();
+            $table->integer('CREATEDBY')->nullable();
             $table->timestamps();
         });
     }
@@ -32,5 +33,5 @@ return new class extends Migration
     {
         Schema::dropIfExists('card_templates');
     }
-    
+
 };
