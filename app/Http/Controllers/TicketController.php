@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;  
 use Inertia\Inertia;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TicketController extends Controller
 {
@@ -253,6 +254,19 @@ public function submit_park_out(Request $request)
 
 
     public function scanQR(Request $request){
+
+
+// Route::get('/qrcode/{id}', function ($id) {
+//     // Current date + time in compact format: YYYYMMDDHHMMSS
+//     $datetime = Carbon::now()->format('YmdHis');
+
+//     // Combine ID + datetime
+//     $text = $id . $datetime; // e.g., "123420250826143045"
+
+//     // Generate QR code
+//     return QrCode::size(300)->generate($text);
+// });
+
 
         $data = $request->validate([
             'QRCODE' => 'required|exist:ticket:QRCODE'

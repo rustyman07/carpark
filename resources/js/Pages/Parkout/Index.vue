@@ -45,10 +45,7 @@
       <!-- <Link
         :href="route('scanQR')"
         class="blue-darken-4"
-        
         >
-        
-    
        Scan QR Code
     </Link> -->
   <v-btn @click ="cancelPayment" color="red-darken-2">Cancel</v-btn>
@@ -170,9 +167,6 @@ form.post('/submit/parkout', {
 
 
 
-
-
-
 const submitPayment = () =>{
    form2.ID = ticketId.value
   clearError();
@@ -186,25 +180,23 @@ const submitPayment = () =>{
       });
     },
     onError: (errors)=>{
-        if (errors.ID) {
-      showErrorCard.value = true;
-      errorCardMsg.value = 'Payment failed. Please try again.'
-    }
+      if (errors.ID) {
+        showErrorCard.value = true;
+        errorCardMsg.value = 'Payment failed. Please try again.'
+      }
     }
 
 
   })
 
-   const scanQR = () =>{
+
+}
+  
+
+const scanQR = () =>{
     isScanQR.value = true;
 
    }
-
-
-
-
-
-}
 
 
 
