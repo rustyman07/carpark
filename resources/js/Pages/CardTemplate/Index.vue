@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref,computed} from 'vue'
 import Create from './Create.vue'
 import { usePage } from '@inertiajs/vue3'
 
@@ -60,7 +60,7 @@ const headers = [
 
 // ✅ Grab server data from Inertia props
 const page = usePage()
-const templates = ref(page.props.templates)
+const templates = computed(() => page.props.templates)
 const selectedTemplate = ref(null)
 
 // Handlers

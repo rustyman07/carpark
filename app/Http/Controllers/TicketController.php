@@ -253,37 +253,37 @@ public function submit_park_out(Request $request)
     }
 
 
-    public function scanQR(Request $request){
+//     public function scanQR(Request $request){
 
 
-// Route::get('/qrcode/{id}', function ($id) {
-//     // Current date + time in compact format: YYYYMMDDHHMMSS
-//     $datetime = Carbon::now()->format('YmdHis');
+// // Route::get('/qrcode/{id}', function ($id) {
+// //     // Current date + time in compact format: YYYYMMDDHHMMSS
+// //     $datetime = Carbon::now()->format('YmdHis');
 
-//     // Combine ID + datetime
-//     $text = $id . $datetime; // e.g., "123420250826143045"
+// //     // Combine ID + datetime
+// //     $text = $id . $datetime; // e.g., "123420250826143045"
 
-//     // Generate QR code
-//     return QrCode::size(300)->generate($text);
-// });
+// //     // Generate QR code
+// //     return QrCode::size(300)->generate($text);
+// // });
 
 
-        $data = $request->validate([
-            'QRCODE' => 'required|exist:ticket:QRCODE'
-        ],[
+//         $data = $request->validate([
+//             'QRCODE' => 'required|exist:ticket:QRCODE'
+//         ],[
 
-            'QRCODE.required' =>'QR Code is required',
-            'QRCODE.exist' => 'QR Code not found in the system.',
-        ]);
+//             'QRCODE.required' =>'QR Code is required',
+//             'QRCODE.exist' => 'QR Code not found in the system.',
+//         ]);
 
-         $ticket = Ticket::where('QRCODE', $validated['QRCODE'])->first();
+//          $ticket = Ticket::where('QRCODE', $validated['QRCODE'])->first();
 
-         return back()->with([
-        'ticket' => $ticket,
-        'success' => true,
-    ]);
+//          return back()->with([
+//         'ticket' => $ticket,
+//         'success' => true,
+//     ]);
 
-    }
+//     }
 
 
 
