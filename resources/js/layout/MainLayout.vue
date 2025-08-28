@@ -79,7 +79,8 @@ const items = [
   { title: 'Park In', route: 'parkin.index', icon: 'directions_car' },
   { title: 'Park Out', route: 'parkout', icon: 'car_tag'},
   { title: 'Parking Logs', route: 'logs', icon: 'overview' },
-   { title: 'Card Template', route: 'cardTemplate.index', icon: 'credit_card_gear' },
+   { title: 'Card Template', route: 'card-template.index', icon: 'credit_card_gear' },
+    { title: 'Card Inventory', route: 'card-inventory.index', icon: 'list_alt' },
 ]
 
 const drawer = ref(false)

@@ -2,16 +2,16 @@
   <v-container>
     <div class="d-flex justify-end mb-4">
       <!-- Open dialog -->
-      <v-btn color="success" @click="addTemplate">
-        Add Template
+      <v-btn color="success" @click="addCard">
+        Generate Card
       </v-btn>
     </div>
 
     <!-- Create dialog -->
-    <Create v-model="showDialog" :selectedTemplate = "selectedTemplate" />
+    <Create v-model="showDialog" :cardTemplate = "cardTemplate.value" />
 
     <!-- Table -->
-    <v-card title="Card Template" flat class="mt-4">
+    <v-card title="Card Inventory" flat class="mt-4">
       <v-data-table
         :headers="headers"
         :items="templates"
@@ -40,7 +40,7 @@
 </template>
 
 <script setup>
-import { ref,computed } from 'vue'
+import { ref,computed} from 'vue'
 import Create from './Create.vue'
 import { usePage } from '@inertiajs/vue3'
 
@@ -51,7 +51,7 @@ const showDialog = ref(false)
 const headers = [
   { key: 'id', title: 'ID' },
   { key: 'CARDNAME', title: 'Card Name' },
-  { key: 'NO_OF_DAYS', title: 'No. of Days' },
+  { key: 'NOOFDAYS', title: 'No. of Days' },
   { key: 'PRICE', title: 'Price' },
   { key: 'DISCOUNT', title: 'Discount' },
   { key: 'AMOUNT', title: 'Amount' },
@@ -60,7 +60,7 @@ const headers = [
 
 // ✅ Grab server data from Inertia props
 const page = usePage()
-const templates = computed(()=>page.props.templates);
+const cardTemplate = computed(() => page.props.cardTemplate)
 const selectedTemplate = ref(null)
 
 // Handlers
@@ -73,8 +73,9 @@ const deleteItem = (item) => {
   console.log('Delete', item)
 }
 
-const addTemplate = () => {
-  selectedTemplate.value = null   // reset for "Add Template"
+const addCard = () => {
+ 
+//   selectedTemplate.value = null   // reset for "Add Template"
   showDialog.value = true
 }
 

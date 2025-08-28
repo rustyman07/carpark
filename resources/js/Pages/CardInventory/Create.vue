@@ -5,11 +5,19 @@
       <v-card title="TEMPLATE">
       <v-card-text>
         <!-- your form fields -->
-        
+         <v-select
+  label="Select"
+  :items="props.cardTemplate"
+  item-title="CARDNAME"   
+  item-value="id"         
+  v-model="form.CARD_TEMPLATEID"
+/>
+
+  
         <v-text-field  v-model= form.CARDNAME variant="underlined" label="Card Name" type = 'text' :error-messages="form.errors.CARDNAME" />
         
        
-            <v-text-field  v-model= form.NO_OF_DAYS variant="underlined" label="No of Days" type="number" :error-messages="form.errors.NO_OF_DAYS"/>     
+            <v-text-field  v-model= form.NOOFDAYS variant="underlined" label="No of Days" type="number" :error-messages="form.errors.NOOFDAYS"/>     
             <v-text-field  v-model= form.PRICE variant="underlined" label="Price"  type="number" :error-messages="form.errors.PRICE" />     
       
         
@@ -42,57 +50,59 @@ const dialog = defineModel({ type: Boolean, default: false });
 
 const props = defineProps({
   modelValue: { type: Boolean, required: true }, 
-  selectedTemplate: { type: Object, default: null }      
+   cardTemplate: { type: Array, default: () => [] }      
 });
 
 const isEdit = ref(false);
 
 const form = useForm({
+    CARD_TEMPLATEID : null,
     CARDNAME : '',
-    NO_OF_DAYS : 1,
+    NOOFDAYS : 1,
     PRICE: 0,
     DISCOUNT: null,
    
 })
 console.log(isEdit.value);
+console.log(props.template)
 
-watch(() => props.selectedTemplate,(val) => {
+// watch(() => props.selectedTemplate,(val) => {
 
-  if (val) {
-    isEdit.value = true;
-    console.log(isEdit.value);
-    form.CARDNAME = val.CARDNAME
-    form.NO_OF_DAYS = val.NO_OF_DAYS
-    form.PRICE = val.PRICE
-    form.DISCOUNT = val.DISCOUNT
+//   if (val) {
+//     isEdit.value = true;
+//     console.log(isEdit.value);
+//     form.CARDNAME = val.CARDNAME
+//     form.NOOFDAYS = val.NOOFDAYS
+//     form.PRICE = val.PRICE
+//     form.DISCOUNT = val.DISCOUNT
 
-  } else {
-     isEdit.value = false;
-     console.log(isEdit.value);
-    form.reset() 
-  }
-})
+//   } else {
+//      isEdit.value = false;
+//      console.log(isEdit.value);
+//     form.reset() 
+//   }
+// })
 
-const create = () => form.post(route('card-template.store'),{
-    onSuccess: ()=>{
-        form.reset();
-        dialog.value = false
-    },
-    onError: (errors)=>{
-console.log(errors);
-    }
-  });
+// const create = () => form.post(route('card-template.store'),{
+//     onSuccess: ()=>{
+//         form.reset();
+//         dialog.value = false
+//     },
+//     onError: (errors)=>{
+// console.log(errors);
+//     }
+//   });
 
 
-const update = () => form.put(route('card-template.update', props.selectedTemplate.id), {
-  onSuccess: () => {
-    form.reset()
-    dialog.value = false
-  },
-    onError: (errors)=>{
-console.log(errors);
-    }
-})
+// const update = () => form.put(route('card-template.update', props.selectedTemplate.id), {
+//   onSuccess: () => {
+//     form.reset()
+//     dialog.value = false
+//   },
+//     onError: (errors)=>{
+// console.log(errors);
+//     }
+// })
 
 
 

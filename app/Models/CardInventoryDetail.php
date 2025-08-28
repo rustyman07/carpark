@@ -4,14 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CardTemplate extends Model
+class CardInventoryDetail extends Model
 {
-    //
-     protected $fillable = [
+        protected $fillable = [
+        'HEADERID',
         'CARDNAME',
+        'QRCODE',
         'NO_OF_DAYS',
-        'STATUS',
         'DISCOUNT',
+        'BALANCE',
         'PRICE',
         'AMOUNT',
         'CANCELLED',

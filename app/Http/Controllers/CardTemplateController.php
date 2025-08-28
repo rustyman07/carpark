@@ -36,10 +36,9 @@ class CardTemplateController extends Controller
         
         $validated = $request->validate([
             'CARDNAME' => 'required|string|max:255',
-            'NOOFDAYS' => 'required|integer|min:0',
+            'NO_OF_DAYS' => 'required|integer|min:1',
             'PRICE'    => 'required|numeric|min:0',
             'DISCOUNT' => 'nullable|numeric|min:0',
-           
         ]);
 
       $validated['AMOUNT'] = $validated['PRICE'] - $validated['DISCOUNT'];
@@ -49,11 +48,11 @@ class CardTemplateController extends Controller
         // return redirect()->route('cardTemplate.index')->with(
         //     'success','created succesfully');
 
-//         return Inertia::render('CardTemplate/Index', [
-//     'templates' => CardTemplate::orderBy('id','asc')->get(),
-// ])->with('success', 'Template created successfully');
+        return Inertia::render('CardTemplate/Index', [
+    'templates' => CardTemplate::orderBy('id','asc')->get(),
+])->with('success', 'Template created successfully');
 
-        return redirect()->back();
+        // return redirect()->back();
 
     }
 
@@ -80,7 +79,7 @@ class CardTemplateController extends Controller
     {
       $validated = $request->validate([
         'CARDNAME' => 'required|string|max:255',
-         'NOOFDAYS' => 'required|integer|min:1',
+        'NO_OF_DAYS' => 'required|integer|min:1',
         'PRICE'    => 'required|numeric|min:0',
         'DISCOUNT' => 'nullable|numeric|min:0',
      

@@ -164,9 +164,6 @@ form.post('/submit/parkout', {
 };
 
 
-
-
-
 const submitPayment = () =>{
    form2.ID = ticketId.value
   clearError();
