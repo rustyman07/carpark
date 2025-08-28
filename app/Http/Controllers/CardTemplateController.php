@@ -31,29 +31,23 @@ class CardTemplateController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+  public function store(Request $request)
     {
-        
         $validated = $request->validate([
-            'CARDNAME' => 'required|string|max:255',
-            'NO_OF_DAYS' => 'required|integer|min:1',
-            'PRICE'    => 'required|numeric|min:0',
-            'DISCOUNT' => 'nullable|numeric|min:0',
+            'card_name'  => 'required|string|max:255',
+            'no_of_days' => 'required|integer|min:1',
+            'price'      => 'required|numeric|min:0',
+            'discount'   => 'nullable|numeric|min:0',
         ]);
 
-      $validated['AMOUNT'] = $validated['PRICE'] - $validated['DISCOUNT'];
+        // Compute amount
+        $validated['amount'] = $validated['price'] - ($validated['discount'] ?? 0);
 
         CardTemplate::create($validated);
 
-        // return redirect()->route('cardTemplate.index')->with(
-        //     'success','created succesfully');
-
-        return Inertia::render('CardTemplate/Index', [
-    'templates' => CardTemplate::orderBy('id','asc')->get(),
-])->with('success', 'Template created successfully');
-
-        // return redirect()->back();
-
+        return redirect()
+            ->route('card-template.index')
+            ->with('success', 'Template created successfully');
     }
 
     /**
@@ -75,26 +69,23 @@ class CardTemplateController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, cardTemplate $cardTemplate)
+    public function update(Request $request, CardTemplate $cardTemplate)
     {
-      $validated = $request->validate([
-        'CARDNAME' => 'required|string|max:255',
-        'NO_OF_DAYS' => 'required|integer|min:1',
-        'PRICE'    => 'required|numeric|min:0',
-        'DISCOUNT' => 'nullable|numeric|min:0',
-     
-    ]);
+        $validated = $request->validate([
+            'card_name'  => 'required|string|max:255',
+            'no_of_days' => 'required|integer|min:1',
+            'price'      => 'required|numeric|min:0',
+            'discount'   => 'nullable|numeric|min:0',
+        ]);
 
-      $validated['AMOUNT'] = $validated['PRICE'] - $validated['DISCOUNT'];
+        $validated['amount'] = $validated['price'] - ($validated['discount'] ?? 0);
 
+        $cardTemplate->update($validated);
 
-    $cardTemplate->update($validated);
-
-      return redirect()->back();
-
-    // return redirect()->route('cardTemplate.index')
-    //     ->with('success', 'updated successfully');
-}
+        return redirect()
+            ->back()
+            ->with('success', 'Template updated successfully');
+    }
 
 
 

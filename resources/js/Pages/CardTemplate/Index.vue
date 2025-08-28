@@ -50,11 +50,11 @@ const showDialog = ref(false)
 // ✅ Table headers (must match your DB columns!)
 const headers = [
   { key: 'id', title: 'ID' },
-  { key: 'CARDNAME', title: 'Card Name' },
-  { key: 'NO_OF_DAYS', title: 'No. of Days' },
-  { key: 'PRICE', title: 'Price' },
-  { key: 'DISCOUNT', title: 'Discount' },
-  { key: 'AMOUNT', title: 'Amount' },
+  { key: 'card_name', title: 'Card Name' },
+  { key: 'no_of_days', title: 'No. of Days' },
+  { key: 'price', title: 'price' },
+  { key: 'discount', title: 'Discount' },
+  { key: 'amount', title: 'Amount' },
   { key: 'actions', title: 'Actions', sortable: false },
 ]
 

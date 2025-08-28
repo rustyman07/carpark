@@ -11,22 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('card_inventories', function (Blueprint $table) {
-            $table->id();
-            $table->integer('CARD_TEMPLATEID')->nullable();
-            $table->string('CARDNAME');
-            $table->integer('NO_OF_CARDS')->default(1);
-            $table->integer('NO_OF_DAYS')->default(1);
-            $table->decimal('PRICE',10,2)->default(0.00);
-            $table->decimal('DISCOUNT',10,2)->default(0.00);
-            $table->decimal('AMOUNT',10,2)->default(0.00);
-            $table->boolean('CANCELLED')->default(0);     
-            $table->integer('CANCELLEDBY')->nullable();
-            $table->dateTime('CANCELLEDDATETIME')->nullable();
-            $table->integer('CREATEDBY')->nullable();
-            $table->timestamps();
+       Schema::create('card_inventories', function (Blueprint $table) {
+    $table->id();
+    $table->unsignedBigInteger('card_template_id')->nullable(); // foreign key to templates?
+    $table->string('card_name');
+    $table->integer('no_of_cards')->default(1);
+    $table->integer('no_of_days')->default(1);
+    $table->decimal('price', 10, 2)->default(0.00);
+    $table->decimal('discount', 10, 2)->default(0.00);
+    $table->decimal('amount', 10, 2)->default(0.00);
+    $table->boolean('cancelled')->default(0);     
+    $table->unsignedBigInteger('cancelled_by')->nullable();
+    $table->dateTime('cancelled_datetime')->nullable();
+    $table->unsignedBigInteger('created_by')->nullable();
+    $table->timestamps();
+});
 
-        });
     }
 
     /**

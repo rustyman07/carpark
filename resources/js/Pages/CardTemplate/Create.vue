@@ -6,14 +6,14 @@
       <v-card-text>
         <!-- your form fields -->
         
-        <v-text-field  v-model= form.CARDNAME variant="underlined" label="Card Name" type = 'text' :error-messages="form.errors.CARDNAME" />
+        <v-text-field  v-model= form.card_name variant="underlined" label="Card Name" type = 'text' :error-messages="form.errors.card_name" />
         
        
-            <v-text-field  v-model= form.NO_OF_DAYS variant="underlined" label="No of Days" type="number" :error-messages="form.errors.NO_OF_DAYS"/>     
-            <v-text-field  v-model= form.PRICE variant="underlined" label="Price"  type="number" :error-messages="form.errors.PRICE" />     
+            <v-text-field  v-model= form.no_of_days variant="underlined" label="No of Days" type="number" :error-messages="form.errors.no_of_days"/>     
+            <v-text-field  v-model= form.price variant="underlined" label="Price"  type="number" :error-messages="form.errors.price" />     
       
         
-            <v-text-field  v-model= form.DISCOUNT variant="underlined" label="Discount"  type="number" :error-messages="form.errors.DISCOUNT" />
+            <v-text-field  v-model= form.discount variant="underlined" label="Discount"  type="number" :error-messages="form.errors.discount" />
                    
         
         
@@ -48,10 +48,10 @@ const props = defineProps({
 const isEdit = ref(false);
 
 const form = useForm({
-    CARDNAME : '',
-    NO_OF_DAYS : 1,
-    PRICE: 0,
-    DISCOUNT: null,
+    card_name : '',
+    no_of_days : 1,
+    price: 0,
+    discount: null,
    
 })
 console.log(isEdit.value);
@@ -61,10 +61,10 @@ watch(() => props.selectedTemplate,(val) => {
   if (val) {
     isEdit.value = true;
     console.log(isEdit.value);
-    form.CARDNAME = val.CARDNAME
-    form.NO_OF_DAYS = val.NO_OF_DAYS
-    form.PRICE = val.PRICE
-    form.DISCOUNT = val.DISCOUNT
+    form.card_name = val.card_name
+    form.no_of_days = val.no_of_days
+    form.price = val.price
+    form.discount = val.discount
 
   } else {
      isEdit.value = false;

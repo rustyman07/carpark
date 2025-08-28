@@ -5,23 +5,20 @@
       <v-card title="TEMPLATE">
       <v-card-text>
         <!-- your form fields -->
-         <v-select
-  label="Select"
+<v-select
+  v-model="form.card_template_id"
   :items="props.cardTemplate"
-  item-title="CARDNAME"   
-  item-value="id"         
-  v-model="form.CARD_TEMPLATEID"
+  item-title="card_name"
+  item-value="id"
+  @update:modelValue="onTemplateChange"
 />
 
-  
-        <v-text-field  v-model= form.CARDNAME variant="underlined" label="Card Name" type = 'text' :error-messages="form.errors.CARDNAME" />
-        
-       
-            <v-text-field  v-model= form.NOOFDAYS variant="underlined" label="No of Days" type="number" :error-messages="form.errors.NOOFDAYS"/>     
-            <v-text-field  v-model= form.PRICE variant="underlined" label="Price"  type="number" :error-messages="form.errors.PRICE" />     
-      
-        
-            <v-text-field  v-model= form.DISCOUNT variant="underlined" label="Discount"  type="number" :error-messages="form.errors.DISCOUNT" />
+        <v-text-field  v-model= form.card_name variant="underlined" label="Card Name" type = 'text' :error-messages="form.errors.card_name" />
+        <v-text-field  v-model= form.no_of_cards variant="underlined" label="No. of Cards"  type="number" :error-messages="form.errors.no_of_cards" />
+            <v-text-field  v-model= form.no_of_days variant="underlined" label="No. of Days" type="number" :error-messages="form.errors.no_of_days"/>     
+            <v-text-field  v-model= form.price variant="underlined" label="price"  type="number" :error-messages="form.errors.price" />   
+              
+            <v-text-field  v-model= form.discount variant="underlined" label="Discount"  type="number" :error-messages="form.errors.discount" />
                    
         
         
@@ -49,18 +46,19 @@ import { useForm, usePage, } from '@inertiajs/vue3';
 const dialog = defineModel({ type: Boolean, default: false });
 
 const props = defineProps({
-  modelValue: { type: Boolean, required: true }, 
+
    cardTemplate: { type: Array, default: () => [] }      
 });
 
 const isEdit = ref(false);
 
 const form = useForm({
-    CARD_TEMPLATEID : null,
-    CARDNAME : '',
-    NOOFDAYS : 1,
-    PRICE: 0,
-    DISCOUNT: null,
+     no_of_cards:1,
+    card_template_id : null,
+    card_name : '',
+    no_of_days : 1,
+    price: 0,
+    discount: null,
    
 })
 console.log(isEdit.value);
@@ -71,10 +69,10 @@ console.log(props.template)
 //   if (val) {
 //     isEdit.value = true;
 //     console.log(isEdit.value);
-//     form.CARDNAME = val.CARDNAME
+//     form.card_name = val.card_name
 //     form.NOOFDAYS = val.NOOFDAYS
-//     form.PRICE = val.PRICE
-//     form.DISCOUNT = val.DISCOUNT
+//     form.price = val.price
+//     form.discount = val.discount
 
 //   } else {
 //      isEdit.value = false;
@@ -83,27 +81,38 @@ console.log(props.template)
 //   }
 // })
 
-// const create = () => form.post(route('card-template.store'),{
-//     onSuccess: ()=>{
-//         form.reset();
-//         dialog.value = false
-//     },
-//     onError: (errors)=>{
-// console.log(errors);
-//     }
-//   });
+const create = () => form.post(route('card-inventory.store'),{
+    onSuccess: ()=>{
+        form.reset();
+        dialog.value = false
+    },
+    onError: (errors)=>{
+console.log(errors);
+    }
+  });
 
 
-// const update = () => form.put(route('card-template.update', props.selectedTemplate.id), {
-//   onSuccess: () => {
-//     form.reset()
-//     dialog.value = false
-//   },
-//     onError: (errors)=>{
-// console.log(errors);
-//     }
-// })
+const update = () => form.put(route('card-inventory.update', props.selectedTemplate.id), {
+  onSuccess: () => {
+    form.reset()
+    dialog.value = false
+  },
+    onError: (errors)=>{
+console.log(errors);
+    }
+})
 
+
+const onTemplateChange = (id) => {
+  console.log('testtgsd');
+  const selected = props.cardTemplate.find(t => t.id === id)
+  if (selected) {
+    form.card_name   = selected.card_name
+    form.no_of_days = selected.no_of_days
+    form.price      = selected.price
+    form.discount   = selected.discount
+  }
+}
 
 
 

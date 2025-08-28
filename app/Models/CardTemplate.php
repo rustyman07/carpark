@@ -7,16 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class CardTemplate extends Model
 {
     //
-     protected $fillable = [
-        'CARDNAME',
-        'NO_OF_DAYS',
-        'STATUS',
-        'DISCOUNT',
-        'PRICE',
-        'AMOUNT',
-        'CANCELLED',
-        'CANCELLEDBY',
-        'CANCELLEDDATETIME',
-        'CREATEDBY',
-     ];
+    protected $fillable = [
+    'card_name',
+    'no_of_days',
+    'status',
+    'discount',
+    'price',
+    'amount',
+    'cancelled',
+    'cancelled_by',
+    'cancelled_datetime',
+    'created_by',
+];
+
 }

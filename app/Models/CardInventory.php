@@ -6,16 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class CardInventory extends Model
 {
-      protected $fillable = [
-        'CARD_TEMPLATEID',
-        'CARDNAME',
-        'NO_OF_DAYS',
-        'DISCOUNT',
-        'PRICE',
-        'AMOUNT',
-        'CANCELLED',
-        'CANCELLEDBY',
-        'CANCELLEDDATETIME',
-        'CREATEDBY',
-     ];
+     protected $fillable = [
+    'card_template_id',
+    'card_name',
+    'no_of_days',
+    'discount',
+    'price',
+    'amount',
+    'cancelled',
+    'cancelled_by',
+    'cancelled_datetime',
+    'created_by',
+];
+
 }

@@ -13,18 +13,19 @@ return new class extends Migration
     {
         Schema::create('card_inventory_details', function (Blueprint $table) {
             $table->id();
-            $table->string('QRCODE');
-            $table->string('STATUS');
-            $table->string('CARDNAME');
-            $table->integer('NO_OF_DAYS')->default(1);
-            $table->decimal('PRICE',10,2)->default(0.00);
-            $table->decimal('DISCOUNT',10,2)->default(0.00);
-            $table->decimal('AMOUNT',10,2)->default(0.00);
-            $table->integer('BALANCE')->default(0);
-            $table->boolean('CANCELLED')->default(0);     
-            $table->integer('CANCELLEDBY')->nullable();
-            $table->dateTime('CANCELLEDDATETIME')->nullable();
-            $table->integer('CREATEDBY')->nullable();
+            $table->unsignedBigInteger('header_id');
+            $table->string('qr_code');
+            $table->string('status');
+            $table->string('card_name');    
+            $table->integer('no_of_days')->default(1);
+            $table->decimal('price',10,2)->default(0.00);
+            $table->decimal('discount',10,2)->default(0.00);
+            $table->decimal('amount',10,2)->default(0.00);
+            $table->integer('balance')->default(0);
+            $table->boolean('cancelled')->default(0);     
+            $table->integer('cancelled_by')->nullable();
+            $table->dateTime('cancelled_datetime')->nullable();
+            $table->integer('created_by')->nullable();
             $table->timestamps();
             
 
