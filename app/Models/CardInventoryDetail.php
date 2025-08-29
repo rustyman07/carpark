@@ -10,6 +10,7 @@ class CardInventoryDetail extends Model
     'header_id',
     'card_name',
     'qr_code',
+    'qr_code_hash',
     'no_of_days',
     'discount',
     'balance',

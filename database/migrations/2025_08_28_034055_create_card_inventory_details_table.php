@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('header_id');
             $table->string('qr_code');
+            $table->string('qr_code_hash');
             $table->string('status');
             $table->string('card_name');    
             $table->integer('no_of_days')->default(1);

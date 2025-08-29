@@ -15,6 +15,11 @@ Route::resource('parkin',TicketController::class);;
 Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
 Route::post('submit/parkout', [TicketController::class, 'submit_park_out']);
 Route::post('submit/payment',[TicketController::class,'submit_payment'])->name('submit.payment');
+// Route::post('submit/payment',[TicketController::class,'submit_payment'])->name('submit.payment');
+// routes/web.php
+Route::post('/verify-qr', [TicketController::class, 'verifyQr'])->name('verify.qr');
+Route::get('/submit/payment/{qr_code}', [TicketController::class, 'submit_payment_qrcode'])->name('submit.payment.qr');
+
 
 //Route::get('scanQR',[TicketController::class,'scanQR'])->name('scanQR');
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Ticket;
 use App\Models\Setting;
+use App\Models\CardInventoryDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;  
@@ -283,7 +284,46 @@ public function submit_park_out(Request $request)
 //         'success' => true,
 //     ]);
 
-//     }
+
+
+public function verifyQr(Request $request)
+{
+     $request->validate([
+        'ticket_id' => 'required|exists:tickets,id',
+        'qr_code'   => 'required|string',
+    ]);
+    $ticket = Ticket::find($request->ticket_id);
+    $qrCode = $request->qr_code;
+
+    $detail = CardInventoryDetail::where('qr_code_hash', $qrCode)
+        ->where('balance', '>=', $ticket->PARKINDAYS)
+        ->first();
+
+    if (!$detail) {
+        return redirect()->back()->with('error', 'Insufficient Balance');
+    }
+
+    // redirect to payment route, inertia will handle transition
+    return redirect()->route('submit.payment.qr', ['qr_code' => $qrCode]);
+}
+
+public function submit_payment_qrcode($qr_code)
+{
+    $detail = CardInventoryDetail::where('qr_code_hash', $qr_code)->first();
+
+    if (!$detail) {
+        return redirect()->back()->with('error', 'QR Code not found.');
+    }
+
+
+    // Do payment processing...
+    $detail->status = 'USED';
+    $detail->save();
+
+    return redirect()->route('parkout')->with('success', 'Payment successful!');
+}
+
+
 
 
 

@@ -87,7 +87,7 @@ class CardInventoryController extends Controller
     // }
 
 
-    public function store(Request $request)
+public function store(Request $request)
 {
     try {
         DB::beginTransaction();
@@ -105,38 +105,47 @@ class CardInventoryController extends Controller
             // 'createdby'   => auth()->id(),
         ]);
 
-        // 2. Create detail rows (without qr_code first)
+        // 2. Create detail rows (placeholders)
         $details = [];
         for ($i = 0; $i < $request->no_of_cards; $i++) {
             $details[] = [
                 'header_id'  => $inventory->id,
-                'qr_code'    =>'test', // temporary placeholder
+                'qr_code'  => 'temp', // placeholder for raw code
+                'qr_code_hash' => 'temp', // placeholder for secure code
                 'status'     => 'AVAILABLE',
                 'card_name'  => $request->card_name,
                 'no_of_days' => $request->no_of_days,
                 'price'      => $request->price,
                 'discount'   => $request->discount,
                 'amount'     => $amount,
-                'balance'    => 0.00,
-                // 'createdby' => auth()->id(),
+                'balance'    =>  $request->no_of_days,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
         }
 
-        // 3. Insert details and get their IDs
+        // 3. Insert details
         CardInventoryDetail::insert($details);
         $year = date('Y');  
 
-
-        // Fetch them back (IDs are now available)
+        // 4. Fetch them back (IDs available now)
         $insertedDetails = CardInventoryDetail::where('header_id', $inventory->id)->get();
 
         foreach ($insertedDetails as $detail) {
-            $rawCode   =  $year.'00000' . $detail->id;
-            $hashedCode = substr(hash('sha256', $rawCode), 0, 16); // shorter secure string
+            // predictable but internal code
+            $qrCode   = $year . '1000' . $detail->id;
 
-            $detail->update(['qr_code' =>  $hashedCode]);
+            // secure hash for external QR usage
+            $hashedCode = substr(
+                hash('sha256', $qrCode . Str::random(8)), // add randomness
+                0,
+                16
+            );
+
+            $detail->update([
+                'qr_code'  => $qrCode,
+                'qr_code_hash' => $hashedCode,
+            ]);
         }
 
         DB::commit();
@@ -155,5 +164,6 @@ class CardInventoryController extends Controller
         ]);
     }
 }
+
 
 }

@@ -20,14 +20,14 @@
         :items-per-page="cardDetail.length"
       >
          <template v-slot:item.status="{ item }">
-          <span class="bg-green-lighten-5 text-green-lighten-1 pa-1">{{ item.status}}</span>
+          <span :class=" item.status == 'AVAILABLE'? 'bg-green-lighten-5 text-green-lighten-1 pa-1':  'bg-blue-lighten-5 text-blue-lighten-1 pa-1'">{{ item.status}}</span>
          </template> 
          <template v-slot:item.created_at="{ item }">
           {{ formatDate(item.created_at) }}
         </template>
-          <template v-slot:item.qr_code="{ item }">
+          <template v-slot:item.qr_code_hash="{ item }">
           <img :src="qrCodeMap[item.id]" alt="QR Code" width="80" />
-        </template>
+        </template> 
 
         <!-- Slot for actions -->
         <!-- <template  v-slot:item.actions="{ item }"> -->
@@ -62,8 +62,8 @@ const showDialog = ref(false)
 
 // ✅ Table headers (must match your DB columns!)
 const headers = [
-  // { key: 'id', title: 'ID' },
-   { key: 'qr_code', title: 'QR Code' },
+   { key: 'id', title: 'ID' },
+   { key: 'qr_code_hash', title: 'QR Code' },
   { key: 'card_name', title: 'Card Name' },
   { key: 'no_of_days', title: 'No. of Days' },
   { key: 'price', title: 'price' },
@@ -81,7 +81,13 @@ const cardTemplate = computed(() => page.props.cardTemplate)
 const cardDetail = computed(()=> page.props.cardDetail)
 const selectedTemplate = ref(null)
 
-
+// const spanClass = computed(()=> {
+//  if (item.status.value =='AVAILABLE')
+//  return "bg-green-lighten-5 text-green-lighten-1 pa-1";
+// else{
+//   return "bg-blue-lighten-5 text-green-blue-1 pa-1";
+// }
+// })
 
 const formatDate = (date) => {
   return date ? dayjs(date).format('MM/DD/YYYY') : ''
@@ -92,8 +98,8 @@ const qrCodeMap = ref({})
 
 onMounted(async () => {
   for (const detail of cardDetail.value) {
-    if (detail.qr_code) {
-      qrCodeMap.value[detail.id] = await QRCode.toDataURL(detail.qr_code)
+    if (detail.qr_code_hash) {
+      qrCodeMap.value[detail.id] = await QRCode.toDataURL(detail.qr_code_hash)
     }
   }
 })

@@ -1,14 +1,15 @@
 <template>
-  <v-snackbar-queue v-model="messages" location="top" :prepend-icon="messages.icon" />
-
-  <!-- Error Card -->
+  <v-snackbar-queue
+    v-model="messages"
+    location="top"
+    :prepend-icon="messages.icon"
+  />
 
   <!-- QR Scanner Dialog -->
   <v-dialog v-model="isScanQR" max-width="600">
     <v-card>
       <v-card-title>Scan QR Code</v-card-title>
       <v-card-text>
-        <!-- html5-qrcode needs a div container -->
         <div id="reader" style="width:100%; height:400px;"></div>
       </v-card-text>
       <v-card-actions>
@@ -17,32 +18,18 @@
     </v-card>
   </v-dialog>
 
-
-
+  <!-- Error Card -->
   <v-dialog v-model="showErrorCard" max-width="400" persistent>
-  <v-card elevation="16">
-    <v-card-title class="text-h6">Error</v-card-title>
-    <v-card-text>{{ errorCardMsg }}</v-card-text>
-    <v-card-actions class="justify-center">
-      <v-btn variant="flat" color="primary" @click="showErrorCard = false">Ok</v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
-
-
-
-  <!-- <v-card
-    v-if="showErrorCard"
-    class="error-card pa-6 text-center position-absolute"
-    style="top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;"
-    elevation="16"
-  >
-    <v-card-title class="text-h6">Error</v-card-title>
-    <v-card-text>{{ errorCardMsg }}</v-card-text>
-    <v-card-actions class="justify-center">
-      <v-btn variant="none" @click="showErrorCard = false">Ok</v-btn>
-    </v-card-actions>
-  </v-card> -->
+    <v-card elevation="16">
+      <v-card-title class="text-h6">Error</v-card-title>
+      <v-card-text>{{ errorCardMsg }}</v-card-text>
+      <v-card-actions class="justify-center">
+        <v-btn variant="flat" color="primary" @click="showErrorCard = false"
+          >Ok</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <!-- Main Layout -->
   <v-layout class="d-flex flex-column align-center justify-center pa-16 h-100">
@@ -85,22 +72,20 @@
       </v-btn>
     </div>
   </v-layout>
-
-
 </template>
 
 <script setup>
-import { useForm, usePage, router } from '@inertiajs/vue3'
-import { computed, ref, watch, onBeforeUnmount } from 'vue'
-import { route } from 'ziggy-js'
-import dayjs from 'dayjs'
-import { Html5Qrcode } from 'html5-qrcode'
-import axios from 'axios'
+import { useForm, usePage, router } from "@inertiajs/vue3"
+import { computed, ref, watch, onBeforeUnmount } from "vue"
+import { route } from "ziggy-js"
+import dayjs from "dayjs"
+import { Html5Qrcode } from "html5-qrcode"
 
 const page = usePage()
 const ticket = computed(() => page.props.ticket || null)
 const success = computed(() => page.props.success || false)
-const errorCardMsg = ref('')
+
+const errorCardMsg = ref("")
 const showErrorCard = ref(false)
 const ticketId = ref(null)
 const messages = ref([])
@@ -112,13 +97,23 @@ watch(ticket, (newTicket) => {
   if (newTicket) ticketId.value = newTicket.id
 })
 
-const now = dayjs()
+// 👀 watch for flash error from Laravel
+watch(
+  () => page.props.flash?.error,
+  (val) => {
+    if (val) {
+      showErrorCard.value = true
+      errorCardMsg.value = val
+    }
+  }
+)
 
-const formatDate = (date) => dayjs(date).format('MM/DD/YYYY')
+const now = dayjs()
+const formatDate = (date) => dayjs(date).format("MM/DD/YYYY")
 const formatFee = (fee) => `${Number(fee).toFixed(2)} PHP`
 
 const form = useForm({
-  PLATENO: '',
+  PLATENO: "",
   PARKOUTYEAR: now.year(),
   PARKOUTMONTH: now.month() + 1,
   PARKOUTDAY: now.date(),
@@ -132,17 +127,17 @@ const form2 = useForm({
 })
 
 const clearError = () => {
-  errorCardMsg.value = ''
+  errorCardMsg.value = ""
   showErrorCard.value = false
 }
 
 const cancelPayment = () => {
-  router.visit(route('parkout'))
+  router.visit(route("parkout"))
 }
 
 const submitPlate = () => {
   clearError()
-  form.post('/submit/parkout', {
+  form.post("/submit/parkout", {
     onSuccess: () => form.reset(),
     onError: (errors) => {
       if (errors.PLATENO) {
@@ -156,25 +151,24 @@ const submitPlate = () => {
 const submitPayment = () => {
   form2.ID = ticketId.value
   clearError()
-  form2.post('/submit/payment', {
+  form2.post("/submit/payment", {
     onSuccess: () => {
       clearError()
       messages.value.push({
-        icon: 'mdi-check-circle',
-        text: 'Payment successful!',
+        icon: "mdi-check-circle",
+        text: "Payment successful!",
         timeout: 3000,
       })
     },
     onError: () => {
       showErrorCard.value = true
-      errorCardMsg.value = 'Payment failed. Please try again.'
+      errorCardMsg.value = "Payment failed. Please try again."
     },
   })
 }
 
 const scanQR = async () => {
   isScanQR.value = true
-  // Start scanner after dialog opens
   setTimeout(() => startScanner(), 300)
 }
 
@@ -184,36 +178,16 @@ const startScanner = async () => {
     await html5QrCode.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: { width: 250, height: 250 } },
-      async (decodedText, decodedResult) => {
+      async (decodedText) => {
         console.log("QR code detected ✅", decodedText)
         await closeScanner()
 
-        // 🔥 Call backend
-        try {
-          const response = await axios.post('/api/verify-qr', { qr_code: decodedText })
-          if (response.data.valid) {
-            messages.value.push({
-              icon: 'mdi-check-circle',
-              text: 'QR Code valid! Payment completed.',
-              timeout: 3000,
-            })
-            router.visit(route('parkout'))
-          } else {
-            showErrorCard.value = true
-            errorCardMsg.value = 'Invalid or already used QR Code.'
-          }
-        } catch (err) {
-          showErrorCard.value = true
-          errorCardMsg.value = 'Error verifying QR Code.'
-        }
-      },
-      (errorMessage) => {
-        // scanning errors (can ignore most)
+        router.post(route("verify.qr"), { qr_code: decodedText,   ticket_id: ticketId.value })
       }
     )
   } catch (err) {
     showErrorCard.value = true
-    errorCardMsg.value = 'Error starting camera: ' + err.message
+    errorCardMsg.value = "Error starting camera: " + err.message
   }
 }
 
