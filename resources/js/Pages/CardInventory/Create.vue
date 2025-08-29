@@ -15,10 +15,10 @@
 
         <v-text-field  v-model= form.card_name variant="underlined" label="Card Name" type = 'text' :error-messages="form.errors.card_name" />
         <v-text-field  v-model= form.no_of_cards variant="underlined" label="No. of Cards"  type="number" :error-messages="form.errors.no_of_cards" />
-            <v-text-field  v-model= form.no_of_days variant="underlined" label="No. of Days" type="number" :error-messages="form.errors.no_of_days"/>     
-            <v-text-field  v-model= form.price variant="underlined" label="price"  type="number" :error-messages="form.errors.price" />   
+        <v-text-field  v-model= form.no_of_days variant="underlined" label="No. of Days" type="number" :error-messages="form.errors.no_of_days"/>     
+        <v-text-field  v-model= form.price variant="underlined" label="price"  type="number" :error-messages="form.errors.price" />   
               
-            <v-text-field  v-model= form.discount variant="underlined" label="Discount"  type="number" :error-messages="form.errors.discount" />
+        <v-text-field  v-model= form.discount variant="underlined" label="Discount"  type="number" :error-messages="form.errors.discount" />
                    
         
         

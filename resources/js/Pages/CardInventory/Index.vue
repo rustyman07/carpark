@@ -8,19 +8,30 @@
     </div>
 
     <!-- Create dialog -->
-    <Create v-model="showDialog" :cardTemplate = "cardTemplate.value" />
+    <Create v-model="showDialog" :cardTemplate = "cardTemplate" />
 
     <!-- Table -->
-    <v-card title="Card Inventory" flat class="mt-4">
+    <v-card title="Card Inventory" class="mt-4" >
       <v-data-table
         :headers="headers"
-        :items="templates"
+        :items="cardDetail"
         class="elevation-1"
         hide-default-footer
+        :items-per-page="cardDetail.length"
       >
+         <template v-slot:item.status="{ item }">
+          <span class="bg-green-lighten-5 text-green-lighten-1 pa-1">{{ item.status}}</span>
+         </template> 
+         <template v-slot:item.created_at="{ item }">
+          {{ formatDate(item.created_at) }}
+        </template>
+          <template v-slot:item.qr_code="{ item }">
+          <img :src="qrCodeMap[item.id]" alt="QR Code" width="80" />
+        </template>
+
         <!-- Slot for actions -->
-        <template v-slot:item.actions="{ item }">
-          <v-btn
+        <!-- <template  v-slot:item.actions="{ item }"> -->
+          <!-- <v-btn
             icon="mdi-pencil"
             color="primary"
             size="small"
@@ -32,36 +43,63 @@
             color="error"
             size="small"
             @click="deleteItem(item)"
-          ></v-btn>
-        </template>
+          ></v-btn> -->
+        <!-- </template> -->
       </v-data-table>
     </v-card>
   </v-container>
 </template>
 
 <script setup>
-import { ref,computed} from 'vue'
+import { ref,computed,onMounted} from 'vue'
+import dayjs from 'dayjs'
 import Create from './Create.vue'
 import { usePage } from '@inertiajs/vue3'
+import QRCode from 'qrcode'
 
 // ✅ Dialog open/close state
 const showDialog = ref(false)
 
 // ✅ Table headers (must match your DB columns!)
 const headers = [
-  { key: 'id', title: 'ID' },
-  { key: 'CARDNAME', title: 'Card Name' },
-  { key: 'NOOFDAYS', title: 'No. of Days' },
-  { key: 'PRICE', title: 'Price' },
-  { key: 'DISCOUNT', title: 'Discount' },
-  { key: 'AMOUNT', title: 'Amount' },
-  { key: 'actions', title: 'Actions', sortable: false },
+  // { key: 'id', title: 'ID' },
+   { key: 'qr_code', title: 'QR Code' },
+  { key: 'card_name', title: 'Card Name' },
+  { key: 'no_of_days', title: 'No. of Days' },
+  { key: 'price', title: 'price' },
+  { key: 'discount', title: 'Discount' },
+  { key: 'amount', title: 'Amount' },
+  { key: 'balance', title: 'Balance' },
+  { key: 'status', title: 'Status' },
+  { key: 'created_at', title: 'Date Created' },
+  // { key: 'actions', title: 'Actions' },
 ]
 
 // ✅ Grab server data from Inertia props
 const page = usePage()
 const cardTemplate = computed(() => page.props.cardTemplate)
+const cardDetail = computed(()=> page.props.cardDetail)
 const selectedTemplate = ref(null)
+
+
+
+const formatDate = (date) => {
+  return date ? dayjs(date).format('MM/DD/YYYY') : ''
+}
+
+
+const qrCodeMap = ref({})
+
+onMounted(async () => {
+  for (const detail of cardDetail.value) {
+    if (detail.qr_code) {
+      qrCodeMap.value[detail.id] = await QRCode.toDataURL(detail.qr_code)
+    }
+  }
+})
+
+
+
 
 // Handlers
 const editItem = (item) => {

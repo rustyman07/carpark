@@ -11,7 +11,7 @@
     <Create v-model="showDialog" :selectedTemplate = "selectedTemplate" />
 
     <!-- Table -->
-    <v-card title="Card Template" flat class="mt-4">
+    <v-card title="Card Template"  class="mt-4">
       <v-data-table
         :headers="headers"
         :items="templates"

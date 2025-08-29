@@ -60,7 +60,7 @@
       </v-navigation-drawer>
 
       <!-- Main Content -->
-      <v-main class="flex-1 bg-gray-100">
+      <v-main class="flex-1 bg-grey-lighten-5">
         <slot />
       </v-main>
 
