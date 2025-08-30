@@ -6,6 +6,7 @@ use App\Models\CardTemplate;
 use App\Models\CardInventoryDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 use Illuminate\Http\Request;
 
@@ -133,14 +134,11 @@ public function store(Request $request)
 
         foreach ($insertedDetails as $detail) {
             // predictable but internal code
-            $qrCode   = $year . '1000' . $detail->id;
+          //  $qrCode   = $year . '1000' . $detail->id;
 
-            // secure hash for external QR usage
-            $hashedCode = substr(
-                hash('sha256', $qrCode . Str::random(8)), // add randomness
-                0,
-                16
-            );
+            $qrCode =  $year . sprintf('%05d', $detail->id);
+
+            $hashedCode = Hash::make($qrCode);
 
             $detail->update([
                 'qr_code'  => $qrCode,

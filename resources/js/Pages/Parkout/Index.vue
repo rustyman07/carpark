@@ -181,7 +181,6 @@ const startScanner = async () => {
       async (decodedText) => {
         console.log("QR code detected ✅", decodedText)
         await closeScanner()
-
         router.post(route("verify.qr"), { qr_code: decodedText,   ticket_id: ticketId.value })
       }
     )

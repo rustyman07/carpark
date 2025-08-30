@@ -286,42 +286,91 @@ public function submit_park_out(Request $request)
 
 
 
-public function verifyQr(Request $request)
+// public function verifyQr(Request $request)
+// {
+//      $request->validate([
+//         'ticket_id' => 'required|exists:tickets,id',
+//         'qr_code'   => 'required|string',
+//     ]);
+//     $ticket = Ticket::find($request->ticket_id);
+//     $qrCode = $request->qr_code;
+
+//     $startDate = $ticket->PARKDAY; 
+//     $today     = Carbon::today()->day;           
+
+//     // $daysParked = $startDate->diffInDays($today) + 1; // +1 to count inclusive
+//    $daysParked  =  ($today - $startDate) + 1;
+  
+//     $detail = CardInventoryDetail::where('qr_code_hash', $qrCode)
+//         ->where('balance', '>=',  $daysParked)
+//         ->first();
+
+//     if (!$detail) {
+//         return redirect()->back()->with('error', 'Insufficient Balance. Current Balance is: '.$daysParked);
+//     }
+
+//     // redirect to payment route, inertia will handle transition
+
+    
+//     return redirect()->route('submit.payment.qr', ['qr_code' => $qrCode]);
+// }
+
+// public function submit_payment_qrcode($qr_code)
+// {
+//     $detail = CardInventoryDetail::where('qr_code_hash', $qr_code)->first();
+
+//     if (!$detail) {
+//         return redirect()->back()->with('error', 'QR Code not found.');
+//     }
+
+
+//     // Do payment processing...
+//     $detail->balance - $daysParked;
+//     $detail->status = 'USED';
+//     $detail->save();
+
+//     return redirect()->route('parkout')->with('success', 'Payment successful!');
+// }
+
+public function processQrPayment(Request $request)
 {
-     $request->validate([
+    $request->validate([
         'ticket_id' => 'required|exists:tickets,id',
         'qr_code'   => 'required|string',
     ]);
+
     $ticket = Ticket::find($request->ticket_id);
     $qrCode = $request->qr_code;
 
-    $detail = CardInventoryDetail::where('qr_code_hash', $qrCode)
-        ->where('balance', '>=', $ticket->PARKINDAYS)
-        ->first();
+    // Calculate days parked
+    $startDate  = $ticket->PARKDAY; 
+    // $daysParked = $startDate->diffInDays(Carbon::today()) + 1;
+    $today     = Carbon::today()->day;  
+
+    $daysParked  =  ($today - $startDate) + 1;
+    // 🔹 First check if QR exists at all
+    $detail = CardInventoryDetail::where('qr_code_hash', $qrCode)->first();
 
     if (!$detail) {
-        return redirect()->back()->with('error', 'Insufficient Balance');
+        return redirect()->back()->with('error', 'Invalid QR Code.');
     }
 
-    // redirect to payment route, inertia will handle transition
-    return redirect()->route('submit.payment.qr', ['qr_code' => $qrCode]);
-}
-
-public function submit_payment_qrcode($qr_code)
-{
-    $detail = CardInventoryDetail::where('qr_code_hash', $qr_code)->first();
-
-    if (!$detail) {
-        return redirect()->back()->with('error', 'QR Code not found.');
+    // 🔹 Then check balance
+    if ($detail->balance < $daysParked) {
+        return redirect()->back()->with('error', 'Insufficient Balance. Days parked: '.$daysParked);
     }
 
-
-    // Do payment processing...
-    $detail->status = 'USED';
+    // Deduct balance
+    $detail->balance -= $daysParked;
+    $detail->status   = $detail->balance > 0 ? 'ACTIVE' : 'USED';
     $detail->save();
 
-    return redirect()->route('parkout')->with('success', 'Payment successful!');
+    return redirect()->route('parkout')->with(
+        'success', 
+        'Payment successful! Remaining balance: '.$detail->balance
+    );
 }
+
 
 
 
