@@ -13,12 +13,10 @@ Route::get('logs', [TicketController::class, 'showLogs'])->name('logs');
 Route::resource('parkin',TicketController::class);;
 
 Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
-Route::post('submit/parkout', [TicketController::class, 'submit_park_out']);
+Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');
 Route::post('submit/payment',[TicketController::class,'submit_payment'])->name('submit.payment');
-// Route::post('submit/payment',[TicketController::class,'submit_payment'])->name('submit.payment');
-// routes/web.php
-Route::post('/verifyQr', [TicketController::class, 'verifyQr'])->name('verify.qr,');
-Route::get('/submit/payment/{qr_code}', [TicketController::class, 'submit_payment_qrcode'])->name('submit.payment.qr');
+Route::post('process-qr-Payment', [TicketController::class, 'processQrPayment'])->name('process.qr');
+Route::get('parkout/receipt',[TicketController::class,'parkout_receipt'])->name('parkout.receipt');
 
 
 //Route::get('scanQR',[TicketController::class,'scanQR'])->name('scanQR');
