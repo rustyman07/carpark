@@ -9,9 +9,10 @@
         placeholder="Enter Plate No."
         style="width: 300px"
         variant="underlined"
+       @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
       />
       <span v-if="form.errors.PLATENO" style="color: red;">{{ form.errors.PLATENO }}</span>
-  <v-layout class="d-flex flex-column ga-2">
+    <v-layout class="d-flex flex-column ga-2">
       <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" :disabled="form.processing">
         New Ticket
       </v-btn>

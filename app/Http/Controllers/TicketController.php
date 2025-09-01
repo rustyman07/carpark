@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\Ticket;
-use App\Models\Setting;
+use App\Models\Company;
 use App\Models\CardInventoryDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -164,21 +164,27 @@ public function submit_park_out(Request $request)
     ]);
 
     // 2️⃣ Compute PARKOUTDATETIME (use provided or fallback to now)
-    $data['PARKOUTDATETIME'] = isset(
+  $parkOutDateTime = isset($data['PARKOUTYEAR'], $data['PARKOUTMONTH'], $data['PARKOUTDAY'])
+    ? Carbon::create(
         $data['PARKOUTYEAR'],
         $data['PARKOUTMONTH'],
         $data['PARKOUTDAY'],
-        $data['PARKOUTHOUR'],
-        $data['PARKOUTMINUTE'],
-        $data['PARKOUTSECOND']
-    ) ? \Carbon\Carbon::create(
-        $data['PARKOUTYEAR'],
-        $data['PARKOUTMONTH'],
-        $data['PARKOUTDAY'],
-        $data['PARKOUTHOUR'],
-        $data['PARKOUTMINUTE'],
-        $data['PARKOUTSECOND']
-    ) : now();
+        $data['PARKOUTHOUR']   ?? 0,
+        $data['PARKOUTMINUTE'] ?? 0,
+        $data['PARKOUTSECOND'] ?? 0
+    )
+    : now();
+
+        $data['PARKOUTYEAR']   = $parkOutDateTime->year;
+        $data['PARKOUTMONTH']  = $parkOutDateTime->month;
+        $data['PARKOUTDAY']    = $parkOutDateTime->day;
+        $data['PARKOUTHOUR']   = $parkOutDateTime->hour;
+        $data['PARKOUTMINUTE'] = $parkOutDateTime->minute;
+        $data['PARKOUTSECOND'] = $parkOutDateTime->second;
+        $data['PARKOUTDATETIME'] = $parkOutDateTime;
+
+
+
 
     // 3️⃣ Fetch latest active ticket (business rule)
     $ticket = Ticket::where('PLATENO', $data['PLATENO'])
@@ -194,24 +200,30 @@ public function submit_park_out(Request $request)
         
         ]);
         }
-        
-
+    
     // 4️⃣ Calculate fee
-    $settings = Setting::find(1); 
-    $ticket->PARKOUTDATETIME = $data['PARKOUTDATETIME']->format('Y-m-d H:i:s');
+    $company = Company::find(1); 
+    $start = Carbon::parse($ticket->PARKDATETIME)->timezone(config('app.timezone'));
+    $end =   Carbon::parse( $data['PARKOUTDATETIME'])->timezone(config('app.timezone'));
 
-    $days = ($data['PARKOUTDAY'] - $ticket->PARKDAY) + 1;
-    $ticket->PARKFEE = (int) $days * (float) $settings->FEE;
+    $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
+    $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
+
+    // $days = ($data['PARKOUTDAY'] - $ticket->PARKDAY) + 1;
+    $ticket->PARKFEE = (int) $daysParked * (float) $company->post_paid_rate;
 
     // Update ticket
-    $ticket->fill([
-        'PARKOUTYEAR'   => $data['PARKOUTYEAR'],
-        'PARKOUTMONTH'  => $data['PARKOUTMONTH'],
-        'PARKOUTDAY'    => $data['PARKOUTDAY'],
-        'PARKOUTHOUR'   => $data['PARKOUTHOUR'],
-        'PARKOUTMINUTE' => $data['PARKOUTMINUTE'],
-        'PARKOUTSECOND' => $data['PARKOUTSECOND'],
-    ])->save();
+    // $ticket->fill([
+    //     'PARKOUTYEAR'   => $data['PARKOUTYEAR'],
+    //     'PARKOUTMONTH'  => $data['PARKOUTMONTH'],
+    //     'PARKOUTDAY'    => $data['PARKOUTDAY'],
+    //     'PARKOUTHOUR'   => $data['PARKOUTHOUR'],
+    //     'PARKOUTMINUTE' => $data['PARKOUTMINUTE'],
+    //     'PARKOUTSECOND' => $data['PARKOUTSECOND'],
+    //     'PARKOUTDATETIME' => $end
+    // ])->save();
+
+    
 
     // 5️⃣ Success response
     return redirect()->route('parkout')->with([
@@ -219,6 +231,8 @@ public function submit_park_out(Request $request)
         'success' => true,
     ]);
 }
+
+
     public function submit_payment(Request $request){
         $data = $request->validate([
             'ID' => 'required|exists:tickets,id',
@@ -253,59 +267,6 @@ public function submit_park_out(Request $request)
 
     }
 
-
-
-
-// public function verifyQr(Request $request)
-// {
-//      $request->validate([
-//         'ticket_id' => 'required|exists:tickets,id',
-//         'qr_code'   => 'required|string',
-//     ]);
-//     $ticket = Ticket::find($request->ticket_id);
-//     $qrCode = $request->qr_code;
-
-//     $startDate = $ticket->PARKDAY; 
-//     $today     = Carbon::today()->day;           
-
-//     // $daysParked = $startDate->diffInDays($today) + 1; // +1 to count inclusive
-//    $daysParked  =  ($today - $startDate) + 1;
-  
-//     $detail = CardInventoryDetail::where('qr_code_hash', $qrCode)
-//         ->where('balance', '>=',  $daysParked)
-//         ->first();
-
-//     // if (!$detail) {
-//     //     return redirect()->back()->with('error', 'Insufficient Balance. Current Balance is: '.$daysParked);
-//     // }
-//     if (!$detail) {
-//     return back()->withErrors([
-//         'qr_code' => 'Insufficient Balance. Required: '.$daysParked
-//     ]);
-// }
-
-//     // redirect to payment route, inertia will handle transition
-
-    
-//     return redirect()->route('submit.payment.qr', ['qr_code' => $qrCode]);
-// }
-
-// public function submit_payment_qrcode($qr_code)
-// {
-//     $detail = CardInventoryDetail::where('qr_code_hash', $qr_code)->first();
-
-//     if (!$detail) {
-//         return redirect()->back()->with('error', 'QR Code not found.');
-//     }
-
-
-//     // Do payment processing...
-//     // $detail->balance - $daysParked;
-//     $detail->status = 'USED';
-//     $detail->save();
-
-//     return redirect()->route('parkout')->with('success', 'Payment successful!');
-// }
 
 public function processQrPayment(Request $request)
 {

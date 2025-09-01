@@ -1,53 +1,64 @@
 <template>
-  <v-container>
-    <div class="d-flex justify-end mb-4">
-      <!-- Open dialog -->
-      <v-btn color="success" @click="addCard">
-        Generate Card
-      </v-btn>
-    </div>
+    <v-container>
+        <div class="d-flex justify-end mb-4">
+        <!-- Open dialog -->
+            <v-btn color="success" @click="addCard">
+            Generate Card
+            </v-btn>
+        </div>
 
     <!-- Create dialog -->
     <Create v-model="showDialog" :cardTemplate = "cardTemplate" />
 
     <!-- Table -->
-    <v-card title="Card Inventory" class="mt-4" >
-      <v-data-table
-        :headers="headers"
-        :items="cardDetail"
-        class="elevation-1"
-        hide-default-footer
-        :items-per-page="cardDetail.length"
-      >
-         <template v-slot:item.status="{ item }">
-          <span :class=" item.status == 'AVAILABLE'? 'bg-green-lighten-5 text-green-lighten-1 pa-1':  'bg-blue-lighten-5 text-blue-lighten-1 pa-1'">{{ item.status}}</span>
-         </template> 
-         <template v-slot:item.created_at="{ item }">
-          {{ formatDate(item.created_at) }}
-        </template>
-          <template v-slot:item.qr_code_hash="{ item }">
-          <img :src="qrCodeMap[item.id]" alt="QR Code" width="80" />
-        </template> 
+        <v-card title="Card Inventory" class="mt-4" >
+            <v-data-table
+            :headers="headers"
+            :items="cardDetail"
+            class="elevation-1"
+            hide-default-footer
+            :items-per-page="cardDetail.length"
+            >
+                <template v-slot:item.status="{ item }">
+                <span :class=" item.status == 'AVAILABLE'? 'bg-green-lighten-5 text-green-lighten-1 pa-1':  'bg-blue-lighten-5 text-blue-lighten-1 pa-1'">{{ item.status}}</span>
+                </template> 
 
-        <!-- Slot for actions -->
-        <!-- <template  v-slot:item.actions="{ item }"> -->
-          <!-- <v-btn
-            icon="mdi-pencil"
-            color="primary"
-            size="small"
-            @click="editItem(item)"
-          ></v-btn>
+                <template v-slot:item.created_at="{ item }">
+                {{ formatDate(item.created_at) }}
+                </template>
 
-          <v-btn
-            icon="mdi-delete"
-            color="error"
-            size="small"
-            @click="deleteItem(item)"
-          ></v-btn> -->
-        <!-- </template> -->
-      </v-data-table>
-    </v-card>
-  </v-container>
+                <template v-slot:item.qr_code_hash="{ item }">
+                    <img :src="qrCodeMap[item.id]" alt="QR Code" width="80" />
+                </template> 
+
+                <template v-slot:item.download="{ item }">
+                    <v-btn
+                    icon="mdi-download"
+                    color="primary"
+                    size="small"
+                    @click="downloadQRCode(item)"
+                    ></v-btn>
+                </template>
+
+            <!-- Slot for actions -->
+            <!-- <template  v-slot:item.actions="{ item }"> -->
+                <!-- <v-btn
+                icon="mdi-pencil"
+                color="primary"
+                size="small"
+                @click="editItem(item)"
+                ></v-btn>
+
+                <v-btn
+                icon="mdi-delete"
+                color="error"
+                size="small"
+                @click="deleteItem(item)"
+                ></v-btn> -->
+            <!-- </template> -->
+            </v-data-table>
+        </v-card>
+    </v-container>
 </template>
 
 <script setup>
@@ -72,6 +83,7 @@ const headers = [
   { key: 'balance', title: 'Balance' },
   { key: 'status', title: 'Status' },
   { key: 'created_at', title: 'Date Created' },
+   { key: 'download', title: 'Download' }, // ✅ Add this
   // { key: 'actions', title: 'Actions' },
 ]
 
@@ -122,5 +134,21 @@ const addCard = () => {
 //   selectedTemplate.value = null   // reset for "Add Template"
   showDialog.value = true
 }
+
+const downloadQRCode = (item) => {
+  const qrDataUrl = qrCodeMap.value[item.id]
+  if (!qrDataUrl) return
+
+  // Create a temporary <a> tag
+  const link = document.createElement('a')
+  link.href = qrDataUrl
+  link.download = `${item.card_name || 'qrcode'}-${item.id}.png` // filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+
+
 
 </script>

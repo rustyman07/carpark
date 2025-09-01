@@ -1,65 +1,68 @@
 <template>
-    <v-snackbar-queue
-        v-model="messages"
-        location="top"
-        :prepend-icon="messages.icon"
-    />
+  <v-snackbar-queue
+    v-model="messages"
+    location="top"
+    :prepend-icon="messages.icon"
+  />
 
   <!-- QR Scanner Dialog -->
   <v-dialog v-model="isScanQR" max-width="600">
-        <v-card>
-            <v-card-title>Scan QR Code</v-card-title>
-            <v-card-text>
-                <div id="reader" style="width:100%; height:400px;"></div>
-            </v-card-text>
-            <v-card-actions>
-                <v-btn color="error" text @click="closeScanner">Close</v-btn>
-            </v-card-actions>
-        </v-card>
-  </v-dialog>
-
-  <!-- Error Card -->
-    <v-dialog v-model="showErrorCard" max-width="400" persistent>
-    <v-card elevation="16">
-        <v-card-title class="text-h6">Error</v-card-title>
-        <v-card-text>{{ errorCardMsg }}</v-card-text>
-        <v-card-actions class="justify-center">
-            <v-btn variant="flat" color="primary" @click="showErrorCard = false">Ok</v-btn>
+    <v-card>
+      <v-card-title>Scan QR Code</v-card-title>
+      <v-card-text>
+        <div id="reader" style="width:100%; height:400px;"></div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="error" text @click="closeScanner">Close</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
+  <!-- Error Card -->
+    <v-dialog v-model="showErrorCard" max-width="400" persistent>
+        <v-card elevation="16">
+            <v-card-title class="text-h6">Error</v-card-title>
+            <v-card-text>{{ errorCardMsg }}</v-card-text>
+            <v-card-actions class="justify-center">
+                <v-btn variant="flat" color="primary" @click="showErrorCard = false"
+                >Ok</v-btn
+                >
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
+
   <!-- Main Layout -->
     <v-layout class="d-flex flex-column align-center justify-center pa-16 h-100">
     <!-- Show ticket if found -->
-            <v-card v-if="success && ticket" class="pa-5">
-            <v-card-text class="py-1 px-2">
-                Park in Date Time: {{ formatDate(ticket.PARKDATETIME) }}
-            </v-card-text>
-            <v-card-text class="py-1 px-2">
-                Park out Date Time: {{ formatDate(ticket.PARKOUTDATETIME) }}
-            </v-card-text>
-            <v-card-text class="py-1 px-2">
-                Ticket Fee: {{ formatFee(ticket.PARKFEE) }}
-            </v-card-text>
+        <v-card v-if="success && ticket" class="pa-5">
+        <v-card-text class="py-1 px-2">
+            Park in Date Time: {{ formatDate(ticket.PARKDATETIME) }}
+        </v-card-text>
+        <v-card-text class="py-1 px-2">
+            Park out Date Time: {{ formatDate(ticket.PARKOUTDATETIME) }}
+        </v-card-text>
+        <v-card-text class="py-1 px-2">
+            Ticket Fee: {{ formatFee(ticket.PARKFEE) }}
+        </v-card-text>
 
             <v-layout class="d-flex justify-space-between mt-2 ga-4">
                 <v-btn @click="submitPayment" color="blue-darken-4">Cash</v-btn>
                 <v-btn @click="scanQR" color="blue-darken-4">Scan QR</v-btn>
                 <v-btn @click="cancelPayment" color="red-darken-2">Cancel</v-btn>
             </v-layout>
-            </v-card>
+        </v-card>
 
-    <!-- Show input if no ticket -->
-    <div v-else>
-        <v-text-field
-            class="text-h1"
-            v-model="form.PLATENO"
-            placeholder="Enter Plate No."
-            style="width: 300px"
-            variant="underlined"
-             @input="form.PLATENO = form.PLATENO.replace(/[^A-Z0-9]/gi, '').toUpperCase()"
-        /> 
+            <!-- Show input if no ticket -->
+        <div v-else>
+                <v-text-field
+                class="text-h1"
+                v-model="form.PLATENO"
+                placeholder="Enter Plate No."
+                style="width: 300px"
+                variant="underlined"
+                @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
+                />
+
         <v-btn
             :disabled="!form.PLATENO"
             size="x-large"
@@ -98,16 +101,14 @@ watch(ticket, (newTicket) => {
 
 // 👀 watch for flash error from Laravel
 watch(
-  () => page.props.flash,
-  (flash) => {
-    if (flash?.error) {
+  () => page.props.flash?.error,
+  (val) => {
+    if (val) {
       showErrorCard.value = true
-      errorCardMsg.value = flash.error
+      errorCardMsg.value = val
     }
-  },
-  { deep: true }
+  }
 )
-
 
 const now = dayjs()
 const formatDate = (date) => dayjs(date).format("MM/DD/YYYY")
@@ -138,7 +139,7 @@ const cancelPayment = () => {
 
 const submitPlate = () => {
   clearError()
-  form.post(route("parkout.submit"), {
+  form.post(route('parkout'), {
     onSuccess: () => form.reset(),
     onError: (errors) => {
       if (errors.PLATENO) {
@@ -174,21 +175,22 @@ const scanQR = async () => {
 }
 
 const startScanner = async () => {
-  try {
-    html5QrCode = new Html5Qrcode("reader")
-    await html5QrCode.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      async (decodedText) => {
-        console.log("QR code detected ✅", decodedText)
-        await closeScanner()
-        router.post(route("process.qr"), { qr_code: decodedText,   ticket_id: ticketId.value })
-      }
-    )
-  } catch (err) {
-    showErrorCard.value = true
-    errorCardMsg.value = "Error starting camera: " + err.message
-  }
+    if (!isScanQR.value) return
+    try {
+        html5QrCode = new Html5Qrcode("reader")
+        await html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (decodedText) => {
+            console.log("QR code detected ✅", decodedText)
+            await closeScanner()
+            router.post(route("process.qr"), { qr_code: decodedText,   ticket_id: ticketId.value })
+        }
+        )
+    } catch (err) {
+        showErrorCard.value = true
+        errorCardMsg.value = "Error starting camera: " + err.message
+        }
 }
 
 const closeScanner = async () => {
