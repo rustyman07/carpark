@@ -44,11 +44,11 @@
                 <p class="w-10 "> : </p>
                 <p class="ml-2">{{ duration }}</p>
             </div>
-            <div class="d-flex  text-body-2 ">
-                <p  class="font-weight-bold w-25">Balance </p>
-                <p class="w-10 "> : </p>
-                <p class="ml-2">{{detail.balance }}</p>
-            </div>
+          <div v-if="ticket.mode_of_payment === 'card'" class="d-flex text-body-2">
+  <p class="font-weight-bold w-25">Balance </p>
+  <p class="w-10 "> : </p>
+  <p class="ml-2">{{ detail.balance }}</p>
+</div>
         <!-- Receipt Body -->
         <!-- <v-row class="mb-2">
             <v-col cols="6" class="font-weight-bold">From: <span>{{parkinDate}}</span> </v-col>

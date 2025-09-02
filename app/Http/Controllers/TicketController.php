@@ -7,8 +7,7 @@ use App\Models\CardInventoryDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;  
-use Inertia\Inertia;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Str;
 
 class TicketController extends Controller
 {
@@ -72,7 +71,9 @@ public function store(Request $request)
    $data['TICKETNO'] = 0;
     DB::transaction(function () use ($data) {
         $ticket = Ticket::create($data);
-        $ticket->update(['TICKETNO' => (string) (1000000 + $ticket->id)]);
+        $ticket->update([
+            'TICKETNO' => (string) (1000000 + $ticket->id),
+            'uuid' => (string) Str::uuid(),]);
     });
 
     return back()->with('success', 'Ticket created successfully!');
@@ -221,51 +222,184 @@ public function submit_park_out(Request $request)
 
 //   $ticket->PARKOUTDATETIME = $data['PARKOUTDATETIME'];
 
-     
+  $ticket->REMARKS = 'UNPAID';
   $ticket->PARKOUTDATETIME = $parkOutDateTime;
   $ticket->save();
 
     // 5️⃣ Success response
-    return redirect()->route('parkout')->with([
-        'ticket'  => $ticket,
-        'success' => true,
+   
+    return redirect()->route('show.payment', ['uuid' => $ticket->uuid]);
+}
+
+
+public function show_payment(string $uuid){
+    $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+
+    return Inertia('Parkout/Payment',[
+        'ticket' => $ticket
     ]);
 }
 
 
-    public function submit_payment(Request $request){
-        $data = $request->validate([
-            'ID' => 'required|exists:tickets,id',
-        ], [
-            'ID.exists' => 'Invalid Payment.',
-        ]);
+// public function submit_payment(Request $request){
 
-        $ticket = Ticket::find($request->input('ID'));
+//         $ticket = Ticket::find($request->input('ticket_id'));
+//         $company = Company::find(1); 
+//         $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($ticket->PARKOUTDATETIME) / 60);
+//         $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60)));
 
-                // Update ticket
-        $ticket->fill([
-            // 'REMARKS'   => 'PAID',
-            'ISPARKOUT'  => 1,
-            // 'PARKOUTBY'  => 
-        ])->save();
 
-        // return inertia('Parkout/Index', [
-        //          'ticket'  => $ticket,
-        //         'success' => true,
-        //     ]);
 
-// return back()->with([
-//         'ticket' => $ticket,
+//      if ($request->input('mode_of_payment') === 'card')
+//      {
+//           $request->validate([
+//             'ticket_id' => 'required|exists:tickets,id',
+//         ], [
+//             'ticket_id.exists' => 'Invalid Payment.',
+//         ]);
+
+
+
+//      }else if ($request->input('mode_of_payment') === 'cash'){
+//          $data =   $request->validate([
+//         'ticket_id' => 'required|exists:tickets,id',
+//         'qr_code'   => 'required|string',
+//             ]);
+//          $qrCode = $data['qr_code'];
+
+
+//         $detail = CardInventoryDetail::where('qr_code_hash', $qrCode)->first();
+//         if (!$detail) {
+//         return back()->with('error', 'Invalid QR Code.');
+//         }
+
+//         if ($detail->balance <= 0){
+//         return back()->with('error', 'Card already used up.');
+//        }
+
+//         if ((int)$detail->balance < $daysParked) {
+//         return back()->with('error', 'Insufficient Balance. '.$ticket->balance);
+//       }
+    
+//     }
+//        ;
+
+
+//     DB::transaction(function () use ($detail, $ticket, $daysParked) {
+//         $detail->balance -= $daysParked;
+//         $detail->status   = $detail->balance > 0 ? 'ACTIVE' : 'USED';
+//         $detail->save();
+
+//         $ticket->REMARKS  = 'PAID';
+//         $ticket->ISPARKOUT = 1;
+//         $ticket->save();
+//     });
+
+
+//    return redirect()->route('parkout.receipt')->with([
 //         'success' => true,
-//     ]);
+//         'message' => 'Payment successful! Remaining balance: '.$detail->balance.' | Days parked: '.$daysParked,
+//         'ticket'  => $ticket,
+//         'detail'  => $detail,
+//         'company' => $company
+//    ]);
+    
+// }
+    
+public function submit_payment(Request $request)
+{
+    // 1. Unified Validation
+    // Validate all required fields upfront based on the payment mode.
+    $validationRules = [
+        'ticket_id' => 'required|exists:tickets,id',
+        'mode_of_payment' => 'required|in:cash,card', // Ensure this is one of the valid modes
+    ];
 
-         return Inertia::render('Parkout/Index', [
-        'ticket' => $ticket,
-        // 'success' => true,
-        'successMessage' => 'Payment successful!', // <-- pass actual string
-    ]);
-
+    if ($request->input('mode_of_payment') === 'card') {
+        $validationRules['qr_code'] = 'required|string';
     }
+    
+    $request->validate($validationRules);
+
+    // 2. Initial Data Fetching
+    // Use findOrFail to automatically handle cases where the ticket is not found,
+    // which is more expressive than a manual check.
+    $ticket = Ticket::findOrFail($request->input('ticket_id'));
+    $company = Company::find(1);
+    
+    // 3. Calculate Fee Once
+    $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($ticket->PARKOUTDATETIME) / 60);
+    $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
+
+    // 4. Handle Different Payment Modes
+    // Use a clear conditional structure (if/else if) to handle the logic for each mode.
+    $transactionDetails = [];
+
+    if ($request->input('mode_of_payment') === 'cash') {
+        // Handle cash payment logic if any is needed.
+        // For now, this branch simply proceeds.
+        $ticket->PARKFEE = (int) $daysParked * (float) $company->post_paid_rate;
+        $ticket->save();
+
+    } else if ($request->input('mode_of_payment') === 'card') {
+        $qrCode = $request->input('qr_code');
+
+        $detail = CardInventoryDetail::where('qr_code_hash', $qrCode)->first();
+        if (!$detail) {
+            return back()->with('error', 'Invalid QR Code.');
+        }
+
+        if ($detail->balance <= 0) {
+            return back()->with('error', 'Card already used up.');
+        }
+
+        if ($detail->balance < $daysParked) {
+            return back()->with('error', 'Insufficient Balance.');
+        }
+
+        // Prepare card-specific details for the transaction
+        $transactionDetails = [
+            'detail' => $detail,
+            'days_parked' => $daysParked,
+        ];
+    }
+
+    // 5. Database Transaction for Atomicity
+    // Perform all database operations inside a single transaction.
+    DB::transaction(function () use ($ticket, $transactionDetails,$request) {
+        
+        $ticket->REMARKS = 'PAID';
+        $ticket->ISPARKOUT = 1;
+          $ticket->mode_of_payment = $request->input('mode_of_payment');
+        $ticket->save();
+
+        if (isset($transactionDetails['detail'])) {
+            $detail = $transactionDetails['detail'];
+            $daysParked = $transactionDetails['days_parked'];
+            $detail->balance -= $daysParked;
+            $detail->status = $detail->balance > 0 ? 'ACTIVE' : 'USED';
+            $detail->save();
+        }
+    });
+
+    // 6. Final Response
+    // Use a single, clean return statement with optional flash data.
+    $responseWith = [
+        'success' => true,
+        'ticket' => $ticket,
+        'company' => $company,
+    ];
+
+    if (isset($transactionDetails['detail'])) {
+        $detail = $transactionDetails['detail'];
+        $daysParked = $transactionDetails['days_parked'];
+        $responseWith['detail'] = $detail;
+        $responseWith['message'] = 'Payment successful! Remaining balance: ' . $detail->balance . ' | Days parked: ' . $daysParked;
+    }
+
+    return redirect()->route('parkout.receipt')->with($responseWith);
+}
+
 
 
 public function processQrPayment(Request $request)

@@ -15,8 +15,15 @@ Route::resource('parkin',TicketController::class);;
 
 Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
 Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');
-Route::post('submit/payment',[TicketController::class,'submit_payment'])->name('submit.payment');
+
+
+Route::get('parkout/payment/{uuid}',[TicketController::class,'show_payment'])->name('show.payment');
+Route::post('parkout/payment',[TicketController::class,'submit_payment'])->name('store.payment');
+
+
 Route::post('process-qr-Payment', [TicketController::class, 'processQrPayment'])->name('process.qr');
+
+
 Route::get('parkout/receipt',[TicketController::class,'parkout_receipt'])->name('parkout.receipt');
 
 Route::get('company',[CompanyController::class,'index'])->name('company.index');
