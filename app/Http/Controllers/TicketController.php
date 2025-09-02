@@ -183,10 +183,6 @@ public function submit_park_out(Request $request)
         $data['PARKOUTSECOND'] = $parkOutDateTime->second;
         $data['PARKOUTDATETIME'] = $parkOutDateTime;
 
-
-
-
-    // 3️⃣ Fetch latest active ticket (business rule)
     $ticket = Ticket::where('PLATENO', $data['PLATENO'])
         // ->where('ISPARKOUT',0)
         ->latest('PARKDATETIME')
@@ -209,7 +205,6 @@ public function submit_park_out(Request $request)
     $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
     $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
 
-    // $days = ($data['PARKOUTDAY'] - $ticket->PARKDAY) + 1;
     $ticket->PARKFEE = (int) $daysParked * (float) $company->post_paid_rate;
 
     // Update ticket
@@ -223,7 +218,12 @@ public function submit_park_out(Request $request)
     //     'PARKOUTDATETIME' => $end
     // ])->save();
 
-    
+
+//   $ticket->PARKOUTDATETIME = $data['PARKOUTDATETIME'];
+
+     
+  $ticket->PARKOUTDATETIME = $parkOutDateTime;
+  $ticket->save();
 
     // 5️⃣ Success response
     return redirect()->route('parkout')->with([
@@ -276,13 +276,15 @@ public function processQrPayment(Request $request)
     ]);
 
     $ticket = Ticket::find($request->ticket_id);
+    $company = Company::find(1); 
     $qrCode = $request->qr_code;
 
-    // ✅ Use NOW, not today (and round up by minutes → at least 1 day)
-    $start = Carbon::parse($ticket->PARKDATETIME)->timezone(config('app.timezone'));
-    $now   = now(config('app.timezone'));
+ 
+    // $parkin = Carbon::parse($ticket->PARKDATETIME);
+    // $parkout   = Carbon::parse($ticket->PARKOUTDATETIME);
 
-    $minutesDiff = $start->diffInMinutes($now);          // absolute minutes
+    $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($ticket->PARKOUTDATETIME) / 60);
+         // ab
     $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
 
     // 🔹 First check if QR exists at all
@@ -291,17 +293,18 @@ public function processQrPayment(Request $request)
         return back()->with('error', 'Invalid QR Code.');
     }
 
+     if ($detail->balance <= 0){
+    return back()->with('error', 'Card already used up.');
 
     if ((int)$detail->balance < $daysParked) {
-        return back()->with('error', 'Insufficient Balance. Days parked: '.$daysParked);
+        return back()->with('error', 'Insufficient Balance. '.$ticket->balance);
     }
 
     // if ($ticket->ISPARKOUT){
     //        return back()->with('error', 'Car has been park out.');
     // }
 
-    if ($detail->balance == 0) {
-    return back()->with('error', 'Card already used up.');
+   
 }
 
     DB::transaction(function () use ($detail, $ticket, $daysParked) {
@@ -320,6 +323,7 @@ public function processQrPayment(Request $request)
         'message' => 'Payment successful! Remaining balance: '.$detail->balance.' | Days parked: '.$daysParked,
         'ticket'  => $ticket,
         'detail'  => $detail,
+        'company' => $company
    ]
     );
 
@@ -328,6 +332,9 @@ public function processQrPayment(Request $request)
     //     'Payment successful! Remaining balance: '.$detail->balance.' | Days parked: '.$daysParked
     // );
 }
+
+
+
     public function parkout_receipt(){
         return inertia('Parkout/Receipt',[
             'ticket' => session('ticket'),

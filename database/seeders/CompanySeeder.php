@@ -25,6 +25,7 @@ class CompanySeeder extends Seeder
     [
         'name'           => 'Cerebro Diagnostic System',
         'address'        => 'Zone 4 Cugman Cagayan de oro City',
+        'contact'        => '09123456789',
         'post_paid_rate' => 500.00,
         'created_at'     => now(),
         'updated_at'     => now(),

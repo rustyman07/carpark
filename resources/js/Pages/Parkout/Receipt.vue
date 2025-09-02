@@ -4,10 +4,12 @@
         <!-- Header -->
         <div class="text-center mb-2">
             <p class="text-grey">Thank you for parking with us</p>
+        </div>
+            <v-icon icon="mdi-parking"></v-icon>
             <v-divider class="my-2"></v-divider>
             <h3 class="font-weight-bold">Parking Receipt</h3>
             <v-divider class="my-2"></v-divider>
-        </div>
+
         <div  class="d-flex flex-column items-center align-center">
             <p class=" text-caption">Ticket No.</p>
             <p class="font-weight-bold ">{{ticket.TICKETNO }}</p>

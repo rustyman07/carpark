@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Ticket extends Model
 {
     //
+       protected $casts = [
+        'PARKOUTDATETIME' => 'datetime:Y-m-d H:i:s',
+        'PARKDATETIME' => 'datetime:Y-m-d H:i:s',
+    ];
 
         protected $fillable = [
         'TICKETNO',

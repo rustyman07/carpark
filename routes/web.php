@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CardTemplateController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CardInventoryController;
+use App\Http\Controllers\CompanyController;
 
 
 Route::get('/', fn () => Inertia::render('Home/Index'))->name('home');
@@ -18,8 +19,7 @@ Route::post('submit/payment',[TicketController::class,'submit_payment'])->name('
 Route::post('process-qr-Payment', [TicketController::class, 'processQrPayment'])->name('process.qr');
 Route::get('parkout/receipt',[TicketController::class,'parkout_receipt'])->name('parkout.receipt');
 
-
-//Route::get('scanQR',[TicketController::class,'scanQR'])->name('scanQR');
+Route::get('company',[CompanyController::class,'index'])->name('company.index');
 
 Route::resource('card-template', CardTemplateController::class)
     ->only(['index', 'store', 'update']);
@@ -30,7 +30,8 @@ Route::resource('card-template', CardTemplateController::class)
 
 
 Route::get('card-inventory',[CardInventoryController::class,'index'])->name('card-inventory.index');
- Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');
+Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');
+
 
 // Route::get('card-inventory', [CardInventoryController::class, 'index'])->name('card-inventory.index');
 // Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');

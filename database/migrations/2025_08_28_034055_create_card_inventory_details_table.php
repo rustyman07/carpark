@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('card_name');    
             $table->integer('no_of_days')->default(1);
             $table->decimal('price',10,2)->default(0.00);
-            $table->decimal('discount',10,2)->default(0.00);
+            $table->decimal('discount',10,2)->nullable()->default(0.00);
             $table->decimal('amount',10,2)->default(0.00);
             $table->integer('balance')->default(0);
             $table->boolean('cancelled')->default(0);     

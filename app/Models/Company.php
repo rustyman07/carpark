@@ -13,6 +13,7 @@ class Company extends Model
      protected $fillable = [
     'name',
     'address',
+    'contact',
     'post_paid_rate',
     ];
 }
