@@ -12,13 +12,13 @@
 
         <div  class="d-flex flex-column items-center align-center">
             <p class=" text-caption">Ticket No.</p>
-            <p class="font-weight-bold ">{{ticket.TICKETNO }}</p>
+            <p class="font-weight-bold ">{{props.ticket.ticket_no }}</p>
         </div>
 
             <div class="d-flex  text-body-2 pb-2">
                 <p class="font-weight-bold w-25">Plate No</p>
                 <p class="w-10"> : </p>
-                <p class="ml-2">{{ticket.PLATENO }}</p>
+                <p class="ml-2">{{props.ticket.plate_no }}</p>
             </div>
 
             <div class="d-flex text-body-2 pb-2">
@@ -83,55 +83,61 @@ import { ref,computed } from "vue"
 import html2pdf from "html2pdf.js"
 import { usePage } from "@inertiajs/vue3"
 import dayjs from 'dayjs'
-import durationPlugin from 'dayjs/plugin/duration'
+
+
+const props = defineProps({
+  ticket : Object,
+  detail : Object,
+})
 
 const page = usePage();
-const ticket = page.props.ticket
+
+
+
+// const ticket = page.props.ticket
 const detail = page.props.detail
 
 
 
-console.log("PARKDATETIME:", ticket?.PARKDATETIME)
-console.log("PARKOUTDATETIME:", ticket?.PARKOUTDATETIME)
+
 // Format entry time
 const parkinDate = computed(() => {
 
-  return ticket?.PARKDATETIME 
-    ? dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY")
+  return props.ticket?.park_datetime 
+    ? dayjs(props.ticket.park_datetime).format("MM/DD/YYYY")
     : null
 })
 
 
 const parkinTime = computed(() => {
-  return ticket?.PARKDATETIME
-    ? dayjs(ticket.PARKDATETIME).format("hh:mm A") // ex: 03:45 PM
+  return props.ticket?.park_datetime
+    ? dayjs(props.ticket.park_datetime).format("hh:mm A") 
     : null
 })
-
-
 
 
 
 // Format exit time
 const parkoutDate = computed(() => {
-  return ticket?.PARKOUTDATETIME 
-    ? dayjs(ticket.PARKOUTDATETIME).format("MM/DD/YYYY")
+  return props.ticket?.parkout_datetime 
+    ? dayjs(props.ticket.parkout_datetime).format("MM/DD/YYYY")
     : null
 })
 
 const parkoutTime = computed(() => {
-  return ticket?.PARKOUTDATETIME
-    ? dayjs(ticket.PARKOUTDATETIME).format("hh:mm A") // ex: 03:45 PM
+  return props.ticket?.parkout_datetime
+    ? dayjs(props.ticket.parkout_datetime).format("hh:mm A") 
     : null
 })
 
 
 
 const duration = computed(() => {
-  if (!ticket?.PARKDATETIME || !ticket?.PARKOUTDATETIME) return null
+  if (!props.ticket?.park_datetime || !props.ticket?.parkout_datetime) return null
 
-  const start = dayjs(ticket.PARKDATETIME)
-  const end = dayjs(ticket.PARKOUTDATETIME)
+const start = dayjs(props.ticket.park_datetime).startOf('minute')
+const end = dayjs(props.ticket.parkout_datetime).startOf('minute')
+
 
   // Difference in minutes
   const diffMinutes = end.diff(start, 'minute')

@@ -9,19 +9,23 @@
         placeholder="Enter Plate No."
         style="width: 300px"
         variant="underlined"
+       :error-messages="form.errors.PLATENO"
        @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
       />
-      <span v-if="form.errors.PLATENO" style="color: red;">{{ form.errors.PLATENO }}</span>
+      
     <v-layout class="d-flex flex-column ga-2">
-      <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" :disabled="form.processing">
+      <v-btn size="x-large" @click="createTicket" block color="blue-darken-4"   :disabled="form.processing || !form.PLATENO">
         New Ticket
       </v-btn>
       <v-layout class="d-flex ga-2 align-center">
           <v-divider thickness="2"></v-divider>   <span>OR</span><v-divider thickness="2"></v-divider>
       </v-layout>     
-      <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" :disabled="form.processing">
+      <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" disabled>
         Scan 
       </v-btn>
+
+      <v-text-field v-model="sample"></v-text-field>
+      <div> {{ sample }}</div>
 
   </v-layout>
 
@@ -32,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted,watch } from 'vue';
 import dayjs from 'dayjs';
 import { useForm } from '@inertiajs/vue3';
 import { Inertia } from '@inertiajs/inertia'; // Keep Inertia for back()
@@ -40,6 +44,8 @@ import { Inertia } from '@inertiajs/inertia'; // Keep Inertia for back()
 // Refs for live clock and plate number
 const time = ref('');
 const date = ref('');
+
+
 
 // Interval ID for clearing on unmount
 let intervalId;

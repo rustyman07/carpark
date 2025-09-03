@@ -14,13 +14,13 @@
 
         <v-card  class="pa-5">
         <v-card-text class="py-1 px-2">
-            Park in Date Time: {{ formatDate(ticket.PARKDATETIME) }}
+            Park in Datess Time: {{ formatDate(ticket.data.park_datetime) }}
         </v-card-text>
         <v-card-text class="py-1 px-2">
-            Park out Date Time: {{ formatDate(ticket.PARKOUTDATETIME) }}
+            Park out Date Time: {{ formatDate(ticket.data.parkout_datetime) }}
         </v-card-text>
         <v-card-text class="py-1 px-2">
-            Ticket Fee: {{ formatFee(ticket.PARKFEE) }}
+            Ticket Fee: {{ formatFee(ticket.data.park_fee) }}
         </v-card-text>
 
             <v-layout class="d-flex justify-space-between mt-2 ga-4">
@@ -50,7 +50,7 @@ const props = defineProps({
 });
 
 const form = useForm({
-    ticket_id: props.ticket.id,
+    ticket_id: props.ticket.data.id,
     mode_of_payment : 'cash'
 });
 
@@ -63,14 +63,16 @@ const html5QrCode = ref(null);
 //
 // ----------------------
 
-const ticketId = computed(() => props.ticket.id);
 
 // ----------------------
 //
 // Helper Functions
 //
 // ----------------------
-const formatDate = (date) => dayjs(date).format('MM/DD/YYYY');
+const formatDate = (date) => {
+    // Check if the date is a valid, truthy value before formatting
+    return date ? dayjs(date).format('MM/DD/YYYY') : 'N/A';
+};
 const formatFee = (fee) => `${Number(fee).toFixed(2)} PHP`;
 
 // ----------------------

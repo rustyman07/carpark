@@ -10,6 +10,7 @@ class Ticket extends Model
        protected $casts = [
         'PARKOUTDATETIME' => 'datetime:Y-m-d H:i:s',
         'PARKDATETIME' => 'datetime:Y-m-d H:i:s',
+         'PARKFEE' => 'float'
     ];
 
         protected $fillable = [

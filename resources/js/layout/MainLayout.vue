@@ -6,6 +6,19 @@
         <v-toolbar-title>Carpark</v-toolbar-title>
       </v-app-bar>
 
+
+        <v-dialog v-model="showErrorCard" max-width="400" persistent>
+                <v-card elevation="16">
+                    <v-card-title class="text-h6">Error</v-card-title>
+                    <v-card-text>{{ errorCardMsg }}</v-card-text>
+                    <v-card-actions class="justify-center">
+                        <v-btn variant="flat" color="primary" @click="showErrorCard = false"
+                        >Ok</v-btn
+                        >
+                    </v-card-actions>
+                </v-card>
+        </v-dialog>
+
       <v-navigation-drawer
         v-model="drawer"
         :location="$vuetify.display.mobile ? 'left' : undefined"
@@ -71,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue';
+import { ref, computed, onBeforeMount, watch} from 'vue';
 import { route } from 'ziggy-js';
 import { router, usePage } from '@inertiajs/vue3';
 
@@ -128,6 +141,38 @@ function navigate(item) {
 }
 
 
+const errorCardMsg = ref("")
+const showErrorCard = ref(false)
+
+
+// watch(
+//   () => page.props.flash?.error,
+//   (val) => {
+//     if (val) {
+//       showErrorCard.value = true
+//       errorCardMsg.value = val
+//     }
+//   }
+// )
+
+
+
+watch(
+  () => page.props.flash?.error,
+  (val) => {
+    if (val) {
+      showErrorCard.value = true;
+      errorCardMsg.value = val;
+      // ✅ Critical step: Manually clear the flash message
+      // This ensures that the next time you get a flash,
+      // the watcher sees a "new" value (from null to a string)
+      page.props.flash.error = null;
+    }
+  },
+  { deep: true } // Keep deep: true to watch for nested changes
+);
+
+
 const isParentActive = computed(() => (parentValue) => {
   const parentItem = items.find(item => item.value === parentValue);
   if (parentItem && parentItem.children) {
@@ -135,4 +180,5 @@ const isParentActive = computed(() => (parentValue) => {
   }
   return false;
 });
+
 </script>

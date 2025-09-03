@@ -1,15 +1,7 @@
 <template>
-  <v-snackbar-queue
-    v-model="messages"
-    location="top"
-    :prepend-icon="messages.icon"
-  />
-
   <!-- QR Scanner Dialog -->
-
-
   <!-- Error Card -->
-    <v-dialog v-model="showErrorCard" max-width="400" persistent>
+    <!-- <v-dialog v-model="showErrorCard" max-width="400" persistent>
         <v-card elevation="16">
             <v-card-title class="text-h6">Error</v-card-title>
             <v-card-text>{{ errorCardMsg }}</v-card-text>
@@ -19,7 +11,7 @@
                 >
             </v-card-actions>
         </v-card>
-    </v-dialog>
+    </v-dialog> -->
 
   <!-- Main Layout -->
     <v-layout class="d-flex flex-column align-center justify-center pa-16 h-100">
@@ -61,8 +53,8 @@ const page = usePage()
 const ticket = computed(() => page.props.ticket || null)
 const success = computed(() => page.props.success || false)
 
-const errorCardMsg = ref("")
-const showErrorCard = ref(false)
+// const errorCardMsg = ref("")
+// const showErrorCard = ref(false)
 const ticketId = ref(null)
 const messages = ref([])
 
@@ -74,15 +66,15 @@ const messages = ref([])
 // })
 
 // 👀 watch for flash error from Laravel
-watch(
-  () => page.props.flash?.error,
-  (val) => {
-    if (val) {
-      showErrorCard.value = true
-      errorCardMsg.value = val
-    }
-  }
-)
+// watch(
+//   () => page.props.flash?.error,
+//   (val) => {
+//     if (val) {
+//       showErrorCard.value = true
+//       errorCardMsg.value = val
+//     }
+//   }
+// )
 
 const now = dayjs()
 const formatDate = (date) => dayjs(date).format("MM/DD/YYYY")
@@ -100,8 +92,8 @@ const form = useForm({
 
 
 const clearError = () => {
-  errorCardMsg.value = ""
-  showErrorCard.value = false
+  // errorCardMsg.value = ""
+  // showErrorCard.value = false
 }
 
 const cancelPayment = () => {
@@ -114,8 +106,9 @@ const submitPlate = () => {
     onSuccess: () => form.reset(),
     onError: (errors) => {
       if (errors.PLATENO) {
-        showErrorCard.value = true
-        errorCardMsg.value = errors.PLATENO
+
+        
+ 
       }
     },
   })
