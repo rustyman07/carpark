@@ -168,7 +168,7 @@ watch(
     if (val) {
       showSuccess.value = true;
       successMessage.value = val;
-      page.props.flash.success = null;
+
     }
   },
   { deep: true } // Keep deep: true to watch for nested changes
@@ -186,7 +186,7 @@ watch(
     if (val) {
       showErrorCard.value = true;
       errorCardMsg.value = val;
-      page.props.errors = null;
+
     }
   },
   { deep: true } // Keep deep: true to watch for nested changes
@@ -201,7 +201,7 @@ watch(
     if (val) {
       showErrorCard.value = true;
       errorCardMsg.value = val;
-      page.props.flash.error = null;
+ 
     }
   },
   { deep: true } // Keep deep: true to watch for nested changes
