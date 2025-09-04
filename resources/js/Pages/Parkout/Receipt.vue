@@ -1,21 +1,27 @@
 <template>
     <v-container class="d-flex justify-center mt-6">
-        <v-card ref="receiptContent" elevation="1" width="300" class="pa-4">
+        <v-card ref="receiptContent" elevation="1" min-width="300" class="pa-4">
         <!-- Header -->
+		 <div class="d-flex flex-column  font-weight-bold align-center justify-center text-caption">
+			<p  >{{ company.name }}</p>
+			<p>{{ company.address }}</p>
+			<p>{{ company.contact }}</p>
+		 </div>
+
         <div class="text-center mb-2">
             <p class="text-grey">Thank you for parking with us</p>
         </div>
-            <v-icon icon="mdi-parking"></v-icon>
+            <!-- <v-icon icon="mdi-parking"></v-icon> -->
             <v-divider class="my-2"></v-divider>
             <h3 class="font-weight-bold">Parking Receipt</h3>
             <v-divider class="my-2"></v-divider>
 
-        <div  class="d-flex flex-column items-center align-center">
+        <div  class="d-flex flex-column align-center ">
             <p class=" text-caption">Ticket No.</p>
-            <p class="font-weight-bold ">{{props.ticket.ticket_no }}</p>
+            <h2 class="font-weight-bold ">{{props.ticket.ticket_no }}</h2>
         </div>
 
-            <div class="d-flex  text-body-2 pb-2">
+            <div class="d-flex  text-body-2 pb-2 mt-4">
                 <p class="font-weight-bold w-25">Plate No</p>
                 <p class="w-10"> : </p>
                 <p class="ml-2">{{props.ticket.plate_no }}</p>
@@ -27,29 +33,25 @@
                 <p class="ml-2" >{{ parkinDate }}</p>
                 <p  class="ml-4" >{{ parkinTime }}</p>
             </div>          
-            <div class="d-flex ">
-                <p  class="font-weight-bold w-25 pb-2">To</p>
+            <div class="d-flex  text-body-2 pb-2">
+                <p  class="font-weight-bold w-25 ">To</p>
                 <p class="w-10 "> : </p>
                 <p class="ml-2">{{ parkoutDate }}</p>
                 <p  class="ml-4" >{{ parkoutTime }}</p>
             </div>
-                <!-- <div class="d-flex flex-column w-25">
-                    <p>{{ parkinTime }}</p>
-                    <p>{{ parkoutTime }}</p>
-                </div> -->
-                
-           
+       
             <div class="d-flex  text-body-2 pb-2 ">
                 <p  class="font-weight-bold w-25" >Duration</p>
                 <p class="w-10 "> : </p>
                 <p class="ml-2">{{ duration }}</p>
             </div>
-          <div v-if="ticket.mode_of_payment === 'card'" class="d-flex text-body-2">
-  <p class="font-weight-bold w-25">Balance </p>
-  <p class="w-10 "> : </p>
-  <p class="ml-2">{{ detail.balance }}</p>
-</div>
-        <!-- Receipt Body -->
+
+           <div v-if="ticket.mode_of_payment === 'card'" class="d-flex text-body-2">
+				<p class="font-weight-bold w-25">Balance </p>
+				<p class="w-10 "> : </p>
+				<p class="ml-2">{{ props.balance }}</p>
+			</div>
+						<!-- Receipt Body -->
         <!-- <v-row class="mb-2">
             <v-col cols="6" class="font-weight-bold">From: <span>{{parkinDate}}</span> </v-col>
             <v-col cols="6">{{ plate }}</v-col>
@@ -86,8 +88,16 @@ import dayjs from 'dayjs'
 
 
 const props = defineProps({
-  ticket : Object,
-  detail : Object,
+  ticket: {
+    type: Object,
+    required: true,
+  },
+  balance: {
+    type: Number,
+    default: null,
+  },
+  company:  Object,
+
 })
 
 const page = usePage();
@@ -95,7 +105,7 @@ const page = usePage();
 
 
 // const ticket = page.props.ticket
-const detail = page.props.detail
+
 
 
 

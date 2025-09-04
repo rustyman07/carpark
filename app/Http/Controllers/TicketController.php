@@ -122,7 +122,7 @@ public function store(Request $request)
 
         $query = Ticket::where('CANCELLED', 0)
             ->where('ISPARKOUT',$type ==='PARK-IN'? 0 : 1)
-            ->select('TICKETNO', 'PLATENO', 'PARKDATETIME', 'PARKOUTDATETIME')
+            ->select('TICKETNO', 'PLATENO', 'PARKDATETIME', 'PARKOUTDATETIME','REMARKS')
             ->orderByDesc('created_at');
 
         $dateColumn = $type === 'PARK-IN' ? 'PARKDATETIME' : 'PARKOUTDATETIME';
@@ -134,7 +134,7 @@ public function store(Request $request)
         }
 
         return inertia('Logs/Index', [
-            'Tickets' => $query->paginate(5),
+       'Tickets' => $query->paginate(5)->withQueryString(), 
 
         ]);
 
@@ -383,7 +383,7 @@ public function submit_payment(Request $request)
     });
 
     $responseWith = [
-        'success' => true,
+        'success' => 'Payment successful!',
         'id' => $ticket->uuid,
         'company' => $company,
     ];
@@ -392,7 +392,7 @@ public function submit_payment(Request $request)
         $detail = $transactionDetails['detail'];
         $daysParked = $transactionDetails['days_parked'];
         $responseWith['detail'] = $detail;
-        $responseWith['message'] = 'Payment successful! Remaining balance: ' . $detail->balance . ' | Days parked: ' . $daysParked;
+        
     }
 
     return redirect()->route('parkout.receipt',['id' => $ticket->uuid,])->with($responseWith);
@@ -468,17 +468,31 @@ public function submit_payment(Request $request)
     public function parkout_receipt(Request $request){
 
         $ticket = Ticket::where('uuid',$request->id)->first();
+        if(!$ticket){
+                //  return back()->with('error', 'Insufficient Balance.');
+                 abort(404, 'Ticket not found');
+        }
+         $balance = null;
+    
+        if ($ticket->mode_of_payment ==='card'){
+           $detail = CardInventoryDetail::where('qr_code_hash',$ticket->QRCODE)->first();
+           if(!$detail){
+            //  return back()->with('error', 'Invalid QR Code.');
+              abort(404, 'Invalid QR Code');
+           }
+           $balance = $detail?->balance;
+        }
+   
 
-        $detail = CardInventoryDetail::where('qr_code',$ticket->QRCODE)->first();
+        $company = Company::findOrFail(1);
 
         return Inertia('Parkout/Receipt',[
             'ticket' => (new TicketResource($ticket))->resolve(),
-            'detail' => session('detail')
+            'balance' => $balance,
+            'company' => $company,
+            
         ]);
     }
-
-
-
 
 
 

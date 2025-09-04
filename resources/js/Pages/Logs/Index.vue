@@ -33,7 +33,7 @@
     </div>
 
     <!-- Table -->
-    <v-card title="Parking Logs" flat class="mt-4">
+    <v-card title="Parking Logs"  class="mt-4">
       <v-data-table
         :headers="headers"
         :items="items"
@@ -41,12 +41,13 @@
          hide-default-footer
        :items-per-page="items.length"
       />
+    
+    </v-card>
        <div class="d-flex justify-center pa-4" v-if="nextPageUrl">
         <v-btn color="primary" @click="loadMore">
           Load More
         </v-btn>
       </div>
-    </v-card>
   </v-container>
 </template>
 
@@ -60,9 +61,9 @@ const props = defineProps({
   filters: Object,
 })
 
-onMounted(() => {
-  applyFilter()
-})
+// onMounted(() => {
+//   applyFilter()
+// })
 
 
 const items = ref([...props.Tickets.data]); 
@@ -79,6 +80,8 @@ const headers = [
   { key: 'TICKETNO', title: 'Ticket No' },
   { key: 'PLATENO', title: 'Plate No' },
   { key: 'PARKDATETIME', title: 'Park Date/Time' },
+  { key: 'PARKOUTDATETIME', title: 'Park out Date/Time' },
+  {key:'REMARKS',title: 'Remarks'}
 ]
 
 const types = [
@@ -86,53 +89,55 @@ const types = [
   { label: 'PARK-OUT', value: 'PARK-OUT' }
 ]
 
-const loadMore = () => {
-  if (!nextPageUrl.value) return;
 
-  router.visit(nextPageUrl.value, {
-    preserveScroll: true,
-    preserveState: true,
-    only: ["Tickets"], 
-    onSuccess: (page) => {
-      console.log("Fetched:", page.props.Tickets.data);
-
-      // 🔹 format before appending
-      const formatted = page.props.Tickets.data.map(ticket => ({
-        ...ticket,
-        PARKDATETIME: dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY")
-      }));
-
-     items.value = [...items.value, ...formatted];
-      nextPageUrl.value = page.props.Tickets.next_page_url;
-
-      console.log("All items now:", items.value);
-    },
-  });
-};
-
-
-
-function applyFilter() {
-  router.get('/logs', {
+// 🔹 Shared fetcher
+function fetchLogs({ url = "/logs", append = false } = {}) {
+  const params = {
     dateFrom: dateFrom.value,
     dateTo: dateTo.value,
     type: selectedType.value,
-  }, {
-    preserveState: true,
-    replace: true,
-    // onSuccess: (page) => {
-    //   items.value = [...page.props.Tickets.data];
-    //   nextPageUrl.value = page.props.Tickets.next_page_url;
-    // }
+  };
 
-    onSuccess: (page) => {
-  items.value = page.props.Tickets.data.map(ticket => ({
-    ...ticket,
-  PARKDATETIME: dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY")
-  }));
-  nextPageUrl.value = page.props.Tickets.next_page_url;
+  router.get(
+    url,
+    params,
+    {
+      preserveState: true,
+      preserveScroll: true,
+      replace: !append, // replace only for filter
+      only: ["Tickets"],
+      onSuccess: (page) => {
+        const formatted = page.props.Tickets.data.map((ticket) => ({
+          ...ticket,
+          PARKDATETIME: ticket.PARKDATETIME
+            ? dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY hh:mm A")
+            : null,
+          PARKOUTDATETIME: ticket.PARKOUTDATETIME
+            ? dayjs(ticket.PARKOUTDATETIME).format("MM/DD/YYYY hh:mm A")
+            : null,
+        }));
+
+        if (append) {
+          items.value = [...items.value, ...formatted];
+        } else {
+          items.value = formatted;
+        }
+
+        nextPageUrl.value = page.props.Tickets.next_page_url;
+      },
+    }
+  );
 }
-  })
+
+// 🔹 Use one function in both places
+function applyFilter() {
+  fetchLogs({ append: false });
+}
+
+function loadMore() {
+  if (nextPageUrl.value) {
+    fetchLogs({ url: nextPageUrl.value, append: true });
+  }
 }
 </script>
 

@@ -1,10 +1,23 @@
 <template>
   <v-card>
     <v-layout style="min-height: 100vh;">
-      <v-app-bar color="blue-darken-4">
-        <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>Carpark</v-toolbar-title>
-      </v-app-bar>
+        <v-app-bar color="blue-darken-4">
+            <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+            <v-toolbar-title>Carpark</v-toolbar-title>
+        </v-app-bar>
+
+        <v-snackbar
+        v-model="showSuccess"
+        color="green-darken-2"
+        timeout="3000"
+        location="top"
+        variant="flat"
+        >
+        <div class="d-flex align-center">
+            <v-icon start icon="mdi-check-circle" class="me-2"></v-icon>
+            <span>{{ successMessage }}</span>
+        </div>
+        </v-snackbar>
 
 
         <v-dialog v-model="showErrorCard" max-width="400" persistent>
@@ -144,16 +157,41 @@ function navigate(item) {
 const errorCardMsg = ref("")
 const showErrorCard = ref(false)
 
+const successMessage = ref("")
+const showSuccess = ref(false)
 
-// watch(
-//   () => page.props.flash?.error,
-//   (val) => {
-//     if (val) {
-//       showErrorCard.value = true
-//       errorCardMsg.value = val
-//     }
-//   }
-// )
+
+
+watch(
+  () => page.props.flash.success,
+  (val) => {
+    if (val) {
+      showSuccess.value = true;
+      successMessage.value = val;
+      page.props.flash.success = null;
+    }
+  },
+  { deep: true } // Keep deep: true to watch for nested changes
+);
+
+
+
+
+
+
+
+watch(
+  () => page.props.errors.PLATENO,
+  (val) => {
+    if (val) {
+      showErrorCard.value = true;
+      errorCardMsg.value = val;
+      page.props.errors = null;
+    }
+  },
+  { deep: true } // Keep deep: true to watch for nested changes
+);
+
 
 
 
@@ -163,14 +201,16 @@ watch(
     if (val) {
       showErrorCard.value = true;
       errorCardMsg.value = val;
-      // ✅ Critical step: Manually clear the flash message
-      // This ensures that the next time you get a flash,
-      // the watcher sees a "new" value (from null to a string)
       page.props.flash.error = null;
     }
   },
   { deep: true } // Keep deep: true to watch for nested changes
 );
+
+
+
+
+
 
 
 const isParentActive = computed(() => (parentValue) => {

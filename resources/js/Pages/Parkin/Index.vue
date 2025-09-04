@@ -24,8 +24,7 @@
         Scan 
       </v-btn>
 
-      <v-text-field v-model="sample"></v-text-field>
-      <div> {{ sample }}</div>
+
 
   </v-layout>
 

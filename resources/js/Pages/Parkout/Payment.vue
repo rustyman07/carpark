@@ -49,6 +49,9 @@ const props = defineProps({
     ticket: Object,
 });
 
+
+console.log(props.ticket.data.id)
+
 const form = useForm({
     ticket_id: props.ticket.data.id,
     mode_of_payment : 'cash'
@@ -116,7 +119,7 @@ const startScanner = async () => {
                 await closeScanner();
                 router.post(route('store.payment'), {
                     qr_code: decodedText,
-                    ticket_id: props.ticket.id,
+                    ticket_id: props.ticket.data.id,
                     mode_of_payment : 'card'
                 });
             }
