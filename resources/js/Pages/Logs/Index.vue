@@ -55,6 +55,7 @@
 import { ref ,onMounted,computed} from 'vue'
 import { router } from '@inertiajs/vue3'
 import dayjs from "dayjs";
+import { formatDate } from '../../utils/utility';
 
 const props = defineProps({
   Tickets: Object,  // because of pagination
@@ -83,7 +84,7 @@ const headers = [
   { key: 'PLATENO', title: 'Plate No' },
   { key: 'PARKDATETIME', title: 'Park Date/Time' },
   { key: 'PARKOUTDATETIME', title: 'Park out Date/Time' },
-  {key:'REMARKS',title: 'Remarks'}
+
 ]
 
 const types = [
@@ -95,12 +96,8 @@ const types = [
 function formatTickets(tickets) {
   return tickets.map((ticket) => ({
     ...ticket,
-    PARKDATETIME: ticket.PARKDATETIME
-      ? dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY hh:mm A")
-      : null,
-    PARKOUTDATETIME: ticket.PARKOUTDATETIME
-      ? dayjs(ticket.PARKOUTDATETIME).format("MM/DD/YYYY hh:mm A")
-      : null,
+    PARKDATETIME: formatDate(ticket.PARKDATETIME),
+    PARKOUTDATETIME:formatDate(ticket.PARKDATETIME)
   }));
 }
 

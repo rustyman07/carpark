@@ -110,6 +110,12 @@ const items = [
   { title: 'Park Out', value: 'park_out', route:'parkout', icon: 'mdi-car-key' },
   { title: 'Logs', value: 'logs', route:'logs', icon: 'mdi-history' },
   { title: 'Sales Person', value: 'sales_person', route:'sales-person.index', icon: 'mdi-account' },
+    { title: 'Transaction', value: 'park_out', route:'', icon: 'mdi-cash',
+    children: [
+      { title: 'Ticket Payments', value: 'ticket_payments', route: 'ticket.payments', icon: 'mdi-credit-card-settings' },
+      { title: 'Card Payments', route: 'card-template.index', value: 'card_template', icon: 'mdi-list-box-outline' },
+]
+   },
   { 
     title: 'Settings',
     value: 'settings',

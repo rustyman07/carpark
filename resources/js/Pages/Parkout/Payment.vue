@@ -10,17 +10,17 @@
         <v-btn color="error" text @click="closeScanner">Close</v-btn>
       </v-card-actions>
     </v-card>
-  </v-dialog>
- <v-container class="d-flex justify-center align-center fill-height" >
+    </v-dialog>
+    <v-container class="d-flex justify-center align-center fill-height" >
         <v-card  class="pa-5" >
         <v-card-text class="py-1 px-2">
-            Park in Datess Time: {{ formatDate(ticket.data.park_datetime) }}
+            Park in Date Time: {{ formatDate(ticket.data.park_datetime) }}
         </v-card-text>
         <v-card-text class="py-1 px-2">
             Park out Date Time: {{ formatDate(ticket.data.parkout_datetime) }}
         </v-card-text>
         <v-card-text class="py-1 px-2">
-            Ticket Fee: {{ formatFee(ticket.data.park_fee) }}
+            Ticket Fee: {{  formatCurrency(ticket.data.park_fee) }}
         </v-card-text>
 
             <v-layout class="d-flex justify-space-between mt-2 ga-4">
@@ -38,6 +38,7 @@ import { router, useForm, usePage } from '@inertiajs/vue3';
 import { route } from "ziggy-js"
 import { Html5Qrcode } from 'html5-qrcode';
 import dayjs from 'dayjs';
+import { formatCurrency } from '../../utils/utility';
 
 // ----------------------
 //
@@ -77,7 +78,7 @@ const formatDate = (date) => {
     // Check if the date is a valid, truthy value before formatting
     return date ? dayjs(date).format('MM/DD/YYYY') : 'N/A';
 };
-const formatFee = (fee) => `${Number(fee).toFixed(2)} PHP`;
+
 
 // ----------------------
 //

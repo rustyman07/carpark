@@ -46,6 +46,13 @@
                 <p class="ml-2">{{ duration }}</p>
             </div>
 
+              
+            <div class="d-flex  text-body-2 pb-2 ">
+                <p  class="font-weight-bold w-25" >Amount</p>
+                <p class="w-10 "> : </p>
+                <p class="ml-2">{{formatCurrency(props.amount) }}</p>
+            </div>
+
            <div v-if="ticket.mode_of_payment === 'card'" class="d-flex text-body-2">
 				<p class="font-weight-bold w-25">Balance </p>
 				<p class="w-10 "> : </p>
@@ -85,6 +92,7 @@ import { ref,computed } from "vue"
 import html2pdf from "html2pdf.js"
 import { usePage } from "@inertiajs/vue3"
 import dayjs from 'dayjs'
+import { formatCurrency } from '@/utils/utility';
 
 
 const props = defineProps({
@@ -97,6 +105,7 @@ const props = defineProps({
     default: null,
   },
   company:  Object,
+  amount: Number,
 
 })
 

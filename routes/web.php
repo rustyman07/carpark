@@ -5,6 +5,7 @@ use App\Http\Controllers\CardTemplateController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CardInventoryController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SalesPersonController;
 
 
@@ -21,7 +22,16 @@ Route::post('parkout/payment',[TicketController::class,'submit_payment'])->name(
 Route::post('process-qr-Payment', [TicketController::class, 'processQrPayment'])->name('process.qr');
 Route::get('parkout/receipt',[TicketController::class,'parkout_receipt'])->name('parkout.receipt');
 
-Route::get('sales-person',[SalesPersonController::class,'index'])->name('sales-person.index');
+
+Route::prefix('sales-person')->name('sales-person.')->group(function () {
+    Route::get('/', [SalesPersonController::class, 'index'])->name('index');
+    Route::post('/', [SalesPersonController::class, 'store'])->name('store');
+    Route::put('/{id}', [SalesPersonController::class, 'update'])->name('update');
+    Route::delete('/{id}', [SalesPersonController::class, 'destroy'])->name('destroy');
+});
+
+
+
 Route::get('company',[CompanyController::class,'index'])->name('company.index');
 
 Route::resource('card-template', CardTemplateController::class)
@@ -32,11 +42,12 @@ Route::resource('card-template', CardTemplateController::class)
 // Route::post('cardTemplate',[CardTemplateController::class,'store'])->name('cardTemplate.store');
 // Route::put('cardTemplate/{id}', [CardTemplateController::class,'update'])->name('cardTemplate.update');
 
-
-
 Route::get('card-inventory',[CardInventoryController::class,'index'])->name('card-inventory.index');
 Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');
 
+
+
+Route::get('transaction/ticket-payments',[PaymentController::class, 'index'])->name('ticket.payments');
 
 // Route::get('card-inventory', [CardInventoryController::class, 'index'])->name('card-inventory.index');
 // Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');

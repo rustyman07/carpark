@@ -1,123 +1,111 @@
-<!-- Create.vue -->
 <template>
   <v-dialog v-model="dialog" max-width="600">
-    <form @submit.prevent = "isEdit? update() : create()">
-      <v-card title="TEMPLATE">
-      <v-card-text>
-        <!-- your form fields -->
-<!-- <v-select
-  v-model="form.card_template_id"
-  :items="props.selectedItem"
-  item-title="card_name"
-  item-value="id"
-  @update:modelValue="onTemplateChange"
-/> -->
-        <v-row class="">
-            <v-text-field variant="underlined" v-model="form.firstname" label="First Name" />
-            <v-text-field variant="underlined" v-model="form.lastname" label="Card Name" />
-            <v-text-field variant="underlined" v-model="form.middlename" label="Card Name" />
-        </v-row>
-    
-        <v-text-field  v-model= form.no_of_cards variant="underlined" label="No. of Cards"  type="number" :error-messages="form.errors.no_of_cards" />
-        <v-text-field  v-model= form.no_of_days variant="underlined" label="No. of Days" type="number" :error-messages="form.errors.no_of_days"/>     
-        <v-text-field  v-model= form.price variant="underlined" label="price"  type="number" :error-messages="form.errors.price" />         
-        <v-text-field  v-model= form.discount variant="underlined" label="Discount"  type="number" :error-messages="form.errors.discount" />
-                   
-        
-        
-        <!-- ...rest of form -->
-      </v-card-text>
+    <form @submit.prevent="isEdit ? update() : create()">
+      <v-card title="Sales Person">
+        <v-card-text>
+          <v-row>
+            <v-text-field
+              v-model="form.firstname"
+              label="First Name"
+              variant="underlined"
+              :error-messages="form.errors.firstname"
+            />
+            <v-text-field
+              v-model="form.lastname"
+              label="Last Name"
+              variant="underlined"
+              :error-messages="form.errors.lastname"
+            />
+            <v-text-field
+              v-model="form.middlename"
+              label="Middle Name"
+              variant="underlined"
+              :error-messages="form.errors.middlename"
+            />
+          </v-row>
 
-      <v-divider />
+          <v-text-field
+            v-model="form.address"
+            label="Address"
+            variant="underlined"
+            :error-messages="form.errors.address"
+          />
+          <v-text-field
+            v-model="form.contact"
+            label="Contact"
+            variant="underlined"
+            :error-messages="form.errors.contact"
+          />
+        </v-card-text>
 
-      <v-card-actions>
-        <v-spacer />
-        <v-btn text="Close" variant="plain" @click="dialog = false" />
-        <v-btn color="primary" :text="isEdit?  'UPDATE':'SAVE'" variant="tonal" type="submit" />
-      </v-card-actions>
-    </v-card>
+        <v-divider />
+
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text variant="plain" @click="dialog = false">Close</v-btn>
+          <v-btn
+            color="primary"
+            :text="isEdit ? 'UPDATE' : 'SAVE'"
+            variant="tonal"
+            type="submit"
+          />
+        </v-card-actions>
+      </v-card>
     </form>
-  
   </v-dialog>
 </template>
 
 <script setup>
-import { shallowRef,watch ,ref} from 'vue'
-import { useForm, usePage, } from '@inertiajs/vue3';
+import { ref, watch } from 'vue'
+import { useForm, router } from '@inertiajs/vue3'
 
-
-// 🔹 This controls dialog open/close internally
-const dialog = defineModel({ type: Boolean, default: false });
-
+const dialog = defineModel({ type: Boolean, default: false })
 const props = defineProps({
+  selectedItem: { type: Object, default: () => ({}) }
+})
 
-   selectedItem: { type: Object, default: {} }      
-});
-
-const isEdit = ref(false);
-
+const isEdit = ref(false)
 const form = useForm({
-     no_of_cards:1,
-    card_template_id : null,
-    card_name : '',
-    no_of_days : 1,
-    price: 0,
-    discount: null,
-   
+  firstname: '',
+  lastname: '',
+  middlename: '',
+  address: '',
+  contact: ''
 })
 
-
-
-// watch(() => props.selectedTemplate,(val) => {
-
-//   if (val) {
-//     isEdit.value = true;
-//     console.log(isEdit.value);
-//     form.card_name = val.card_name
-//     form.NOOFDAYS = val.NOOFDAYS
-//     form.price = val.price
-//     form.discount = val.discount
-
-//   } else {
-//      isEdit.value = false;
-//      console.log(isEdit.value);
-//     form.reset() 
-//   }
-// })
-
-const create = () => form.post(route('card-inventory.store'),{
-    onSuccess: ()=>{
-        form.reset();
-        dialog.value = false
-    },
-    onError: (errors)=>{
-console.log(errors);
+// Populate form on edit
+watch(
+  () => props.selectedItem,
+  (val) => {
+    if (val && Object.keys(val).length) {
+      isEdit.value = true
+      form.firstname = val.firstname
+      form.lastname = val.lastname
+      form.middlename = val.middlename
+      form.address = val.address
+      form.contact = val.contact
+    } else {
+      isEdit.value = false
+      form.reset()
     }
-  });
-
-
-const update = () => form.put(route('card-inventory.update', props.selectedTemplate.id), {
-  onSuccess: () => {
-    form.reset()
-    dialog.value = false
   },
-    onError: (errors)=>{
-console.log(errors);
+  { immediate: true }
+)
+
+const create = () =>
+  form.post(route('sales-person.store'), {
+    onSuccess: () => {
+      form.reset()
+      dialog.value = false
+      router.reload({ only: ['salesPerson'], preserveState: true })
     }
-})
+  })
 
-
-const onTemplateChange = (id) => {
-  console.log('testtgsd');
-  const selected = props.selectedItem.find(t => t.id === id)
-  if (selected) {
-    form.card_name   = selected.card_name
-    form.no_of_days = selected.no_of_days
-    form.price      = selected.price
-    form.discount   = selected.discount
-  }
-}
-
-
-
+const update = () =>
+  form.put(route('sales-person.update', props.selectedItem.id), {
+    onSuccess: () => {
+      dialog.value = false
+      router.reload({ only: ['salesPerson'], preserveState: true })
+    }
+  })
 </script>
