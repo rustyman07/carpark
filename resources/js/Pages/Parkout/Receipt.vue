@@ -1,8 +1,8 @@
 <template>
-    <v-container class="d-flex justify-center mt-6">
+    <v-container class="d-flex justify-center align-center fill-height" >
         <v-card ref="receiptContent" elevation="1" min-width="300" class="pa-4">
         <!-- Header -->
-		 <div class="d-flex flex-column  font-weight-bold align-center justify-center text-caption">
+		 <div class="d-flex flex-column   align-center justify-center ">
 			<p  >{{ company.name }}</p>
 			<p>{{ company.address }}</p>
 			<p>{{ company.contact }}</p>

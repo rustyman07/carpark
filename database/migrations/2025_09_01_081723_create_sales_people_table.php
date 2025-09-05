@@ -18,6 +18,9 @@ return new class extends Migration
             $table->string('middlename',100);
             $table->string('address',255);
             $table->string('contact',20);
+            $table->boolean('cancelled')->default(0);     
+            $table->integer('cancelled_by')->nullable();
+            $table->dateTime('cancelled_datetime')->nullable();
             $table->timestamps();
         });
     }

@@ -7,7 +7,7 @@
             </v-btn>
         </div>
 
-    <!-- Create dialog -->
+ 
     <Create v-model="showDialog" :cardTemplate = "cardTemplate" />
 
     <!-- Table -->

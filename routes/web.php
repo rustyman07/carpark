@@ -5,6 +5,7 @@ use App\Http\Controllers\CardTemplateController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CardInventoryController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\SalesPersonController;
 
 
 Route::get('/', fn () => Inertia::render('Home/Index'))->name('home');
@@ -15,21 +16,18 @@ Route::resource('parkin',TicketController::class);;
 
 Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
 Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');
-
-
 Route::get('parkout/payment/{uuid}',[TicketController::class,'show_payment'])->name('show.payment');
 Route::post('parkout/payment',[TicketController::class,'submit_payment'])->name('store.payment');
-
-
 Route::post('process-qr-Payment', [TicketController::class, 'processQrPayment'])->name('process.qr');
-
-
 Route::get('parkout/receipt',[TicketController::class,'parkout_receipt'])->name('parkout.receipt');
 
+Route::get('sales-person',[SalesPersonController::class,'index'])->name('sales-person.index');
 Route::get('company',[CompanyController::class,'index'])->name('company.index');
 
 Route::resource('card-template', CardTemplateController::class)
     ->only(['index', 'store', 'update']);
+
+
 // Route::get('cardTemplate',[CardTemplateController::class,'index'])->name('cardTemplate.index');
 // Route::post('cardTemplate',[CardTemplateController::class,'store'])->name('cardTemplate.store');
 // Route::put('cardTemplate/{id}', [CardTemplateController::class,'update'])->name('cardTemplate.update');

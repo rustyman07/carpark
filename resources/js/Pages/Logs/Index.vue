@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref ,onMounted} from 'vue'
+import { ref ,onMounted,computed} from 'vue'
 import { router } from '@inertiajs/vue3'
 import dayjs from "dayjs";
 
@@ -66,8 +66,10 @@ const props = defineProps({
 // })
 
 
-const items = ref([...props.Tickets.data]); 
+const items = ref(formatTickets(props.Tickets.data));
 const nextPageUrl = ref(props.Tickets.next_page_url);
+
+
 
 
 const today = new Date().toISOString().split("T")[0]
@@ -90,6 +92,20 @@ const types = [
 ]
 
 
+function formatTickets(tickets) {
+  return tickets.map((ticket) => ({
+    ...ticket,
+    PARKDATETIME: ticket.PARKDATETIME
+      ? dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY hh:mm A")
+      : null,
+    PARKOUTDATETIME: ticket.PARKOUTDATETIME
+      ? dayjs(ticket.PARKOUTDATETIME).format("MM/DD/YYYY hh:mm A")
+      : null,
+  }));
+}
+
+
+
 // 🔹 Shared fetcher
 function fetchLogs({ url = "/logs", append = false } = {}) {
   const params = {
@@ -107,16 +123,7 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
       replace: !append, // replace only for filter
       only: ["Tickets"],
       onSuccess: (page) => {
-        const formatted = page.props.Tickets.data.map((ticket) => ({
-          ...ticket,
-          PARKDATETIME: ticket.PARKDATETIME
-            ? dayjs(ticket.PARKDATETIME).format("MM/DD/YYYY hh:mm A")
-            : null,
-          PARKOUTDATETIME: ticket.PARKOUTDATETIME
-            ? dayjs(ticket.PARKOUTDATETIME).format("MM/DD/YYYY hh:mm A")
-            : null,
-        }));
-
+        const formatted = formatTickets(page.props.Tickets.data);
         if (append) {
           items.value = [...items.value, ...formatted];
         } else {
@@ -136,7 +143,7 @@ function applyFilter() {
 
 function loadMore() {
   if (nextPageUrl.value) {
-    fetchLogs({ url: nextPageUrl.value, append: true });
+    fetchLogs({ url: nextPageUrl.value ,append: true ,});
   }
 }
 </script>

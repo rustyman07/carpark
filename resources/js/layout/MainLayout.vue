@@ -109,6 +109,7 @@ const items = [
   { title: 'Park In', value: 'park_in', route:'parkin.index', icon: 'mdi-parking' },
   { title: 'Park Out', value: 'park_out', route:'parkout', icon: 'mdi-car-key' },
   { title: 'Logs', value: 'logs', route:'logs', icon: 'mdi-history' },
+  { title: 'Sales Person', value: 'sales_person', route:'sales-person.index', icon: 'mdi-account' },
   { 
     title: 'Settings',
     value: 'settings',

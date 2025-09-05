@@ -41,7 +41,6 @@ import { useForm, usePage, } from '@inertiajs/vue3';
 const dialog = defineModel({ type: Boolean, default: false });
 
 const props = defineProps({
-  modelValue: { type: Boolean, required: true }, 
   selectedTemplate: { type: Object, default: null }      
 });
 

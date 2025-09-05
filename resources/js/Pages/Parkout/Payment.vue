@@ -11,8 +11,8 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-
-        <v-card  class="pa-5">
+ <v-container class="d-flex justify-center align-center fill-height" >
+        <v-card  class="pa-5" >
         <v-card-text class="py-1 px-2">
             Park in Datess Time: {{ formatDate(ticket.data.park_datetime) }}
         </v-card-text>
@@ -29,6 +29,7 @@
                 <v-btn @click="cancelPayment" color="red-darken-2">Cancel</v-btn>
             </v-layout>
         </v-card>
+</v-container>
 </template>
 
 <script setup>

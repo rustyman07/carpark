@@ -117,8 +117,9 @@ public function store(Request $request)
     {
 
         $type     = $request->input('type', 'PARK-IN'); // default
-        $dateFrom = $request->input('dateFrom');
-        $dateTo   = $request->input('dateTo');
+        $dateFrom = $request->input('dateFrom', now()->toDateString()); // default = today
+       $dateTo   = $request->input('dateTo', now()->toDateString());   // default = today
+
 
         $query = Ticket::where('CANCELLED', 0)
             ->where('ISPARKOUT',$type ==='PARK-IN'? 0 : 1)
@@ -133,7 +134,7 @@ public function store(Request $request)
                 ->whereDate($dateColumn, '<=', $dateTo);
         }
 
-        return inertia('Logs/Index', [
+        return inertia('Logs/Index', [ 
        'Tickets' => $query->paginate(5)->withQueryString(), 
 
         ]);
@@ -186,10 +187,19 @@ public function submit_park_out(Request $request)
         $data['PARKOUTSECOND'] = $parkOutDateTime->second;
         $data['PARKOUTDATETIME'] = $parkOutDateTime;
 
+    //  $ticket = Ticket::where('PLATENO', $data['PLATENO'])
+    //      ->where('REMARKS',0)
+    //     ->latest('PARKDATETIME')
+    //     ->first();
+
     $ticket = Ticket::where('PLATENO', $data['PLATENO'])
-         ->where('ISPARKOUT',0)
-        ->latest('PARKDATETIME')
-        ->first();
+    ->where(function ($q) {
+        $q->whereIn('REMARKS', ['UNPAID'])
+          ->orWhereNull('REMARKS');
+    })
+    ->latest('PARKDATETIME')
+    ->first();
+
 
         if (!$ticket){
             return redirect()->back()->with([ 
