@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('payment_method', 50);     
             $table->string('transaction_ref')->nullable(); // receipt / reference no
             $table->dateTime('paid_at');              // when payment happened
-            $table->enum('status', ['PAID','UNPAID','REFUNDED'])->default('PAID');
+            $table->string('status')->default('unpaid');
             $table->text('remarks')->nullable();      // optional notes
             $table->timestamps();
         });

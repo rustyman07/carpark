@@ -2,7 +2,7 @@
   <v-container>
     <!-- Date + Type Filters -->
 
-            <div class="d-flex justify-end mb-4">
+        <div class="d-flex justify-end mb-4">
         <!-- Open dialog -->
             <v-btn color="success" @click="addCard">
             Add Sales Person
