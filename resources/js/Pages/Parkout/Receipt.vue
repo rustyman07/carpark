@@ -81,7 +81,7 @@
         <!-- Footer -->
         <div class="text-center">
             <!-- <p class="text-grey text-caption">Powered by Your Company</p> -->
-            <v-btn data-html2pdf-ignore color="primary" block @click="downloadPdf">Download PDF</v-btn>
+            <v-btn data-html2pdf-ignore color="primary" block @click="downloadPdf">Print</v-btn>
         </div>
         </v-card>
   </v-container>

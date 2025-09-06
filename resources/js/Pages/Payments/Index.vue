@@ -58,7 +58,6 @@ import { formatCurrency,formatDate } from '../../utils/utility'
 // Table headers
 const headers = [
   { key: 'id', title: 'ID' },
-  { key: 'ticket_id', title: 'Ticket ID' },
   { key: 'card_name', title: 'Card Name' },
   { key: 'amount', title: 'Amount' },
   { key: 'days_deducted', title: 'Days Deducted' },

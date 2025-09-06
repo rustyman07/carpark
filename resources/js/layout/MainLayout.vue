@@ -108,9 +108,11 @@ const items = [
   { title: 'Home', value: 'home', route:'home', icon: 'mdi-home' },
   { title: 'Park In', value: 'park_in', route:'parkin.index', icon: 'mdi-parking' },
   { title: 'Park Out', value: 'park_out', route:'parkout', icon: 'mdi-car-key' },
+  { title: 'Card Template', route: 'card-template.index', value: 'card_template', icon: 'mdi-list-box-outline' },
+  { title: 'Card Inventory', route: 'card-inventory.index', value: 'card_inventory', icon: 'mdi-list-box-outline' },
   { title: 'Logs', value: 'logs', route:'logs', icon: 'mdi-history' },
   { title: 'Sales Person', value: 'sales_person', route:'sales-person.index', icon: 'mdi-account' },
-    { title: 'Transaction', value: 'park_out', route:'', icon: 'mdi-cash',
+  { title: 'Transaction', value: 'park_out', route:'', icon: 'mdi-cash',
     children: [
       { title: 'Ticket Payments', value: 'ticket_payments', route: 'ticket.payments', icon: 'mdi-credit-card-settings' },
       { title: 'Card Payments', route: 'card-template.index', value: 'card_template', icon: 'mdi-list-box-outline' },
@@ -123,8 +125,7 @@ const items = [
     icon: 'mdi-cog',
     children: [
       { title: 'Company', value: 'company_card_template', route: 'company.index', icon: 'mdi-credit-card-settings' },
-      { title: 'Card Template', route: 'card-template.index', value: 'card_template', icon: 'mdi-list-box-outline' },
-      { title: 'Card Inventory', route: 'card-inventory.index', value: 'card_inventory', icon: 'mdi-list-box-outline' }
+   
     ]
   },
 ];

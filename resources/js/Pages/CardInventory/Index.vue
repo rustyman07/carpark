@@ -16,7 +16,6 @@
         :headers="headers"
         :items="cardDetail"
         class="elevation-1"
-        hide-default-footer
         :items-per-page="cardDetail.length"
       >
       <!-- Price -->

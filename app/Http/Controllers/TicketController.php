@@ -426,7 +426,7 @@ public function submit_payment(Request $request)
         }
          $balance = null;
 
-         $payment = Payment::where('id',$ticket->id)->first();
+         $payment = Payment::where('ticket_id',$ticket->id)->first();
     
         if ($ticket->mode_of_payment ==='card'){
            $detail = CardInventoryDetail::where('qr_code_hash',$ticket->QRCODE)->first();

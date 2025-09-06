@@ -97,7 +97,7 @@ function formatTickets(tickets) {
   return tickets.map((ticket) => ({
     ...ticket,
     PARKDATETIME: formatDate(ticket.PARKDATETIME),
-    PARKOUTDATETIME:formatDate(ticket.PARKDATETIME)
+    PARKOUTDATETIME:formatDate(ticket.PARKOUTDATETIME)
   }));
 }
 
