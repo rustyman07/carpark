@@ -43,6 +43,7 @@ return new class extends Migration
             $table->integer('PARKINBY')->nullable();
             $table->integer('PARKOUTBY')->nullable();
             $table->integer('CREATEDBY')->nullable();
+            $table->softDeletes();
             $table->timestamps(); // created_at, updated_at
         });
     }

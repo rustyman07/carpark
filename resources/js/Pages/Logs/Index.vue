@@ -40,7 +40,25 @@
         class="elevation-1"
          hide-default-footer
        :items-per-page="items.length"
-      />
+      >
+      <template v-slot:item.ACTION = "{ item}">
+        <v-btn 
+        color="error"
+       @click=deleteTicket(item.id)
+        >Void</v-btn>
+      </template>
+
+      <template v-slot:item.PARKOUTDATETIME = "{ item}">
+           {{ item.PARKOUTDATETIME ? item.PARKOUTDATETIME : '-' }}
+      </template>
+
+
+      
+      
+      </v-data-table>
+
+   
+
     
     </v-card>
        <div class="d-flex justify-center pa-4" v-if="nextPageUrl">
@@ -84,6 +102,7 @@ const headers = [
   { key: 'PLATENO', title: 'Plate No' },
   { key: 'PARKDATETIME', title: 'Park Date/Time' },
   { key: 'PARKOUTDATETIME', title: 'Park out Date/Time' },
+  { key: 'ACTION', title: 'Action'}
 
 ]
 
@@ -143,6 +162,31 @@ function loadMore() {
     fetchLogs({ url: nextPageUrl.value ,append: true ,});
   }
 }
+
+
+const deleteTicket = (id) => {
+  if (confirm('Are you sure you want to void this ticket?')) {
+
+    items.value = items.value.filter(ticket => ticket.id !== id)
+
+    router.delete(route('logs.delete', { id }), {
+      onSuccess: () => {
+        console.log('Ticket has been voided.')
+        fetchLogs({ append: false }) 
+      },
+      onError: (errors) => {
+        console.error(errors)
+
+
+        fetchLogs({ append: false })
+      }
+    })
+  }
+}
+
+
+
+
 </script>
 
 

@@ -12,6 +12,7 @@ use App\Http\Controllers\SalesPersonController;
 Route::get('/', fn () => Inertia::render('Home/Index'))->name('home');
 
 Route::get('logs', [TicketController::class, 'showLogs'])->name('logs');
+Route::delete('logs/{id}' ,[TicketController::class,'destroy'])->name('logs.delete');
 
 Route::resource('parkin',TicketController::class);;
 

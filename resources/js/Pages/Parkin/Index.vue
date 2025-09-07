@@ -1,37 +1,41 @@
 <template>
-  <div style=" padding: 100px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-    <div>
-      <h1> {{ time }}</h1>
-      <h1>{{ date }}</h1>
+  <v-container class="fill-height d-flex flex-column align-center  justify-center" >
+       
+        <div class="text-h5 text-md-h3 text-center text-grey-darken-2 mb-2">{{ date }}</div>
+        <div class="text-h2 text-md-h1 font-weight-bold opacity-70 text-center"> {{ time  }} <span style="font-size: 2.5rem;">{{ AMPM }}</span></div>
 
-      <v-text-field
+        <v-container   max-width ="450">
+         <v-text-field
         v-model="form.PLATENO"
-        placeholder="Enter Plate No."
-        style="width: 300px"
-        variant="underlined"
-       :error-messages="form.errors.PLATENO"
-       @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
-      />
-      
-    <v-layout class="d-flex flex-column ga-2">
-      <v-btn size="x-large" @click="createTicket" block color="blue-darken-4"   :disabled="form.processing || !form.PLATENO">
-        New Ticket
-      </v-btn>
-      <v-layout class="d-flex ga-2 align-center">
-          <v-divider thickness="2"></v-divider>   <span>OR</span><v-divider thickness="2"></v-divider>
-      </v-layout>     
-      <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" disabled>
-        Scan 
-      </v-btn>
+            placeholder="Enter Plate No."
+        
+            variant="underlined"
+        :error-messages="form.errors.PLATENO"
+        @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
+            class="text-center-input "
+        />
+        
+        <v-layout class="d-flex flex-column ga-2">
+            <v-btn size="x-large" @click="createTicket" block color="blue-darken-4"   :disabled="form.processing || !form.PLATENO">
+                New Ticket
+            </v-btn>
+            <v-layout class="d-flex ga-2 align-center">
+                <v-divider thickness="2"></v-divider>   <span>OR</span><v-divider thickness="2"></v-divider>
+            </v-layout>     
+            <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" disabled>
+                Scan 
+            </v-btn>
+
+        </v-layout>
+
+        </v-container>
+        
+        
 
 
 
-  </v-layout>
-
-
-
-    </div>
-  </div>
+    
+  </v-container>
 </template>
 
 <script setup>
@@ -43,6 +47,7 @@ import { Inertia } from '@inertiajs/inertia'; // Keep Inertia for back()
 // Refs for live clock and plate number
 const time = ref('');
 const date = ref('');
+const AMPM = ref('');
 
 
 
@@ -54,6 +59,7 @@ const updateTime = () => {
   const now = dayjs();
   time.value = now.format('hh:mm:ss ');
   date.value = now.format('MMMM D, YYYY');
+  AMPM.value = now.format('A')
 };
 
 // Start live clock on mount
@@ -102,3 +108,20 @@ const createTicket = () => {
   });
 };
 </script>
+
+<style scoped>
+
+.text-center-input ::v-deep input {
+  text-align: center;
+    font-size: 2.5rem;
+  font-weight: bold;
+    color: #616161;
+}
+/* .time {
+  margin-top: -20px;
+  font-size: 6em;
+  font-weight: bold;
+  color: #616161;
+
+} */
+</style>

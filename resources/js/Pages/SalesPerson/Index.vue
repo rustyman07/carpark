@@ -54,7 +54,11 @@ import { router } from '@inertiajs/vue3'
 import Create from './Create.vue'
 
 const props = defineProps({
-  salesPerson: { type: Object, default: () => ({ data: [], next_page_url: null }) }
+  salesPerson: { type: Object,
+     default: () => (
+        { data: [], next_page_url: null }
+    ) 
+}
 })
 
 const showDialog = ref(false)

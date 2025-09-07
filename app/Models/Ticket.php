@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ticket extends Model
 {
@@ -12,6 +13,9 @@ class Ticket extends Model
         'PARKDATETIME' => 'datetime:Y-m-d H:i:s',
          'PARKFEE' => 'float'
     ];
+        
+        use SoftDeletes;
+
 
         protected $fillable = [
         'TICKETNO',

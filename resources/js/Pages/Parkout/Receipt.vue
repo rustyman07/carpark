@@ -2,22 +2,22 @@
     <v-container class="d-flex justify-center align-center fill-height" >
         <v-card ref="receiptContent" elevation="1" min-width="300" class="pa-4">
         <!-- Header -->
-		 <div class="d-flex flex-column   align-center justify-center ">
+		 <div class="d-flex flex-column   align-center justify-center text-caption ">
 			<p  >{{ company.name }}</p>
 			<p>{{ company.address }}</p>
 			<p>{{ company.contact }}</p>
 		 </div>
 
-        <div class="text-center mb-2">
-            <p class="text-grey">Thank you for parking with us</p>
-        </div>
+        <!-- <div class="text-center mb-2 text-caption">
+            <p class="">Thank you for parking with us</p>
+        </div> -->
             <!-- <v-icon icon="mdi-parking"></v-icon> -->
             <v-divider class="my-2"></v-divider>
             <h3 class="font-weight-bold">Parking Receipt</h3>
             <v-divider class="my-2"></v-divider>
 
         <div  class="d-flex flex-column align-center ">
-            <p class=" text-caption">Ticket No.</p>
+            <p class=" text-lightText text-caption">Ticket No.</p>
             <h2 class="font-weight-bold ">{{props.ticket.ticket_no }}</h2>
         </div>
 
@@ -114,7 +114,6 @@ const page = usePage();
 
 
 // const ticket = page.props.ticket
-
 
 
 

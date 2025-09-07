@@ -111,7 +111,11 @@ public function store(Request $request)
      */
     public function destroy(string $id)
     {
-        //
+        $ticket = Ticket::findOrFail($id);
+        $ticket->delete();
+
+        return back()->with('success', 'Ticket has been voided');
+
     }
 
     public function showLogs(Request $request)
@@ -122,9 +126,9 @@ public function store(Request $request)
        $dateTo   = $request->input('dateTo', now()->toDateString());   // default = today
 
 
-        $query = Ticket::where('CANCELLED', 0)
+        $query = Ticket::whereNull('deleted_at')
             ->where('ISPARKOUT',$type ==='PARK-IN'? 0 : 1)
-            ->select('TICKETNO', 'PLATENO', 'PARKDATETIME', 'PARKOUTDATETIME','REMARKS')
+            ->select('id','TICKETNO', 'PLATENO', 'PARKDATETIME', 'PARKOUTDATETIME','REMARKS')
             ->orderByDesc('created_at');
 
         $dateColumn = $type === 'PARK-IN' ? 'PARKDATETIME' : 'PARKOUTDATETIME';
@@ -193,7 +197,8 @@ public function submit_park_out(Request $request)
     //     ->latest('PARKDATETIME')
     //     ->first();
 
-    $ticket = Ticket::where('PLATENO', $data['PLATENO'])
+    $ticket = Ticket::whereNull('deleted_at')
+    ->where('PLATENO', $data['PLATENO'])
     ->where(function ($q) {
         $q->whereIn('REMARKS', ['UNPAID'])
           ->orWhereNull('REMARKS');
