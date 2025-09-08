@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('card_inventory_details', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('header_id');
-            $table->string('qr_code');
+            $table->string('card_number')->unique();
             $table->string('qr_code_hash');
             $table->string('status');
             $table->string('card_name');    

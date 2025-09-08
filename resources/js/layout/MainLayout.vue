@@ -96,6 +96,7 @@
   </v-card>
 </template>
 
+
 <script setup>
 import { ref, computed, onBeforeMount, watch} from 'vue';
 import { route } from 'ziggy-js';
@@ -157,7 +158,7 @@ const activeItem = computed(() => {
 function navigate(item) {
   if (item.route) {
     router.visit(route(item.route));
-    activeItem.value = item.value;
+    // activeItem.value = item.value;
   }
 }
 
@@ -221,12 +222,12 @@ watch(
 
 
 
-const isParentActive = computed(() => (parentValue) => {
-  const parentItem = items.find(item => item.value === parentValue);
-  if (parentItem && parentItem.children) {
-    return parentItem.children.some(child => child.value === activeItem.value);
-  }
-  return false;
-});
+// const isParentActive = computed(() => (parentValue) => {
+//   const parentItem = items.find(item => item.value === parentValue);
+//   if (parentItem && parentItem.children) {
+//     return parentItem.children.some(child => child.value === activeItem.value);
+//   }
+//   return false;
+// });
 
 </script>

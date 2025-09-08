@@ -19,15 +19,15 @@
 
 
             <!-- Show input if no ticket -->
-        <div >
-                <v-text-field
-                class="text-h1"
-                v-model="form.PLATENO"
-                placeholder="Enter Plate No."
-                style="width: 300px"
-                variant="underlined"
-                @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
-                />
+         <v-container   max-width ="450">
+             <v-text-field
+            v-model="form.PLATENO"
+            placeholder="Enter Plate No." 
+            variant="underlined"
+            :error-messages="form.errors.PLATENO"
+            @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
+            class="text-center-input "
+            />
 
         <v-btn
             :disabled="!form.PLATENO"
@@ -38,7 +38,7 @@
         >
             Submit
         </v-btn>
-    </div>
+       </v-container>
   </v-layout>
 </template>
 
@@ -116,3 +116,21 @@ const submitPlate = () => {
 
 
 </script>
+
+
+<style scoped>
+
+.text-center-input :deep input {
+  text-align: center;
+    font-size: 2.5rem;
+  font-weight: bold;
+    color: #616161;
+}
+/* .time {
+  margin-top: -20px;
+  font-size: 6em;
+  font-weight: bold;
+  color: #616161;
+
+} */
+</style>

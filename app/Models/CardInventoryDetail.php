@@ -9,7 +9,7 @@ class CardInventoryDetail extends Model
        protected $fillable = [
     'header_id',
     'card_name',
-    'qr_code',
+    'card_number',
     'qr_code_hash',
     'no_of_days',
     'discount',

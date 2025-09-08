@@ -18,6 +18,21 @@
         class="elevation-1"
         hide-default-footer
       >
+
+        <template v-slot:item.price="{ item }">
+        {{ formatCurrency(item.price) }}
+        </template>
+
+        <!-- Discount -->
+        <template v-slot:item.discount="{ item }">
+        {{ formatCurrency(item.discount) }}
+        </template>
+
+        <!-- Amount -->
+        <template v-slot:item.amount="{ item }">
+        {{ formatCurrency(item.amount) }}
+        </template>
+
         <!-- Slot for actions -->
         <template v-slot:item.actions="{ item }">
           <v-btn
@@ -43,6 +58,8 @@
 import { ref,computed } from 'vue'
 import Create from './Create.vue'
 import { usePage } from '@inertiajs/vue3'
+import { formatCurrency } from '../../utils/utility'
+
 
 // ✅ Dialog open/close state
 const showDialog = ref(false)

@@ -29,6 +29,7 @@ return new class extends Migration
             // Payment details
             $table->string('qr_code')->nullable();
             $table->decimal('amount', 10, 2)->default(0.00);
+            $table->string('card_number')->nullable();
             $table->enum('payment_type', ['reload', 'ticket']);
             $table->enum('payment_method', ['cash', 'card', 'mobile', 'bank']);
             $table->integer('days_deducted')->nullable();

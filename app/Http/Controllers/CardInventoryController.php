@@ -13,79 +13,33 @@ use Illuminate\Http\Request;
 class CardInventoryController extends Controller
 {
     //
-     public function index()
+     public function index(Request $request)
     {
+        
+        $dateFrom = $request->input('dateFrom', now()->toDateString()); // default = today
+        $dateTo   = $request->input('dateTo', now()->toDateString());   // default = today
+
+
 
         $cardTemplate =  CardTemplate::where('cancelled',0)->get();
-        $cardDetail = CardInventoryDetail::where('cancelled',0)->get();
+        $cardDetail = CardInventoryDetail::where('cancelled',0);
+
+        
+                if ($dateFrom && $dateTo) {
+            $cardDetail->whereDate('created_at', '>=', $dateFrom)
+                ->whereDate('created_at', '<=', $dateTo);
+        };
+
+
 
 
            return inertia('CardInventory/Index',[
             'cardTemplate' => $cardTemplate,
-            'cardDetail'   => $cardDetail
+            'cardDetail'   => $cardDetail->paginate(10)->withQueryString()
            ]);
     }
 
-    // public function store(Request $request){
-    //      try {
-    //     DB::beginTransaction();
 
-    //      $amount = $request->price - ($request->discount ?? 0);
-
-    //     // 1. Create the inventory batch (header)
-    //     $inventory = CardInventory::create([
-    //         'card_name'    => $request->card_name,
-    //         'no_of_cards' => $request->no_of_cards,
-    //         'no_of_days'  => $request->no_of_days,
-    //         'price'       => $request->price,
-    //         'discount'    => $request->discount,
-    //         'amount'      => $amount,
-    //         // 'createdby'   => auth()->id(),
-    //     ]);
-
-    //     // 2. Prepare detail rows
-
-
-    //     $details = [];
-    //     for ($i = 0; $i < $request->no_of_cards; $i++) {
-    //         $details[] = [
-    //             'header_id' => $inventory->id,
-    //             'qr_code'    => (string) Str::uuid(), // safe unique ID
-    //             'status'    => 'AVAILABLE',
-    //             'card_name'  => $request->card_name,
-    //             'no_of_days'=> $request->no_of_days,
-    //             'price'     => $request->price,
-    //             'discount'  => $request->discount,
-    //             'amount'    => $amount,
-    //             'balance'   => 0,
-    //             // 'createdby' => auth()->id(),
-    //             'created_at'=> now(),
-    //             'updated_at'=> now(),
-    //         ];
-    //     }
-
-    //     // 3. Bulk insert details (faster than looping create())
-    //     CardInventoryDetail::insert($details);
-
-    //     DB::commit();
-
-    //    $cardDetail = CardInventoryDetail::where('cancelled',0)->get();
-
-
-    //     return redirect()->route('card-inventory.index')->with([
-    //         'success' => 'Card Inventory with details created successfully!',
-    //         //  'cardDetail' => $cardDetail
-    //     ]);
-
-    // } catch (\Throwable $e) {
-    //     DB::rollBack();
-
-    //     return redirect()->back()->with([
-    //         'success' => false,
-    //         'message' => 'Failed to create card inventory.',
-    //         'error'   => $e->getMessage(),]);
-    // }
-    // }
 
 
 public function store(Request $request)
@@ -111,8 +65,8 @@ public function store(Request $request)
         for ($i = 0; $i < $request->no_of_cards; $i++) {
             $details[] = [
                 'header_id'  => $inventory->id,
-                'qr_code'  => 'temp', // placeholder for raw code
-                'qr_code_hash' => 'temp', // placeholder for secure code
+                'card_number'  => 'temp_' . $i,   // temporary placeholder
+                'qr_code_hash' => 'temp_' . $i,  // temporary placeholder
                 'status'     => 'AVAILABLE',
                 'card_name'  => $request->card_name,
                 'no_of_days' => $request->no_of_days,
@@ -141,7 +95,7 @@ public function store(Request $request)
             $hashedCode = Hash::make($qrCode);
 
             $detail->update([
-                'qr_code'  => $qrCode,
+                'card_number'  => $qrCode,
                 'qr_code_hash' => $hashedCode,
             ]);
         }

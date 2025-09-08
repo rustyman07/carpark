@@ -166,6 +166,7 @@ function loadMore() {
 
 const deleteTicket = (id) => {
   if (confirm('Are you sure you want to void this ticket?')) {
+    console.log('Voiding ticket with ID:', id)
 
     items.value = items.value.filter(ticket => ticket.id !== id)
 

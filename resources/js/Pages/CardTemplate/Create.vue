@@ -48,8 +48,8 @@ const isEdit = ref(false);
 
 const form = useForm({
     card_name : '',
-    no_of_days : 1,
-    price: 0,
+    no_of_days : null,
+    price: null,
     discount: null,
    
 })

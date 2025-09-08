@@ -5,28 +5,27 @@
         <div class="text-h2 text-md-h1 font-weight-bold opacity-70 text-center"> {{ time  }} <span style="font-size: 2.5rem;">{{ AMPM }}</span></div>
 
         <v-container   max-width ="450">
-         <v-text-field
-        v-model="form.PLATENO"
-            placeholder="Enter Plate No."
-        
+            <v-text-field
+            v-model="form.PLATENO"
+            placeholder="Enter Plate No." 
             variant="underlined"
-        :error-messages="form.errors.PLATENO"
-        @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
+            :error-messages="form.errors.PLATENO"
+            @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
             class="text-center-input "
-        />
-        
-        <v-layout class="d-flex flex-column ga-2">
-            <v-btn size="x-large" @click="createTicket" block color="blue-darken-4"   :disabled="form.processing || !form.PLATENO">
-                New Ticket
-            </v-btn>
-            <v-layout class="d-flex ga-2 align-center">
-                <v-divider thickness="2"></v-divider>   <span>OR</span><v-divider thickness="2"></v-divider>
-            </v-layout>     
-            <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" disabled>
-                Scan 
-            </v-btn>
+            />
+            
+            <v-layout class="d-flex flex-column ga-2">
+                <v-btn size="x-large" @click="createTicket" block color="blue-darken-4"   :disabled="form.processing || !form.PLATENO">
+                    New Ticket
+                </v-btn>
+                <v-layout class="d-flex ga-2 align-center">
+                    <v-divider thickness="2"></v-divider>   <span>OR</span><v-divider thickness="2"></v-divider>
+                </v-layout>     
+                <v-btn size="x-large" @click="createTicket" block color="blue-darken-4" disabled>
+                    Scan 
+                </v-btn>
 
-        </v-layout>
+            </v-layout>
 
         </v-container>
         
