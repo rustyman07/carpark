@@ -6,7 +6,22 @@
       </v-btn>
     </div>
 
-    <Create v-model="showDialog" :cardTemplate="cardTemplate" />
+    <Create v-model="showDialog" :cardTemplate="cardTemplate" v-model:loading="showLoadingDialog" v-model:progress="progress" />
+
+     <v-dialog   v-model="showLoadingDialog" max-width="320" persistent>
+      <v-list class="bg-grey-darken-4" elevation="12" rounded="lg">
+        <v-list-item  title="Generating Cards...">
+     <template v-slot:append>
+            <v-progress-circular
+              color="primary"
+              indeterminate="disable-shrink"
+              size="16"
+              width="2"
+            ></v-progress-circular>
+          </template>
+          </v-list-item>
+      </v-list>
+    </v-dialog>
 
     <v-card title="Card Inventory" class="mt-4">
       <v-data-table-server
@@ -109,8 +124,13 @@ import { usePage, router } from '@inertiajs/vue3';
 import QRCode from 'qrcode';
 import { formatCurrency } from '../../utils/utility';
 
+
 // Dialog state
 const showDialog = ref(false);
+const showLoadingDialog = ref(false); 
+
+
+const progress = ref(0);
 
 // Table headers
 const headers = [

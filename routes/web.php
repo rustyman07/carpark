@@ -14,7 +14,11 @@ Route::get('/', fn () => Inertia::render('Home/Index'))->name('home');
 Route::get('logs', [TicketController::class, 'showLogs'])->name('logs');
 Route::delete('logs/{id}' ,[TicketController::class,'destroy'])->name('logs.delete');
 
-Route::resource('parkin',TicketController::class);;
+Route::resource('parkin',TicketController::class);
+
+// routes/web.php
+Route::post('/detect-plate', [TicketController::class, 'detect']);
+
 
 Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
 Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');

@@ -119,6 +119,15 @@ class CardInventoryController extends Controller
 
  public function store(Request $request)
     {
+        $data = $request->validate([
+            'card_name'   => 'required|string|max:255',
+            'no_of_cards' => 'required|integer|min:1',
+            'no_of_days'  => 'required|integer|min:1',
+            'price'       => 'required|numeric|min:0',
+            'discount'    => 'nullable|numeric|min:0',
+        ]);
+
+
         try {
             DB::beginTransaction();
 
@@ -135,8 +144,8 @@ class CardInventoryController extends Controller
             ]);
             
             $details = [];
-            $year = date('Y');
-            
+        
+            $year = now()->year;
             $lastDetailId = CardInventoryDetail::max('id') ?? 0;
             
             for ($i = 0; $i < $request->no_of_cards; $i++) {

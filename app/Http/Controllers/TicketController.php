@@ -39,7 +39,7 @@ public function store(Request $request)
 {
     // Validate inputs
     $data = $request->validate([
-        'PLATENO'    => 'required|string',
+        'PLATENO'    => 'required|string|min:3',
         'PARKYEAR'   => 'nullable|integer',
         'PARKMONTH'  => 'nullable|integer',
         'PARKDAY'    => 'nullable|integer',
@@ -237,12 +237,11 @@ public function submit_park_out(Request $request)
     ])->save();
 
 
-//     Payment::create([
-//     'ticket_id'      => $ticket->id,
-//     'amount'         => $ticket->PARKFEE, // initial calculated fee
-//     'status'         => 'unpaid',
-//     'payment_type'   => 'ticket',
-// ]);
+    Payment::create([
+    'ticket_id'      => $ticket->id,
+    'amount'         => $ticket->PARKFEE, // initial calculated fee
+    'payment_type'   => 'ticket',
+]);
 
     // 5️⃣ Success response
    
@@ -317,7 +316,8 @@ public function submit_payment(Request $request)
         $amount = 0;
     }
 
-    DB::transaction(function () use ($ticket, $transactionDetails, $request, $amount, $cardId, $qrCode, $daysParked) {
+    DB::transaction(function () use ($ticket, $transactionDetails, $request, $amount, $cardId, $qrCode, $daysParked) 
+    {
         // Update ticket
         $ticket->REMARKS = 'PAID';
         $ticket->mode_of_payment = $request->mode_of_payment;
@@ -339,54 +339,54 @@ public function submit_payment(Request $request)
         // ]);
 
          // Find existing unpaid payment
-    $payment = Payment::where('ticket_id', $ticket->id)->first();
+        $payment = Payment::where('ticket_id', $ticket->id)->first();
 
-    if ($payment) {
-        $payment->update([
-            'card_id'        => $cardId,
-            'card_number'    => $transactionDetails['detail']->card_number ?? null,
-            'qr_code'        => $qrCode,
-            'amount'         => $amount,
-            'days_deducted'  => $request->mode_of_payment === 'card' ? $daysParked : null,
-            'payment_method' => $request->mode_of_payment,
-            'status'         => 'paid',
-            'paid_at'        => now(),
-        ]);
-    } else {
-        // fallback safety: if no unpaid record exists, create a new one
-        Payment::create([
-            'ticket_id'      => $ticket->id,
-            'card_id'        => $cardId,
-            'card_number'    => $transactionDetails['detail']->card_number ?? null,
-            'qr_code'        => $qrCode,
-            'amount'         => $amount,
-            'days_deducted'  => $request->mode_of_payment === 'card' ? $daysParked : null,
-            'payment_type'   => 'ticket',
-            'payment_method' => $request->mode_of_payment,
-            'status'         => 'paid',
-            'paid_at'        => now(),
-        ]);
-    }
-
-        // Deduct balance if card was used
-        if (isset($transactionDetails['detail'])) {
-            $detail = $transactionDetails['detail'];
-            $daysParked = $transactionDetails['days_parked'];
-            $detail->balance -= $daysParked;
-            $detail->status = $detail->balance > 0 ? 'ACTIVE' : 'USED';
-            $detail->save();
+        if ($payment) {
+            $payment->update([
+                'card_id'        => $cardId,
+                'card_number'    => $transactionDetails['detail']->card_number ?? null,
+                'qr_code'        => $qrCode,
+                'amount'         => $amount,
+                'days_deducted'  => $request->mode_of_payment === 'card' ? $daysParked : null,
+                'payment_method' => $request->mode_of_payment,
+                'status'         => 'paid',
+                'paid_at'        => now(),
+            ]);
+        } else {
+            // fallback safety: if no unpaid record exists, create a new one
+            Payment::create([
+                'ticket_id'      => $ticket->id,
+                'card_id'        => $cardId,
+                'card_number'    => $transactionDetails['detail']->card_number ?? null,
+                'qr_code'        => $qrCode,
+                'amount'         => $amount,
+                'days_deducted'  => $request->mode_of_payment === 'card' ? $daysParked : null,
+                'payment_type'   => 'ticket',
+                'payment_method' => $request->mode_of_payment,
+                'status'         => 'paid',
+                'paid_at'        => now(),
+            ]);
         }
+
+            // Deduct balance if card was used
+            if (isset($transactionDetails['detail'])) {
+                $detail = $transactionDetails['detail'];
+                $daysParked = $transactionDetails['days_parked'];
+                $detail->balance -= $daysParked;
+                $detail->status = $detail->balance > 0 ? 'ACTIVE' : 'USED';
+                $detail->save();
+            }
     });
 
-    $responseWith = [
-        'success' => 'Payment successful!',
-        'id'      => $ticket->uuid,
-        'company' => $company,
-    ];
+        $responseWith = [
+            'success' => 'Payment successful!',
+            'id'      => $ticket->uuid,
+            'company' => $company,
+        ];
 
-    if (isset($transactionDetails['detail'])) {
-        $responseWith['detail'] = $transactionDetails['detail'];
-    }
+        if (isset($transactionDetails['detail'])) {
+            $responseWith['detail'] = $transactionDetails['detail'];
+        }
 
     return redirect()
         ->route('parkout.receipt', ['id' => $ticket->uuid])
@@ -426,6 +426,38 @@ public function submit_payment(Request $request)
         ]);
     }
 
+public function detect(Request $request)
+    {
+        $file = $request->file('image');
+
+        if (!$file) {
+            return response()->json([
+                'plate' => '',
+                'bbox' => [50, 50, 200, 50]
+            ]);
+        }
+
+        // Save uploaded frame temporarily
+        $path = storage_path('app/public/frame.jpg');
+        $file->move(storage_path('app/public'), "frame.jpg");
+
+        // Full path to Python 3.13 executable
+        $python = "C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
+          $script = app_path("scripts/plate_detect.py");
+
+        // Wrap paths in quotes to handle spaces
+        $command = "\"$python\" \"$script\" \"$path\"";
+
+        $output = shell_exec($command);
+
+        // Decode JSON output
+        $data = json_decode($output, true);
+
+        return response()->json([
+            'plate' => $data['plate'] ?? '',
+            'bbox' => $data['bbox'] ?? [50, 50, 200, 50]
+        ]);
+    }
 
 
 }
