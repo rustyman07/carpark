@@ -10,39 +10,23 @@ import { ZiggyVue } from "ziggy-js";
 import { Ziggy } from "./ziggy";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import "@mdi/font/css/materialdesignicons.css";
-// import "material-symbols/outlined.css";
+// Import the VDateInput from the labs directory
+import { VDateInput } from "vuetify/labs/VDateInput";
+
 import MainLayout from "@/Layout/MainLayout.vue";
 
-// Vuetify
-// Vuetify
 const vuetify = createVuetify({
-    components,
+    components: {
+        ...components, // This line includes all standard Vuetify components
+        VDateInput, // This line specifically registers the labs component
+    },
     directives,
     icons: {
-        defaultSet: "mdi", // This ensures MDI is the default icon set
+        defaultSet: "mdi",
     },
-
-    // icons: {
-    //     defaultSet: "mdi", // keep mdi as default
-    //     sets: {
-    //         mdi: {
-    //             component: (props) =>
-    //                 h(components.VIcon, { ...props, class: "mdi" }),
-    //         },
-    //         material: {
-    //             component: (props) =>
-    //                 h(
-    //                     "span",
-    //                     { class: "material-symbols-outlined", ...props },
-    //                     props.icon
-    //                 ),
-    //         },
-    //     },
-    // },
 });
 
 createInertiaApp({
-    // Using async/await is more robust for handling the promise.
     resolve: async (name) => {
         const page = await resolvePageComponent(
             `./Pages/${name}.vue`,

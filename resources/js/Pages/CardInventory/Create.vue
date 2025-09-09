@@ -30,7 +30,7 @@
       <v-card-actions>
         <v-spacer />
         <v-btn text="Close" variant="plain" @click="dialog = false" />
-        <v-btn color="primary" :text="isEdit?  'UPDATE':'SAVE'" variant="tonal" type="submit" />
+        <v-btn color="primary" :text="isEdit?  'UPDATE':'SAVE'" variant="tonal" type="submit"  :disabled="form.processing"/>
       </v-card-actions>
     </v-card>
     </form>
