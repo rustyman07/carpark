@@ -10,6 +10,7 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;  
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class TicketController extends Controller
@@ -48,6 +49,33 @@ public function store(Request $request)
         'PARKSECOND' => 'nullable|integer',
     ]);
 
+
+
+    // $ticketExists = Ticket::where('PLATENO', $data['PLATENO'])
+    //     ->where(function ($q) {
+    //         $q->whereIn('REMARKS', ['UNPAID'])
+    //           ->orWhereNull('REMARKS');
+    //     })->where('ISPARKOUT', 0)
+    //     ->whereNull('deleted_at')
+    //     ->exists();
+
+
+
+    $ticket = Ticket::where('PLATENO', $data['PLATENO'])
+        ->whereNotNull('PARKDATETIME')
+        ->where('ISPARKOUT', 0)
+        ->whereNull('deleted_at')
+        ->latest('PARKDATETIME')   // order by PARKDATETIME desc
+        ->first();
+
+
+
+        if ($ticket) {
+    return back()->withErrors([
+        'PLATENO' => "This plate number already has an active ticket with a ticket no of {$ticket->TICKETNO}.",
+    ])->withInput();
+}
+
     // Build PARKDATETIME from inputs (fallback: now)
     $parkDateTime = isset($data['PARKYEAR'], $data['PARKMONTH'], $data['PARKDAY'])
         ? Carbon::create(
@@ -74,8 +102,12 @@ public function store(Request $request)
    $data['TICKETNO'] = 0;
     DB::transaction(function () use ($data) {
         $ticket = Ticket::create($data);
+        $ticketno = '1' . sprintf('%05d', $ticket->id);
+        $hash_ticketno = Hash::make($ticketno);
+
         $ticket->update([
-            'TICKETNO' => (string) (1000000 + $ticket->id),
+            'TICKETNO' =>      $ticketno,     
+            'QRCODE'   => $hash_ticketno,
             'uuid' => (string) Str::uuid(),]);
     });
 
@@ -157,19 +189,52 @@ public function store(Request $request)
 
 public function submit_park_out(Request $request)
 {
+
+
+
     // 1️⃣ Validate input
-    $data = $request->validate([
-        'PLATENO'       => 'required|string|exists:tickets,PLATENO',
+    // $data = $request->validate([
+    //     if($request->input('ISSCANQR' == true)){
+    //         'QRCODE' => 'required|string|exists:tickets,QRCODE',
+    //     } else {     
+    //             'PLATENO'       => 'required|string|exists:tickets,PLATENO',       
+    //     }
+    
+    //     'PARKOUTYEAR'   => 'nullable|integer',
+    //     'PARKOUTMONTH'  => 'nullable|integer',
+    //     'PARKOUTDAY'    => 'nullable|integer',
+    //     'PARKOUTHOUR'   => 'nullable|integer',
+    //     'PARKOUTMINUTE' => 'nullable|integer',
+    //     'PARKOUTSECOND' => 'nullable|integer',
+    // ], [
+    //     'PLATENO.required' => 'Plate number is required',
+    //     'PLATENO.exists'   => 'Plate number not found',
+    // ]);
+
+      $rules = [
         'PARKOUTYEAR'   => 'nullable|integer',
         'PARKOUTMONTH'  => 'nullable|integer',
         'PARKOUTDAY'    => 'nullable|integer',
         'PARKOUTHOUR'   => 'nullable|integer',
         'PARKOUTMINUTE' => 'nullable|integer',
         'PARKOUTSECOND' => 'nullable|integer',
-    ], [
+    ];
+
+ 
+    if ($request->boolean('is_scan_qr')) {
+        $rules['qr_code'] = 'required|string|exists:tickets,QRCODE';
+    } else {
+        $rules['PLATENO'] = 'required|string|exists:tickets,PLATENO';
+    }
+
+    $data = $request->validate($rules, [
         'PLATENO.required' => 'Plate number is required',
         'PLATENO.exists'   => 'Plate number not found',
+        'qr_code.required'  => 'QR code is required',
+        'qr_code.exists'    => 'QR code not found',
     ]);
+    
+
 
     // 2️⃣ Compute PARKOUTDATETIME (use provided or fallback to now)
   $parkOutDateTime = isset($data['PARKOUTYEAR'], $data['PARKOUTMONTH'], $data['PARKOUTDAY'])
@@ -196,23 +261,36 @@ public function submit_park_out(Request $request)
     //     ->latest('PARKDATETIME')
     //     ->first();
 
-    $ticket = Ticket::where('PLATENO', $data['PLATENO'])
-    ->where(function ($q) {
-        $q->whereIn('REMARKS', ['UNPAID'])
-          ->orWhereNull('REMARKS');
-    })
-    ->latest('PARKDATETIME')
-    ->first();
+        if ($request->boolean('is_scan_qr')) {
+            $ticket = Ticket::where('QRCODE', $data['QRCODE'])
+                ->WhereNull('deleted_at')
+                ->first();
 
+    
 
-        if (!$ticket){
-            return redirect()->back()->with([ 
-                'error' => "Hasn't Park in Yet",
-                'success' => false
-        
-        
-        ]);
+        } else {
+
+                $ticket = Ticket::where('PLATENO', $data['PLATENO'])
+                ->where(function ($q) {
+                    $q->whereIn('REMARKS', ['UNPAID'])
+                    ->orWhereNull('REMARKS');
+                })
+                 ->WhereNull('deleted_at')
+                ->latest('PARKDATETIME')
+                ->first();
+
+                        
+                if (!$ticket){
+                    return redirect()->back()->with([ 
+                        'error' => "Hasn't Park in Yet",
+                        'success' => false
+                
+                ]);
+                }
+
         }
+
+
     
     // 4️⃣ Calculate fee
     $company = Company::find(1); 
@@ -233,6 +311,7 @@ public function submit_park_out(Request $request)
         'PARKOUTHOUR'   => $data['PARKOUTHOUR'],
         'PARKOUTMINUTE' => $data['PARKOUTMINUTE'],
         'PARKOUTSECOND' => $data['PARKOUTSECOND'],
+        'days_parked'   => $daysParked,
         'PARKOUTDATETIME' => $parkOutDateTime
     ])->save();
 
@@ -256,6 +335,7 @@ public function show_payment(string $uuid){
 
     return Inertia('Parkout/Payment',[
         'ticket' => new TicketResource($ticket),
+    
     ]);
 }
 

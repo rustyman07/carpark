@@ -20,7 +20,9 @@ class Ticket extends Model
         protected $fillable = [
         'TICKETNO',
         'uuid',
+        'QRCODE',
         'mode_of_payment',
+        'days_parked',
         'PLATENO',
         'PARKYEAR',
         'PARKMONTH',
