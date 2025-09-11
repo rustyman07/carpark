@@ -25,6 +25,7 @@ const props = defineProps({
   ticket: Object
 })
 
+console.log('test', props.ticket);
 // Generate QR Code content (could be ticket ID, or full JSON)
 const qrValue =  props.ticket.QRCODE;
 // Format date
