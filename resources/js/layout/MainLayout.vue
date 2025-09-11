@@ -170,6 +170,7 @@ const successMessage = ref("")
 const showSuccess = ref(false)
 
 
+console.log(page.props.flash.success);
 
 watch(
   () => page.props.flash.success,
@@ -177,6 +178,7 @@ watch(
     if (val) {
       showSuccess.value = true;
       successMessage.value = val;
+      console.log('Success Message:', successMessage.value);
 
     }
   },
@@ -190,15 +192,21 @@ watch(
 
 
 watch(
-  () => page.props.errors.PLATENO,
+  () => page.props.errors,
   (val) => {
     if (val) {
-      showErrorCard.value = true;
-      errorCardMsg.value = val;
+        if (val.PLATENO) {
+            showErrorCard.value = true;
+            errorCardMsg.value = val.PLATENO;
+        }
+        if (val.qr_code) {  
+            showErrorCard.value = true;
+            errorCardMsg.value = val.qr_code;
+        }
 
     }
   },
-  { deep: true } // Keep deep: true to watch for nested changes
+
 );
 
 

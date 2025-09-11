@@ -113,6 +113,7 @@ const scanQR = async () => {
 };
 
 const startScanner = async () => {
+      clearError()
     if (!isScanQR.value) return;
 
     try {
@@ -123,7 +124,7 @@ const startScanner = async () => {
             async (decodedText) => {
                 console.log('QR code detected ✅', decodedText);
                 await closeScanner();
-                router.post(route('store.payment'), {
+                router.post(route('parkout.submit'), {
                     qr_code: decodedText,
                     is_scan_qr: true
                   

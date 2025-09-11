@@ -88,6 +88,7 @@ public function store(Request $request)
         )
         : now();
 
+    $uuid = (string) Str::uuid();
     // Always sync fields
     $data['PARKYEAR']   = $parkDateTime->year;
     $data['PARKMONTH']  = $parkDateTime->month;
@@ -96,30 +97,41 @@ public function store(Request $request)
     $data['PARKMINUTE'] = $parkDateTime->minute;
     $data['PARKSECOND'] = $parkDateTime->second;
     $data['PARKDATETIME'] = $parkDateTime;
+    $data['uuid'] = $uuid;
 
     // Defaults
     $data['CANCELLED'] = 0;
    $data['TICKETNO'] = 0;
-    DB::transaction(function () use ($data) {
+   
+
+    DB::transaction(function () use ($data,) {
         $ticket = Ticket::create($data);
-        $ticketno = '1' . sprintf('%05d', $ticket->id);
+     
+        $ticketno = '1' . sprintf('%06d', $ticket->id);
         $hash_ticketno = Hash::make($ticketno);
 
         $ticket->update([
             'TICKETNO' =>      $ticketno,     
             'QRCODE'   => $hash_ticketno,
-            'uuid' => (string) Str::uuid(),]);
+        ]);
     });
 
-    return back()->with('success', 'Ticket created successfully!');
+
+    // return back()->with('success', 'Ticket created successfully!');
+    return redirect()->route('parkin.show',['uuid' => $uuid])->with('success', 'Ticket created successfully!');
 }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $uuid)
     {
-        //
+
+        
+        $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+        return inertia('Parkin/Show', [
+            'ticket' => $ticket
+        ]);
     }
 
     /**
@@ -229,9 +241,9 @@ public function submit_park_out(Request $request)
 
     $data = $request->validate($rules, [
         'PLATENO.required' => 'Plate number is required',
-        'PLATENO.exists'   => 'Plate number not found',
+        'PLATENO.exists'   => 'Plate number not founds',
         'qr_code.required'  => 'QR code is required',
-        'qr_code.exists'    => 'QR code not found',
+        'qr_code.exists'    => 'Invalid QR code',
     ]);
     
 
@@ -262,7 +274,7 @@ public function submit_park_out(Request $request)
     //     ->first();
 
         if ($request->boolean('is_scan_qr')) {
-            $ticket = Ticket::where('QRCODE', $data['QRCODE'])
+            $ticket = Ticket::where('QRCODE', $data['qr_code'])
                 ->WhereNull('deleted_at')
                 ->first();
 

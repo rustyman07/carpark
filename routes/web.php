@@ -14,7 +14,9 @@ Route::get('/', fn () => Inertia::render('Home/Index'))->name('home');
 Route::get('logs', [TicketController::class, 'showLogs'])->name('logs');
 Route::delete('logs/{id}' ,[TicketController::class,'destroy'])->name('logs.delete');
 
-Route::resource('parkin',TicketController::class);
+Route::get('parkin', [TicketController::class, 'index'])->name('parkin.index');
+Route::post('parkin', [TicketController::class, 'store'])->name('parkin.store');
+Route::get('parkin/{uuid}', [TicketController::class, 'show'])->name('parkin.show');
 
 // routes/web.php
 Route::post('/detect-plate', [TicketController::class, 'detect']);

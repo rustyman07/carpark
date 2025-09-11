@@ -14,20 +14,45 @@
     <v-container class="d-flex justify-center align-center fill-height" >
         <v-card  class="pa-5" >
         <v-card-text class="py-1 px-2">
+            Ticket No: {{ ticket.data.ticket_no }}
+        </v-card-text>
+        <v-card-text class="py-1 px-2">
             Park in Date Time: {{ formatDate(ticket.data.park_datetime) }}
         </v-card-text>
         <v-card-text class="py-1 px-2">
             Park out Date Time: {{ formatDate(ticket.data.parkout_datetime) }}
         </v-card-text>
         <v-card-text class="py-1 px-2">
+           No of Days: {{  ticket.data.days_parked }}
+        </v-card-text>
+                <v-card-text class="py-1 px-2">
             Ticket Fee: {{  formatCurrency(ticket.data.park_fee) }}
         </v-card-text>
 
-            <v-layout class="d-flex justify-space-between mt-2 ga-4">
-                <v-btn @click="submitPayment" color="blue-darken-4">Cash</v-btn>
-                <v-btn @click="scanQR" color="blue-darken-4">Scan QR</v-btn>
-                <v-btn @click="cancelPayment" color="red-darken-2">Cancel</v-btn>
+
+             <v-card  title="Cards" elevation= 3 class="mt-4">
+            <v-data-table-server
+                :headers="headers"
+                :items-per-page="5"
+                :loading="false"
+                class="elevation-1"
+                disable-sort
+                >
+
+            </v-data-table-server>
+             </v-card>
+
+
+
+
+            <v-layout class="d-flex mt-2 ga-4 ">
+                <v-btn  class="block" @click="submitPayment" color="blue-darken-4">Payment</v-btn>
+                <!-- <v-btn @click="scanQR" color="blue-darken-4">Scan QR</v-btn>-->
+                <v-btn @click="cancelPayment" color="red-darken-2">Cancel</v-btn> 
             </v-layout>
+
+
+
         </v-card>
 </v-container>
 </template>
@@ -51,6 +76,16 @@ const props = defineProps({
     ticket: Object,
 });
 
+
+
+const headers = [
+    { key: 'card_number', title: 'Card Number' },
+    { key: 'no_of_days', title: 'No. of Days' },
+    { key: 'amount', title: 'Amount' },
+    { key: 'balance', title: 'Balance' },
+    { key: 'status', title: 'Status' },
+ 
+];
 
 console.log(props.ticket.data.id)
 
