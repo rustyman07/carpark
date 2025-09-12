@@ -22,10 +22,9 @@
         <v-card-text class="py-1 px-2">
             Park out Date Time: {{ formatDate(ticket.data.parkout_datetime) }}
         </v-card-text>
-        <v-card-text class="py-1 px-2">
-           No of Days: {{  ticket.data.days_parked }}
-        </v-card-text>
-
+            <v-card-text v-if="ticket.data.days_parked !== null" class="py-1 px-2">
+            No of Days: {{ ticket.data.days_parked }}
+            </v-card-text>
 
              <v-card flat  elevation= 3 class="mt-4">
             <v-data-table-server

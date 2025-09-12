@@ -311,14 +311,15 @@ public function submit_park_out(Request $request)
     $end =   Carbon::parse( $data['PARKOUTDATETIME'])->timezone(config('app.timezone'));
 
 
-    $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($end) / 60);
-    // $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
+    // $minutesDiff = ceil($start->diffInSeconds($end) / 60);
+    $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
+     // $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
 
     // $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
     // $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
 
     $rate = null;
-
+    $daysParked = null;
      if ($company->rate == 'perhour') {
         // hourly rate
         $hoursParked = max(1, (int) ceil($minutesDiff / 60));
@@ -455,8 +456,8 @@ public function submit_payment(Request $request)
 
 
     // Calculate parking days
-    // $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($ticket->PARKOUTDATETIME) / 60);
-    // $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
+    $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($ticket->PARKOUTDATETIME) / 60);
+    $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
 
     $transactionDetails = [];
     $amount = (float) $daysParked * (float) $company->post_paid_rate; // standard rate
