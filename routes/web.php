@@ -26,9 +26,11 @@ Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
 Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');
 Route::get('parkout/payment/{uuid}',[TicketController::class,'show_payment'])->name('show.payment');
 Route::post('parkout/payment',[TicketController::class,'submit_payment'])->name('store.payment');
-Route::post('process-qr-Payment', [TicketController::class, 'processQrPayment'])->name('process.qr');
+// Route::post('process-qr-Payment', [TicketController::class, 'processQrPayment'])->name('process.qr');
 Route::get('parkout/receipt',[TicketController::class,'parkout_receipt'])->name('parkout.receipt');
 
+
+Route::post('scan-qr-cards', [TicketController::class, 'scan_qr_cards'])->name('scan.qr.cards');
 
 Route::prefix('sales-person')->name('sales-person.')->group(function () {
     Route::get('/', [SalesPersonController::class, 'index'])->name('index');

@@ -30,14 +30,27 @@
         </v-card-text>
 
 
-             <v-card  title="Cards" elevation= 3 class="mt-4">
+             <v-card flat  elevation= 3 class="mt-4">
             <v-data-table-server
                 :headers="headers"
+                :items="items"
                 :items-per-page="5"
                 :loading="false"
                 class="elevation-1"
                 disable-sort
+                 hide-default-footer
+                
                 >
+                  <template v-slot:top>
+                    <!-- <v-toolbar flat>
+                      <v-toolbar-title>Card Transactions</v-toolbar-title>
+                    </v-toolbar> -->
+                    <v-btn  color="blue-darken-4" @click="scanQR">
+                        <v-icon left class="mr-4">mdi-qrcode-scan</v-icon>
+                        Scan QR to use card
+                    </v-btn>
+                  </template>
+
 
             </v-data-table-server>
              </v-card>
@@ -74,6 +87,7 @@ const page = usePage();
 
 const props = defineProps({
     ticket: Object,
+    cardsTrans: Array
 });
 
 
@@ -81,17 +95,31 @@ const props = defineProps({
 const headers = [
     { key: 'card_number', title: 'Card Number' },
     { key: 'no_of_days', title: 'No. of Days' },
-    { key: 'amount', title: 'Amount' },
+    { key: 'price', title: 'Price' },
     { key: 'balance', title: 'Balance' },
-    { key: 'status', title: 'Status' },
+    
  
 ];
+
+const items = computed(() => {
+    return props.cardsTrans.map(item => ({
+        card_number: item.card_number,
+        no_of_days: item.no_of_days,
+        amount: formatCurrency(item.amount),
+        balance: item.balance,
+        
+    }));
+});
+
+
+
 
 console.log(props.ticket.data.id)
 
 const form = useForm({
     ticket_id: props.ticket.data.id,
-    mode_of_payment : 'cash'
+   
+    // mode_of_payment : 'cash'
 });
 
 const isScanQR = ref(false);
@@ -121,6 +149,9 @@ const formatDate = (date) => {
 //
 // ----------------------
 const submitPayment = () => {
+    form.cards = props.cardsTrans;
+
+    // Attach card transactions to the form data
     form.post(route('store.payment'), {
         onSuccess: () => {
             // No need for a separate message object, Inertia handles success flashes
@@ -154,10 +185,9 @@ const startScanner = async () => {
             async (decodedText) => {
                 console.log('QR code detected ✅', decodedText);
                 await closeScanner();
-                router.post(route('store.payment'), {
+                router.post(route('scan.qr.cards'), {
                     qr_code: decodedText,
                     ticket_id: props.ticket.data.id,
-                    mode_of_payment : 'card'
                 });
             }
         );

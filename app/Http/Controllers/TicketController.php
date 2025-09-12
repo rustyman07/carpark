@@ -6,6 +6,7 @@ use App\Http\Resources\TicketResource;
 use App\Models\Ticket;
 use App\Models\Company;
 use App\Models\CardInventoryDetail;
+use App\Models\CardsTransaction;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -345,12 +346,62 @@ public function submit_park_out(Request $request)
 public function show_payment(string $uuid){
     $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
 
+    
+   $cardsTrans = CardsTransaction::where('ticket_id',$ticket->id)
+       ->orderByDesc('created_at')
+       ->get();
+
+
+
     return Inertia('Parkout/Payment',[
         'ticket' => new TicketResource($ticket),
-    
+        'cardsTrans' => $cardsTrans
     ]);
 }
 
+
+public function scan_qr_cards(Request $request){
+
+    $card = CardInventoryDetail::where('qr_code_hash',$request->qr_code)->first();
+    if(!$card){
+        return back()->withErrors(['qr_code' => 'Invalid QR Code']);
+    }
+    // if($card->status !== 'ACTIVE' || $card->balance <= 0){
+    //     return back()->withErrors(['qr_code' => 'Card is not active or has no balance']);
+    // }
+
+    if($card->balance <= 0){
+        return back()->with(['error' => 'Card has no balance']);
+    }
+    // link ticket to card
+
+    // $ticket = Ticket::where('id', $request->ticket_id)->first();
+
+    // if(!$ticket){
+    //     return back()->with(['error' => 'Ticket not found']);
+    // }
+    // CardsTransaction::create([
+    //     'ticket_id' => $ticket->id,
+    //     'ticket_no' => $ticket->TICKETNO,
+    //     'card_name' => $card->card_name,
+    //     'card_number' => $card->card_number,
+    //     'no_of_days' => $card->no_of_days, // will be updated upon payment
+    //     'card_id'   => $card->id,
+    //    // 'no_of_days_used' => 0, // will be updated upon payment
+    //     'price'    => $card->price, // will be updated upon payment
+    //     'balance'   => $card->balance,
+    //     'discount'  => $card->discount,
+    //     'amount'    => $card->amount, // will be updated upon payment
+
+    // ]);
+
+    return back()->with([
+        'success' => 'Card linked successfully',
+        'detail'  => $card
+    ]);
+
+
+}
 
     
 
