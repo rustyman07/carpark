@@ -310,10 +310,35 @@ public function submit_park_out(Request $request)
     $start = Carbon::parse($ticket->PARKDATETIME)->timezone(config('app.timezone'));
     $end =   Carbon::parse( $data['PARKOUTDATETIME'])->timezone(config('app.timezone'));
 
-    $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
-    $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
 
-    $ticket->PARKFEE = (int) $daysParked * (float) $company->post_paid_rate;
+    $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($end) / 60);
+    // $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
+
+    // $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
+    // $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
+
+    $rate = null;
+
+     if ($company->rate == 'perhour') {
+        // hourly rate
+        $hoursParked = max(1, (int) ceil($minutesDiff / 60));
+        $rate = (int) $hoursParked * (float) $company->rate_perhour;
+
+     } elseif ($company->rate == 'perday') {
+        // daily rate
+        $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
+        $rate = (int) $daysParked * (float) $company->rate_perday;
+
+      // $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
+    // $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
+
+        
+     }
+
+        // $hoursParked = max(1, (int) ceil($minutesDiff / 60));
+        // $ticket->PARKFEE = (int) $hoursParked * (float) $company->rate_perhour;
+
+    $ticket->PARKFEE =  $rate;
 
     $ticket->fill([
         'ISPARKOUT'     => 1,
@@ -347,15 +372,17 @@ public function show_payment(string $uuid){
     $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
 
     
-   $cardsTrans = CardsTransaction::where('ticket_id',$ticket->id)
-       ->orderByDesc('created_at')
-       ->get();
+//    $cardsTrans = CardsTransaction::where('ticket_id',$ticket->id)
+//        ->orderByDesc('created_at')
+//        ->get();
 
 
 
     return Inertia('Parkout/Payment',[
         'ticket' => new TicketResource($ticket),
-        'cardsTrans' => $cardsTrans
+        // 'cardsTrans' => $cardsTrans,
+        'card' => session('card'), // to avoid error on initial load
+
     ]);
 }
 
@@ -397,7 +424,7 @@ public function scan_qr_cards(Request $request){
 
     return back()->with([
         'success' => 'Card linked successfully',
-        'detail'  => $card
+        'card'  => $card
     ]);
 
 
@@ -409,12 +436,12 @@ public function submit_payment(Request $request)
 {
     $validationRules = [
         'ticket_id' => 'required|exists:tickets,id',
-        'mode_of_payment' => 'required|in:cash,card',
+      
     ];
 
-    if ($request->input('mode_of_payment') === 'card') {
-        $validationRules['qr_code'] = 'required|string';
-    }
+    // if ($request->input('mode_of_payment') === 'card') {
+    //     $validationRules['qr_code'] = 'required|string';
+    // }
 
     $request->validate($validationRules);
 
@@ -425,9 +452,11 @@ public function submit_payment(Request $request)
         return back()->with('error', 'This ticket has already been paid.');
     }
 
+
+
     // Calculate parking days
-    $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($ticket->PARKOUTDATETIME) / 60);
-    $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
+    // $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($ticket->PARKOUTDATETIME) / 60);
+    // $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
 
     $transactionDetails = [];
     $amount = (float) $daysParked * (float) $company->post_paid_rate; // standard rate

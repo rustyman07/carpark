@@ -25,9 +25,6 @@
         <v-card-text class="py-1 px-2">
            No of Days: {{  ticket.data.days_parked }}
         </v-card-text>
-                <v-card-text class="py-1 px-2">
-            Ticket Fee: {{  formatCurrency(ticket.data.park_fee) }}
-        </v-card-text>
 
 
              <v-card flat  elevation= 3 class="mt-4">
@@ -56,6 +53,9 @@
              </v-card>
 
 
+                <v-card-text class="py-1 px-2">
+            Ticket Fee: {{  formatCurrency(ticket.data.park_fee) }}
+        </v-card-text>
 
 
             <v-layout class="d-flex mt-2 ga-4 ">
@@ -71,150 +71,126 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import { computed, ref, onBeforeUnmount } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { route } from "ziggy-js"
 import { Html5Qrcode } from 'html5-qrcode';
 import dayjs from 'dayjs';
 import { formatCurrency } from '../../utils/utility';
 
-// ----------------------
-//
-// Props and State
-//
-// ----------------------
-const page = usePage();
-
+// Props
 const props = defineProps({
-    ticket: Object,
-    cardsTrans: Array
+  ticket: Object,
+  cardsTrans: Array, // from backend if needed
 });
 
-
-
-const headers = [
-    { key: 'card_number', title: 'Card Number' },
-    { key: 'no_of_days', title: 'No. of Days' },
-    { key: 'price', title: 'Price' },
-    { key: 'balance', title: 'Balance' },
-    
- 
-];
-
-const items = computed(() => {
-    return props.cardsTrans.map(item => ({
-        card_number: item.card_number,
-        no_of_days: item.no_of_days,
-        amount: formatCurrency(item.amount),
-        balance: item.balance,
-        
-    }));
-});
-
-
-
-
-console.log(props.ticket.data.id)
-
-const form = useForm({
-    ticket_id: props.ticket.data.id,
-   
-    // mode_of_payment : 'cash'
-});
-
+// ----------------------
+// State
+// ----------------------
 const isScanQR = ref(false);
 const html5QrCode = ref(null);
 
-// ----------------------
-//
-// Computed Properties
-//
-// ----------------------
+const scannedCards = ref([]); // 👈 store scanned results here
 
+// Data table headers
+const headers = [
+  { key: 'card_number', title: 'Card Number' },
+  { key: 'no_of_days', title: 'No. of Days' },
+  { key: 'price', title: 'Price' },
+  { key: 'balance', title: 'Balance' },
+];
+
+// Data table items
+const items = computed(() => {
+  return scannedCards.value.map(item => ({
+    card_number: item.card_number,
+    no_of_days: item.no_of_days,
+    price: formatCurrency(item.price),
+    balance: item.balance,
+  }));
+});
 
 // ----------------------
-//
-// Helper Functions
-//
+// Helpers
 // ----------------------
 const formatDate = (date) => {
-    // Check if the date is a valid, truthy value before formatting
-    return date ? dayjs(date).format('MM/DD/YYYY') : 'N/A';
+  return date ? dayjs(date).format('MM/DD/YYYY') : 'N/A';
 };
 
-
 // ----------------------
-//
 // Methods
-//
 // ----------------------
 const submitPayment = () => {
-    form.cards = props.cardsTrans;
+  const form = useForm({
+    ticket_id: props.ticket.data.id,
+    cards: scannedCards.value, // send array
+  });
 
-    // Attach card transactions to the form data
-    form.post(route('store.payment'), {
-        onSuccess: () => {
-            // No need for a separate message object, Inertia handles success flashes
-        },
-        onError: (errors) => {
-            // Inertia provides `errors` object for validation failures
-            console.error('Payment failed:', errors);
-        },
-    });
+  form.post(route('store.payment'), {
+    onSuccess: () => {
+      scannedCards.value = []; // clear after success
+    },
+  });
 };
 
 const cancelPayment = () => {
-    // You can add a confirmation dialog here if needed
-    router.get(route('parkout.index'));
+  router.get(route('parkout.index'));
 };
 
 const scanQR = async () => {
-    isScanQR.value = true;
-    // Delay scanner start to allow the modal/component to render
-    setTimeout(startScanner, 300);
+  isScanQR.value = true;
+  setTimeout(startScanner, 300);
 };
 
 const startScanner = async () => {
-    if (!isScanQR.value) return;
+  if (!isScanQR.value) return;
 
-    try {
-        html5QrCode.value = new Html5Qrcode('reader');
-        await html5QrCode.value.start(
-            { facingMode: 'environment' },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            async (decodedText) => {
-                console.log('QR code detected ✅', decodedText);
-                await closeScanner();
-                router.post(route('scan.qr.cards'), {
-                    qr_code: decodedText,
-                    ticket_id: props.ticket.data.id,
-                });
+  try {
+    html5QrCode.value = new Html5Qrcode('reader');
+    await html5QrCode.value.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      async (decodedText) => {
+        console.log('QR code detected ✅', decodedText);
+
+        await closeScanner();
+
+        // Send to backend to get card details
+        router.post(route('scan.qr.cards'), {
+          qr_code: decodedText,
+          ticket_id: props.ticket.data.id,
+        }, {
+          onSuccess: (page) => {
+            // ✅ Assume backend returns the scanned card in flash or props
+            if (page.props.card) {
+              scannedCards.value.push(page.props.card);
             }
-        );
-    } catch (err) {
-        console.error('Error starting camera:', err.message);
-    }
+          }
+        });
+      }
+    );
+  } catch (err) {
+    console.error('Error starting camera:', err.message);
+  }
 };
 
 const closeScanner = async () => {
-    if (html5QrCode.value) {
-        try {
-            await html5QrCode.value.stop();
-            await html5QrCode.value.clear();
-        } catch (e) {
-            console.error('Error closing scanner:', e);
-        }
-        html5QrCode.value = null;
+  if (html5QrCode.value) {
+    try {
+      await html5QrCode.value.stop();
+      await html5QrCode.value.clear();
+    } catch (e) {
+      console.error('Error closing scanner:', e);
     }
-    isScanQR.value = false;
+    html5QrCode.value = null;
+  }
+  isScanQR.value = false;
 };
 
 // ----------------------
-//
-// Lifecycle Hooks
-//
+// Lifecycle
 // ----------------------
 onBeforeUnmount(() => {
-    closeScanner();
+  closeScanner();
 });
 </script>

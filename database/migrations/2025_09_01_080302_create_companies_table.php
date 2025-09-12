@@ -18,8 +18,12 @@ return new class extends Migration
         // $table->string('province', 100)->nullable();
         // $table->string('barangay', 150)->nullable();
         // $table->string('street', 255)->nullable();
+        $table->string('rate', 20)->default('perhour')->nullable();
         $table->string('contact', 20)->nullable();
         $table->string('address', 255)->nullable();
+        $table->decimal('rate_perhour', 10, 2)->default(0.00);
+        $table->decimal('rate_perday', 10, 2)->default(0.00);
+        //
         $table->decimal('post_paid_rate', 10, 2)->default(0.00);
 
         $table->timestamps();
