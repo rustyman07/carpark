@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('price',10,2)->default(0.00);
             $table->decimal('discount',10,2)->nullable()->default(0.00);
             $table->decimal('amount',10,2)->default(0.00);
-            $table->integer('balance')->default(0);
+            $table->decimal('balance',10,2)->default(0.00);
             $table->boolean('cancelled')->default(0);     
             $table->integer('cancelled_by')->nullable();
             $table->dateTime('cancelled_datetime')->nullable();

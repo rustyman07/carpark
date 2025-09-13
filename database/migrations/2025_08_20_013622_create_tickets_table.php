@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('TICKETNO', 20);
             $table->string('PLATENO', 20);
             $table->string ('mode_of_payment',100)->nullable();
-             $table->integer ('days_parked')->nullable();               
+            $table->integer ('days_parked')->nullable();    
+            $table->integer('hours_parked')->nullable();
             $table->string('QRCODE', 255)->nullable();
             $table->integer('PARKYEAR');
             $table->integer('PARKMONTH');

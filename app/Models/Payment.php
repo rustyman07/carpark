@@ -8,9 +8,6 @@ class Payment extends Model
 {
     protected $fillable = [
         'ticket_id',
-        'card_id',
-        'card_number',
-        'qr_code',
         'amount',
         'days_deducted',
         'payment_type',
@@ -29,10 +26,7 @@ class Payment extends Model
         return $this->belongsTo(Ticket::class);
     }
 
-    public function card()
-    {
-        return $this->belongsTo(CardInventoryDetail::class, 'card_id');
-    }
+
 }
 
 

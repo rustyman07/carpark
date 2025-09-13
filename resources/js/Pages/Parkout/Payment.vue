@@ -26,6 +26,10 @@
             No of Days: {{ ticket.data.days_parked }}
             </v-card-text>
 
+            <v-card-text v-if="ticket.data.hours_parked !== null" class="py-1 px-2">
+            No of Hours: {{ ticket.data.hours_parked }}
+            </v-card-text>
+
              <v-card flat  elevation= 3 class="mt-4">
             <v-data-table-server
                 :headers="headers"
@@ -70,7 +74,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onBeforeUnmount } from 'vue';
+import { computed, ref, onBeforeUnmount, h } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { route } from "ziggy-js"
 import { Html5Qrcode } from 'html5-qrcode';
@@ -122,7 +126,11 @@ const formatDate = (date) => {
 const submitPayment = () => {
   const form = useForm({
     ticket_id: props.ticket.data.id,
+    hours_parked: props.ticket.data.hours_parked,
+    days_parked: props.ticket.data.days_parked,
+    amount: props.ticket.data.park_fee,
     cards: scannedCards.value, // send array
+
   });
 
   form.post(route('store.payment'), {

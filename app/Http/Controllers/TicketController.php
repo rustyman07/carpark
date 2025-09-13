@@ -6,6 +6,7 @@ use App\Http\Resources\TicketResource;
 use App\Models\Ticket;
 use App\Models\Company;
 use App\Models\CardInventoryDetail;
+
 use App\Models\CardsTransaction;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -320,7 +321,8 @@ public function submit_park_out(Request $request)
 
     $rate = null;
     $daysParked = null;
-     if ($company->rate == 'perhour') {
+    $hoursParked = null;
+    if ($company->rate == 'perhour') {
         // hourly rate
         $hoursParked = max(1, (int) ceil($minutesDiff / 60));
         $rate = (int) $hoursParked * (float) $company->rate_perhour;
@@ -350,7 +352,9 @@ public function submit_park_out(Request $request)
         'PARKOUTHOUR'   => $data['PARKOUTHOUR'],
         'PARKOUTMINUTE' => $data['PARKOUTMINUTE'],
         'PARKOUTSECOND' => $data['PARKOUTSECOND'],
+        'TOTALMINUTES'  => $minutesDiff,
         'days_parked'   => $daysParked,
+        'hours_parked'  => $hoursParked,
         'PARKOUTDATETIME' => $parkOutDateTime
     ])->save();
 
@@ -390,7 +394,7 @@ public function show_payment(string $uuid){
 
 public function scan_qr_cards(Request $request){
 
-    $card = CardInventoryDetail::where('qr_code_hash',$request->qr_code)->first();
+    $card = CardInventorycard::where('qr_code_hash',$request->qr_code)->first();
     if(!$card){
         return back()->withErrors(['qr_code' => 'Invalid QR Code']);
     }
@@ -399,7 +403,7 @@ public function scan_qr_cards(Request $request){
     // }
 
     if($card->balance <= 0){
-        return back()->with(['error' => 'Card has no balance']);
+        return back()->with(['error' =>'Insufficient balance']);
     }
     // link ticket to card
 
@@ -431,140 +435,83 @@ public function scan_qr_cards(Request $request){
 
 }
 
-    
-
 public function submit_payment(Request $request)
 {
     $validationRules = [
         'ticket_id' => 'required|exists:tickets,id',
-      
     ];
-
-    // if ($request->input('mode_of_payment') === 'card') {
-    //     $validationRules['qr_code'] = 'required|string';
-    // }
 
     $request->validate($validationRules);
 
-    $ticket = Ticket::findOrFail($request->ticket_id);
+    $ticket  = Ticket::findOrFail($request->ticket_id);
     $company = Company::find(1);
 
     if ($ticket->REMARKS === 'PAID') {
         return back()->with('error', 'This ticket has already been paid.');
     }
 
+    $cards = $request->cards ?? [];
 
-
-    // Calculate parking days
-    $minutesDiff = ceil($ticket->PARKDATETIME->diffInSeconds($ticket->PARKOUTDATETIME) / 60);
-    $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
-
-    $transactionDetails = [];
-    $amount = (float) $daysParked * (float) $company->post_paid_rate; // standard rate
-    $cardId = null;
-    $qrCode = null;
-
-    if ($request->mode_of_payment === 'cash') {
-        // normal cash payment
-    } else if ($request->mode_of_payment === 'card') {
-        $qrCode = $request->qr_code;
-
-        $detail = CardInventoryDetail::where('qr_code_hash', $qrCode)->first();
-        if (!$detail) {
-            return back()->with('error', 'Invalid QR Code.');
-        }
-
-        if ($detail->balance < $daysParked) {
-            return back()->with('error', 'Insufficient Balance.');
-        }
-
-        // link ticket to QR
-        $ticket->QRCODE = $qrCode;
-
-        $transactionDetails['detail'] = $detail;
-        $transactionDetails['days_parked'] = $daysParked;
-        $cardId = $detail->id;
-
-        // IMPORTANT: since prepaid, we set "amount" to 0
-        $amount = 0;
-    }
-
-    DB::transaction(function () use ($ticket, $transactionDetails, $request, $amount, $cardId, $qrCode, $daysParked) 
-    {
-        // Update ticket
-        $ticket->REMARKS = 'PAID';
-        $ticket->mode_of_payment = $request->mode_of_payment;
-        $ticket->PARKFEE = $amount; // for prepaid card users, this will be 0
+    DB::transaction(function () use ($ticket, $cards, $request) {
+        // Update ticket once
+        $ticket->REMARKS         = 'PAID';
+        $ticket->mode_of_payment = $request->mode_of_payment ?? 'card';
+        $ticket->PARKFEE         = 0; // prepaid → covered by card
         $ticket->save();
 
-        // // Create payment record (for audit/history)
-        // Payment::create([
-        //     'ticket_id'      => $ticket->id,
-        //     'card_id'        => $cardId,
-        //     'card_number'   => $transactionDetails['detail']->card_number ?? null,
-        //     'qr_code'        => $qrCode,
-        //     'amount'         => $amount, // 0 if prepaid card was used
-        //     'days_deducted'  => $request->mode_of_payment === 'card' ? $daysParked : null,
-        //     'payment_type'   => 'ticket',
-        //     'payment_method' => $request->mode_of_payment,
-        //     'status'         => 'paid',
-        //     'paid_at'        => now(),
-        // ]);
+        // Create header payment
+        $payment = Payment::create([
+            'ticket_id'      => $ticket->id,
+            'ticket_no'      => $ticket->TICKETNO,
+            'amount'         => $request->amount ?? 0.00,
+            'days_deducted'  => $request->days_parked ?? 0,
+            'payment_type'   => 'ticket',
+            'payment_method' => $request->mode_of_payment ?? 'card',
+            'status'         => 'paid',
+            'paid_at'        => now(),
+        ]);
 
-         // Find existing unpaid payment
-        $payment = Payment::where('ticket_id', $ticket->id)->first();
-
-        if ($payment) {
-            $payment->update([
-                'card_id'        => $cardId,
-                'card_number'    => $transactionDetails['detail']->card_number ?? null,
-                'qr_code'        => $qrCode,
-                'amount'         => $amount,
-                'days_deducted'  => $request->mode_of_payment === 'card' ? $daysParked : null,
-                'payment_method' => $request->mode_of_payment,
-                'status'         => 'paid',
-                'paid_at'        => now(),
+        // Loop through scanned cards
+        foreach ($cards as $card) {
+                $newBalance = ($card['balance'] ?? 0) - ($card['amount'] ?? 0);
+            // Create payment detail for each card
+            PaymentDetail::create([
+                'header_id'    => $payment->id,
+                'card_id'      => $card['id'],
+                'card_number'  => $card['card_number'],
+                'qr_code'      => $card['qr_code'] ?? null,
+                'amount'       => $card['amount'],
+                'balance'     => $newBalance,
+                'card_name'    => $card['card_name'],
+                'discount'     => $card['discount'] ?? 0,
+                'no_of_days'   => $card['no_of_days'],
             ]);
-        } else {
-            // fallback safety: if no unpaid record exists, create a new one
-            Payment::create([
-                'ticket_id'      => $ticket->id,
-                'card_id'        => $cardId,
-                'card_number'    => $transactionDetails['detail']->card_number ?? null,
-                'qr_code'        => $qrCode,
-                'amount'         => $amount,
-                'days_deducted'  => $request->mode_of_payment === 'card' ? $daysParked : null,
-                'payment_type'   => 'ticket',
-                'payment_method' => $request->mode_of_payment,
-                'status'         => 'paid',
-                'paid_at'        => now(),
-            ]);
-        }
 
-            // Deduct balance if card was used
-            if (isset($transactionDetails['detail'])) {
-                $detail = $transactionDetails['detail'];
-                $daysParked = $transactionDetails['days_parked'];
-                $detail->balance -= $daysParked;
-                $detail->status = $detail->balance > 0 ? 'ACTIVE' : 'USED';
-                $detail->save();
+            // Deduct balance from card inventory
+            if (!empty($card['id'])) {
+                $cardInventory = CardInventoryDetail::find($card['id']);
+                if ($cardInventory) {
+                    $cardInventory->balance -= $card['amount'];
+                    $cardInventory->status   = $cardInventory->balance > 0 ? 'CONSUMED' : 'USED';
+                    $cardInventory->save();
+                }
             }
+        }
     });
 
-        $responseWith = [
-            'success' => 'Payment successful!',
-            'id'      => $ticket->uuid,
-            'company' => $company,
-        ];
-
-        if (isset($transactionDetails['detail'])) {
-            $responseWith['detail'] = $transactionDetails['detail'];
-        }
+    $responseWith = [
+        'success' => 'Payment successful!',
+        'id'      => $ticket->uuid,
+        'company' => $company,
+        'cards'   => $cards, // return all scanned cards
+    ];
 
     return redirect()
         ->route('parkout.receipt', ['id' => $ticket->uuid])
         ->with($responseWith);
 }
+
+
 
 
     public function parkout_receipt(Request $request){
@@ -579,12 +526,12 @@ public function submit_payment(Request $request)
          $payment = Payment::where('ticket_id',$ticket->id)->first();
     
         if ($ticket->mode_of_payment ==='card'){
-           $detail = CardInventoryDetail::where('qr_code_hash',$ticket->QRCODE)->first();
-           if(!$detail){
+           $card = CardInventorycard::where('qr_code_hash',$ticket->QRCODE)->first();
+           if(!$card){
             //  return back()->with('error', 'Invalid QR Code.');
               abort(404, 'Invalid QR Code');
            }
-           $balance = $detail?->balance;
+           $balance = $card?->balance;
         }
    
 

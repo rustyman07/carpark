@@ -18,6 +18,7 @@ class TicketResource extends JsonResource
             'id' => $this->id,
             'ticket_no' => $this->TICKETNO,
             'days_parked' => $this->days_parked,
+            'hours_parked' => $this->hours_parked,
             'plate_no'  => $this->PLATENO,
             'qr_code'   => $this->QRCODE,
             'park_datetime' => $this->PARKDATETIME,

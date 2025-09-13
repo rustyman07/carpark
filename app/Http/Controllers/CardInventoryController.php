@@ -168,7 +168,7 @@ class CardInventoryController extends Controller
                     'price'        => $request->price,
                     'discount'     => $request->discount,
                     'amount'       => $amount,
-                    'balance'      => $request->no_of_days,
+                    'balance'      => $request->price,
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ];

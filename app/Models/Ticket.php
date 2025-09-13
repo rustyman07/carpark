@@ -23,6 +23,7 @@ class Ticket extends Model
         'QRCODE',
         'mode_of_payment',
         'days_parked',
+        'hours_parked',
         'PLATENO',
         'PARKYEAR',
         'PARKMONTH',
