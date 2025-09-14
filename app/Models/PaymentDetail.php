@@ -1,13 +1,14 @@
 <?php
 
 namespace App\Models;
+use App\Models\Payment;
 
 use Illuminate\Database\Eloquent\Model;
 
 class PaymentDetail extends Model
 {
     protected $fillable = [ 
-     'header_id',
+     'payment_id',
     'card_id',
     'card_name',
     'card_number',
@@ -17,4 +18,10 @@ class PaymentDetail extends Model
     'amount',
 
     ];
+
+    public function payment()
+{
+    return $this->belongsTo(Payment::class,'payment_id');
 }
+}
+

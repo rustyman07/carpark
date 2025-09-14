@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Ticket;
+use App\Models\PaymentDetail;
 
 class Payment extends Model
 {
@@ -24,6 +26,11 @@ class Payment extends Model
     public function ticket()
     {
         return $this->belongsTo(Ticket::class);
+    }
+
+    public function details()
+    {
+        return $this->hasMany(PaymentDetail::class,'payment_id');
     }
 
 

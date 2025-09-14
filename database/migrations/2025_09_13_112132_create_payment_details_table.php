@@ -12,16 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payment_details', function (Blueprint $table) {
-            $table->id();
-          $table->unsignedBigInteger('header_id');
-            $table->unsignedBigInteger('card_id');
-            $table->string('card_name');
-            $table->string('card_number');
-            $table->integer('no_of_days');
-            $table->decimal('discount',10,2)->nullable()->default(0.00);
-            $table->decimal('balance',10,2)->default(0.00);
-            $table->decimal('amount',10,2)->default(0.00);
-            $table->timestamps();
+        $table->id();
+        $table->foreignId('payment_id')
+        ->constrained('payments')
+        ->cascadeOnDelete();
+        $table->foreignId('card_id')->nullable()->constrained('card_inventory_details')->nullOnDelete();
+        $table->string('card_number')->nullable();
+        $table->string('qr_code')->nullable();
+        $table->integer('no_of_days')->default(0);
+        $table->decimal('discount',10,2)->nullable()->default(0.00);
+        $table->decimal('balance', 10, 2)->nullable();
+        $table->string('card_name')->nullable();
+        $table->decimal('amount',10,2)->default(0.00);
+        $table->timestamps();
         });
     }
 
