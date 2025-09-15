@@ -9,12 +9,12 @@
 
     <!-- Table -->
     <v-card title="Ticket Payments" class="mt-4">
-      <v-data-table
+      <v-data-table-server
         :headers="headers"
-        :items="payments"
-        class="elevation-1"
-        hide-default-footer
-        :items-per-page="payments.length"
+        :items="payments.data"
+        v-model:items-per-page="itemsPerPage"
+        :page="pageNumber"
+        :items-length="payments.total"
       >
         <template v-slot:item.amount="{ item }">
           {{ formatCurrency(item.amount) }}
@@ -44,7 +44,7 @@
           </span>
         </template>
 
-      </v-data-table>
+      </v-data-table-server>
     </v-card>
   </v-container>
 </template>

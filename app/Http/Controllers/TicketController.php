@@ -205,7 +205,7 @@ public function store(Request $request)
 public function submit_park_out(Request $request)
 {
 
-
+   session()->forget('scanned_cards');
 
     // 1️⃣ Validate input
     // $data = $request->validate([
@@ -328,19 +328,27 @@ public function submit_park_out(Request $request)
         $hoursParked = max(1, (int) ceil($minutesDiff / 60));
         $rate = (int) $hoursParked * (float) $company->rate_perhour;
 
-     } elseif ($company->rate == 'perday') {
-        // daily rate
-        $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
-        $rate = (int) $daysParked * (float) $company->rate_perday;
+    //  } elseif ($company->rate == 'perday') {
+    //     // daily rate
+    //     $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
+    //     $rate = (int) $daysParked * (float) $company->rate_perday;
 
-      // $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
-    // $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
 
         
      }
+    elseif ($company->rate == 'perday') {
+$minutesDiff = $start->diffInMinutes($end);
 
-        // $hoursParked = max(1, (int) ceil($minutesDiff / 60));
-        // $ticket->PARKFEE = (int) $hoursParked * (float) $company->rate_perhour;
+// Each started day = 1440 minutes
+$daysParked = (int) ceil($minutesDiff / 1440);
+
+// Ensure at least 1 day
+$daysParked = max(1, $daysParked);
+
+$rate = (int) $daysParked * (float) $company->rate_perday;
+}
+
+
 
     $ticket->PARKFEE =  $rate;
 
@@ -360,11 +368,11 @@ public function submit_park_out(Request $request)
     ])->save();
 
 
-    Payment::create([
-    'ticket_id'      => $ticket->id,
-    'amount'         => $ticket->PARKFEE, // initial calculated fee
-    'payment_type'   => 'ticket',
-]);
+//     Payment::create([
+//     'ticket_id'      => $ticket->id,
+//     'amount'         => $ticket->PARKFEE, // initial calculated fee
+//     'payment_type'   => 'ticket',
+// ]);
 
     // 5️⃣ Success response
    
@@ -373,25 +381,6 @@ public function submit_park_out(Request $request)
     ]);
 }
 
-
-// public function show_payment(string $uuid)
-// {
-//     $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
-//     $ticketId = $ticket->id;
-
-//     $scannedCards = session()->get("scanned_cards.$ticketId", []);
-
-//     // Calculate totals
-//     $totalCovered = collect($scannedCards)->sum('balance');
-//     $cashNeeded   = max(0, $ticket->park_fee - $totalCovered);
-
-//     return Inertia('Parkout/Payment', [
-//         'ticket'       => new TicketResource($ticket),
-//         'scannedCards' => array_values($scannedCards),
-//         'totalCovered' => $totalCovered,
-//         'cashNeeded'   => $cashNeeded,
-//     ]);
-// }
 
 public function show_payment(string $uuid)
 {
@@ -433,6 +422,7 @@ public function show_payment(string $uuid)
         $processedCards[] = [
             'id'               => $card['id'],
             'card_number'      => $card['card_number'],
+            'no_of_days'      => $card['no_of_days'],
             'price'            => $card['price'],
             'balance'          => $card['balance'],
             'covered'          => $covered,
@@ -548,8 +538,11 @@ public function submit_payment(Request $request)
     // dd($request->all());
 
     $cards = $request->cards ?? []; // should just be an array of IDs in order
+    $totalPaid = 0;
 
-    DB::transaction(function () use ($ticket, $cards, $request) {
+    $payment = null;
+
+    DB::transaction(function () use ($ticket, $cards, $request, &$payment) {
         // Mark ticket as paid
         $ticket->REMARKS         = 'PAID';
         $ticket->mode_of_payment = $request->mode_of_payment ?? 'card';
@@ -559,7 +552,6 @@ public function submit_payment(Request $request)
         $payment = Payment::create([
             'ticket_id'      => $ticket->id,
             'ticket_no'      => $ticket->TICKETNO,
-            'amount'         => $ticket->PARKFEE ?? 0.00,
             'days_deducted'  => $request->days_parked ?? 0,
             'payment_type'   => 'ticket',
             'payment_method' => $request->mode_of_payment ?? 'card',
@@ -569,6 +561,7 @@ public function submit_payment(Request $request)
 
         // Remaining fee
         $amountToPay = $ticket->PARKFEE ?? 0;
+        $totalPaid = 0;
 
         // Deduct progressively from cards
         foreach ($cards as $cardId) {
@@ -605,6 +598,11 @@ public function submit_payment(Request $request)
 
             // Reduce remaining fee
             $amountToPay -= $deduct;
+            $totalPaid += $deduct;
+
+
+
+
         }
 
         // If not fully covered → mark remainder as cash
@@ -620,7 +618,12 @@ public function submit_payment(Request $request)
                 'no_of_days'  => 0,
             ]);
         }
+
+        $payment->update(['amount' => $amountToPay]);
     });
+
+
+
 
 
     $responseWith = [
@@ -628,10 +631,13 @@ public function submit_payment(Request $request)
         'id'      => $ticket->uuid,
         'company' => $company,
         'cards'   => $cards, // just IDs you sent
+        
     ];
 
     return redirect()
-        ->route('parkout.receipt', ['id' => $ticket->uuid])
+        ->route('parkout.receipt', [
+            'id' => $ticket->uuid
+        ])
         ->with($responseWith);
 }
 

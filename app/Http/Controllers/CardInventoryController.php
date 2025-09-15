@@ -21,7 +21,9 @@ class CardInventoryController extends Controller
 
 
         $cardTemplate = CardTemplate::where('cancelled', 0)->get();
-        $cardDetailQuery = CardInventoryDetail::where('cancelled', 0);
+           $cardDetailQuery = CardInventoryDetail::where('cancelled', 0)
+        ->orderBy('created_at', 'desc'); // order by latest first
+
 
         // Apply a filter only if date parameters exist in the request.
         if ($dateFrom && $dateTo) {

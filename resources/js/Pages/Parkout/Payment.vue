@@ -49,7 +49,7 @@
           hide-default-footer
         >
           <template v-slot:top>
-            <v-btn color="blue-darken-4" @click="scanQR">
+            <v-btn color="blue-darken-4 mb-4" @click="scanQR">
               <v-icon left class="mr-4">mdi-qrcode-scan</v-icon>
               Scan QR to use card
             </v-btn>
@@ -60,14 +60,14 @@
         Total Covered by Cards: {{ formatCurrency(totalCovered) }}
       </v-card-text>
       <v-card-text class="py-1 px-2">
-        Remaining Cash Needed: {{ formatCurrency(cashNeeded) }}
+       Total: {{ formatCurrency(cashNeeded) }}
       </v-card-text>
 
     
 
       <!-- Actions -->
       <v-layout class="d-flex mt-2 ga-4">
-        <v-btn class="block" @click="submitPayment" color="blue-darken-4">Payment</v-btn>
+        <v-btn class="block" @click="submitPayment" color="blue-darken-4">Pay</v-btn>
         <v-btn @click="cancelPayment" color="red-darken-2">Cancel</v-btn>
       </v-layout>
     </v-card>
@@ -103,7 +103,7 @@ const headers = [
   { key: 'card_number', title: 'Card Number' },
   { key: 'no_of_days', title: 'No. of Days' },
   { key: 'price', title: 'Price' },
-  { key: 'balance', title: 'Balance' },
+  { key: 'balance', title: 'Balance', class: 'bg-blue-darken-4' },
 ]
 
 // Data table items
@@ -144,7 +144,7 @@ const submitPayment = () => {
 }
 
 const cancelPayment = () => {
-  router.get(route('parkout.index'))
+  router.get(route('parkout'))
 }
 
 const scanQR = async () => {
@@ -198,3 +198,9 @@ onBeforeUnmount(() => {
   closeScanner()
 })
 </script>
+<style scoped>
+ .v-table :deep thead{
+  background-color:#757575; /* blue */
+  color: white;              /* text color */
+}
+</style>

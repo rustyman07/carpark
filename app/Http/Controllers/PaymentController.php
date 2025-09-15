@@ -9,7 +9,8 @@ use Inertia\Inertia;
 class PaymentController extends Controller
 {
     public function index(){
-        $payments = Payment::with('card')->get();
+          $payments = Payment::orderBy('created_at', 'desc')
+                       ->paginate(20); // 20 per page
 return Inertia('Payments/Index', [
     'payments' => $payments,
 ]);

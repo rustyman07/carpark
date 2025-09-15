@@ -83,6 +83,10 @@
           {{ formatCurrency(item.amount) }}
         </template>
 
+            <template v-slot:item.balance="{ item }">
+          {{ formatCurrency(item.balance) }}
+        </template>
+
         <template v-slot:item.status="{ item }">
           <span
             :class="
