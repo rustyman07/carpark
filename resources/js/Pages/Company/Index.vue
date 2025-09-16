@@ -44,7 +44,7 @@
         <v-col>
     <v-text-field 
 
-    :disabled=" isDisabled && form.rate !== 'perhour'"
+    :disabled="  form.rate !== 'perhour' && form.rate !== 'combination' "
     label="Rate per hour"
         variant="solo"
     v-model="form.rate_perhour"
@@ -54,7 +54,7 @@
 
     <v-text-field 
     label="Rate per day"
-    :disabled=" isDisabled ? form.rate == 'perday' : false"
+    :disabled=" form.rate !== 'perday' && form.rate !== 'combination' "
         variant="solo"
     v-model="form.rate_perday"
     ></v-text-field>

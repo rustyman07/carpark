@@ -315,40 +315,23 @@ public function submit_park_out(Request $request)
 
     // $minutesDiff = ceil($start->diffInSeconds($end) / 60);
     $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
-     // $daysParked = max(1, (int) ceil($minutesDiff / (24 * 60)));
-
-    // $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
-    // $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
 
     $rate = null;
     $daysParked = null;
     $hoursParked = null;
+    $hoursParked = max(1, (int) ceil($minutesDiff / 60));
+    $daysParked = (int) ceil($minutesDiff / 1440);
+    $daysParked = max(1, $daysParked);
     if ($company->rate == 'perhour') {
-        // hourly rate
-        $hoursParked = max(1, (int) ceil($minutesDiff / 60));
         $rate = (int) $hoursParked * (float) $company->rate_perhour;
-
-    //  } elseif ($company->rate == 'perday') {
-    //     // daily rate
-    //     $daysParked  = max(1, (int) ceil($minutesDiff / (24 * 60))); // 1440 minutes = 1 day
-    //     $rate = (int) $daysParked * (float) $company->rate_perday;
-
-
-        
      }
     elseif ($company->rate == 'perday') {
-$minutesDiff = $start->diffInMinutes($end);
-
-// Each started day = 1440 minutes
-$daysParked = (int) ceil($minutesDiff / 1440);
-
-// Ensure at least 1 day
-$daysParked = max(1, $daysParked);
-
-$rate = (int) $daysParked * (float) $company->rate_perday;
-}
-
-
+    $rate = (int) $daysParked * (float) $company->rate_perday;
+    }
+    else {
+    $rate = ((int) $daysParked * (float) $company->rate_perday)
+              + ((int) $hoursParked * (float) $company->rate_perhour);
+    }
 
     $ticket->PARKFEE =  $rate;
 
@@ -536,7 +519,7 @@ public function submit_payment(Request $request)
 
     if ($ticket->REMARKS === 'PAID') {
 
-           return redirect(route('parkin.index'))->with(['error' =>'This ticket has already been paid']);
+       return redirect()->route('parkin.index')->with(['error' =>'This ticket has already been paid']);
     }
 
     // dd($request->all());
@@ -558,7 +541,7 @@ public function submit_payment(Request $request)
         $payment = Payment::create([
             'ticket_id'      => $ticket->id,
             'ticket_no'      => $ticket->TICKETNO,
-            'days_deducted'  => $request->days_parked ?? 0,
+            'days_deducted'  => $ticket->days_parked ?? 0,
             'payment_type'   => 'ticket',
             'payment_method' => $request->mode_of_payment ?? 'card',
             'status'         => 'paid',
@@ -605,7 +588,7 @@ public function submit_payment(Request $request)
             // Reduce remaining fee
             $amountToPay -= $deduct ;
             $totalPaid += $deduct ;
-             $totalPaid += $request->cash_amount;
+    
 
             // dd([
             //     'amountToPay' => $amountToPay,
@@ -629,7 +612,7 @@ public function submit_payment(Request $request)
             ]);
         }
 
-        $payment->update(['amount' => $totalPaid]);
+        $payment->update(['amount' => $totalPaid + $request->cash_amount ?? 0.00]);
     });
 
 
