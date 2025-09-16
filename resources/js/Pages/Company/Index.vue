@@ -9,28 +9,28 @@
         variant="solo"
     input-class="text-caption"
     v-model="form.name"
-    
+ 
     ></v-text-field>
 
-    <v-text-field class="mt-4"
+    <v-text-field 
     label="Address"
         variant="solo"
     v-model="form.address"
     ></v-text-field>
 
 
-    <v-text-field class="mt-4"
+    <v-text-field 
     
     label="Contact"
     variant="solo"
     v-model="form.contact"
     ></v-text-field>
 
-    <v-text-field class="mt-4"
+    <!-- <v-text-field 
     label="Contact"
         variant="solo"
     v-model="form.post_paid_rate"
-    ></v-text-field>
+    ></v-text-field> -->
 
           <v-select
         label="Rate type"
@@ -38,11 +38,13 @@
         :items="types"
         item-title="label"
         item-value="value"
-        v-model="selectedType"
+        v-model="form.rate"
       />
 <v-row>
         <v-col>
-    <v-text-field class="mt-4"
+    <v-text-field 
+
+    :disabled=" isDisabled && form.rate !== 'perhour'"
     label="Rate per hour"
         variant="solo"
     v-model="form.rate_perhour"
@@ -50,9 +52,9 @@
     </v-col>
     <v-col>
 
-    <v-text-field class="mt-4"
+    <v-text-field 
     label="Rate per day"
-    :disabled="form.type !== 'perday'"
+    :disabled=" isDisabled ? form.rate == 'perday' : false"
         variant="solo"
     v-model="form.rate_perday"
     ></v-text-field>
@@ -70,7 +72,7 @@
     </v-card-text>
 
     <v-layout>
-        <v-btn color="blue-darken-4"> update</v-btn>
+        <v-btn  @click="updateCompany" color="blue-darken-4"> update</v-btn>
     </v-layout>  
     </v-card>
   </div>
@@ -78,19 +80,23 @@
 </template>
 <script setup>
 import { useForm, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { id } from 'vuetify/locale';
 
 
 const page = usePage();
 
 const company = page.props.company;
 
+const isDisabled = ref(true);
+    
 const form = useForm({
+    id : company.id,
     name : company.name,
     address : company.address,
     contact : company.contact,
     post_paid_rate : company.post_paid_rate,
-    type : company.rate,
+    rate : company.rate,
     rate_perhour : company.rate_perhour,
     rate_perday : company.rate_perday,
 
@@ -100,7 +106,17 @@ const form = useForm({
 const types = [
   { label: 'Per hour', value: 'perhour' },
   { label: 'Per day', value: 'perday' },
+  { label: 'Combination', value: 'combination' },
 ];
-const selectedType = ref(company.type || 'perhour');
+const selectedType = ref(company.rate || 'perhour');
+
+const updateCompany = () =>{
+    isDisabled.value = !isDisabled.value;
+
+}
+
+
+
+
 
 </script>

@@ -520,19 +520,23 @@ return redirect()->route('show.payment', ['uuid' => $request->ticket_uuid])
 
 public function submit_payment(Request $request)
 {
-    $validationRules = [
-        'ticket_id' => 'required|exists:tickets,id',
-    ];
 
-    $request->validate($validationRules);
+    $data = $request->validate([
+        'ticket_id' => 'required|exists:tickets,id',
+        // 'cash_amount' => 'required|numeric',
+    ]);
+
+
+
 
     $ticket  = Ticket::findOrFail($request->ticket_id);
     $company = Company::find(1);
 
-   session()->forget('scanned_cards');
+
 
     if ($ticket->REMARKS === 'PAID') {
-        return back()->with('error', 'This ticket has already been paid.');
+
+           return redirect(route('parkin.index'))->with(['error' =>'This ticket has already been paid']);
     }
 
     // dd($request->all());
@@ -540,9 +544,11 @@ public function submit_payment(Request $request)
     $cards = $request->cards ?? []; // should just be an array of IDs in order
     $totalPaid = 0;
 
+    $amountToPay = $ticket->PARKFEE ?? 0;
+
     $payment = null;
 
-    DB::transaction(function () use ($ticket, $cards, $request, &$payment) {
+    DB::transaction(function () use ($ticket, $cards, $request, &$payment, $data, &$totalPaid,$amountToPay) {
         // Mark ticket as paid
         $ticket->REMARKS         = 'PAID';
         $ticket->mode_of_payment = $request->mode_of_payment ?? 'card';
@@ -560,8 +566,8 @@ public function submit_payment(Request $request)
         ]);
 
         // Remaining fee
-        $amountToPay = $ticket->PARKFEE ?? 0;
-        $totalPaid = 0;
+    
+       
 
         // Deduct progressively from cards
         foreach ($cards as $cardId) {
@@ -597,10 +603,14 @@ public function submit_payment(Request $request)
             ]);
 
             // Reduce remaining fee
-            $amountToPay -= $deduct;
-            $totalPaid += $deduct;
+            $amountToPay -= $deduct ;
+            $totalPaid += $deduct ;
+             $totalPaid += $request->cash_amount;
 
-
+            // dd([
+            //     'amountToPay' => $amountToPay,
+            //     'totalPaid'   => $totalPaid,
+            // ]);
 
 
         }
@@ -619,7 +629,7 @@ public function submit_payment(Request $request)
             ]);
         }
 
-        $payment->update(['amount' => $amountToPay]);
+        $payment->update(['amount' => $totalPaid]);
     });
 
 
@@ -632,7 +642,10 @@ public function submit_payment(Request $request)
         'company' => $company,
         'cards'   => $cards, // just IDs you sent
         
+        
     ];
+
+     session()->forget('scanned_cards');
 
     return redirect()
         ->route('parkout.receipt', [

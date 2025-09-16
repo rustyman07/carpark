@@ -43,8 +43,8 @@ class HandleInertiaRequests extends Middleware
         'flash' => [
             // 'success' => fn () => $request->session()->pull('success'), // Corrected line
             // 'error' => fn () => $request->session()->pull('error'),   // Corrected line
-            'success' => fn () => $request->session()->get('success'), // Corrected line
-            'error' => fn () => $request->session()->get('error'),   // Corrected line
+    'success' => fn () => $request->session()->pull('success'),
+    'error'   => fn () => $request->session()->pull('error'),
         ],
             // 💡 Add this section to share Ziggy routes
          'ziggy' => function () use ($request) {

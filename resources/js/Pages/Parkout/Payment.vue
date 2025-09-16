@@ -62,14 +62,30 @@
       <v-card-text class="py-1 px-2">
        Total: {{ formatCurrency(cashNeeded) }}
       </v-card-text>
-
+   <v-card-text 
+   class="py-1 px-2"
+   >
+       Cash
+      </v-card-text>
     
+        <v-text-field
+        v-model="cashAmount"
+        variant="outlined"
+        type="number"
+        ></v-text-field>
 
       <!-- Actions -->
-      <v-layout class="d-flex mt-2 ga-4">
-        <v-btn class="block" @click="submitPayment" color="blue-darken-4">Pay</v-btn>
-        <v-btn @click="cancelPayment" color="red-darken-2">Cancel</v-btn>
-      </v-layout>
+<v-row>
+  <v-col cols="6">
+    <v-btn     :disabled="scannedCards.length === 0 && !cashAmount" block @click="submitPayment" color="blue-darken-4">Pay</v-btn>
+  </v-col>
+  <v-col cols="6">
+    <v-btn block @click="cancelPayment" color="red-darken-2">Cancel</v-btn>
+  </v-col>
+</v-row>
+
+        
+     
     </v-card>
   </v-container>
 </template>
@@ -95,6 +111,7 @@ const props = defineProps({
 // ----------------------
 const isScanQR = ref(false)
 const html5QrCode = ref(null)
+const cashAmount = ref(null)
 const scannedCards = computed(() => props.scannedCards || [])
 const totalCovered = computed(() => props.totalCovered || 0)
 const cashNeeded   = computed(() => props.cashNeeded || 0)
@@ -132,6 +149,7 @@ const submitPayment = () => {
     ticket_id: props.ticket.data.id,
     hours_parked: props.ticket.data.hours_parked,
     days_parked: props.ticket.data.days_parked,
+    cash_amount: cashAmount.value,
     cards: scannedCards.value.map(c => c.id),
   })
 
@@ -201,6 +219,13 @@ onBeforeUnmount(() => {
 <style scoped>
  .v-table :deep thead{
   background-color:#757575; /* blue */
-  color: white;              /* text color */
+  color: white;            /* text color */
 }
+
 </style>
+
+/* .v-field :deep input {
+  border-color: red!important;
+  box-shadow: none !important;
+} */
+

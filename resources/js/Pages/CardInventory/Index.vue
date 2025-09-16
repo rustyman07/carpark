@@ -91,8 +91,8 @@
           <span
             :class="
               item.status === 'AVAILABLE'
-                ? 'bg-green-lighten-5 text-green-lighten-1 pa-1'
-                : 'bg-blue-lighten-5 text-blue-lighten-1 pa-1'
+                ? 'bg-green-lighten-5 text-green-darken-1 pa-1'
+                : 'bg-yellow-lighten-5 text-yellow-darken-4 pa-1'
             "
           >
             {{ item.status }}
