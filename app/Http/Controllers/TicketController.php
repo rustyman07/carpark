@@ -310,28 +310,125 @@ public function submit_park_out(Request $request)
     // 4️⃣ Calculate fee
     $company = Company::find(1); 
     $start = Carbon::parse($ticket->PARKDATETIME)->timezone(config('app.timezone'));
-    $end =   Carbon::parse( $data['PARKOUTDATETIME'])->timezone(config('app.timezone'));
+        // $start         =             Carbon::parse('2025-09-16 23:22:55'); 
+    $end =     Carbon::parse( $data['PARKOUTDATETIME'])->timezone(config('app.timezone'));
+     $end =     Carbon::parse('2025-09-16 23:23:42');
 
 
-    // $minutesDiff = ceil($start->diffInSeconds($end) / 60);
-    $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
+     //$minutesDiff = floor($start->diffInSeconds($end) / 60);
+//      $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
 
-    $rate = null;
-    $daysParked = null;
-    $hoursParked = null;
-    $hoursParked = max(1, (int) ceil($minutesDiff / 60));
-    $daysParked = (int) ceil($minutesDiff / 1440);
-    $daysParked = max(1, $daysParked);
-    if ($company->rate == 'perhour') {
-        $rate = (int) $hoursParked * (float) $company->rate_perhour;
-     }
-    elseif ($company->rate == 'perday') {
-    $rate = (int) $daysParked * (float) $company->rate_perday;
-    }
-    else {
-    $rate = ((int) $daysParked * (float) $company->rate_perday)
-              + ((int) $hoursParked * (float) $company->rate_perhour);
-    }
+//     $rate = null;
+//     $daysParked = null;
+//     $hoursParked = null;
+//     $hoursParked = (int) ceil($minutesDiff / 60);
+//     // $hoursParked = max(1, (int) ceil($minutesDiff / 60));
+//     $daysParked = (int) ceil($minutesDiff / 1440);
+//     $daysParked = max(1, $daysParked);
+
+
+//     if ($company->rate == 'perhour') {
+//         $rate = (int) $hoursParked * (float) $company->rate_perhour;
+//      }
+//     elseif ($company->rate == 'perday') {
+//     $rate = (int) $daysParked * (float) $company->rate_perday;
+//     }
+//     else {
+//          // The base rate is always the full day rate.
+//     $rate = (float) $company->rate_perday ;
+//       $daysParked = max(1, ($daysParked -1));
+    
+// //    dd(['rate'=> $rate,'hours'=>$hoursParked] );
+
+//     // Check for any additional days (more than 24 hours).
+//     if ($hoursParked > 24) {
+//         // Calculate the number of full days after the first day.
+//         $additionalDays = floor(($hoursParked - 24) / 24);
+
+//         // Calculate the remaining hours after accounting for additional days.
+//         $remainingHours = ($hoursParked - 24) % 24;
+        
+//         // Add the rate for the additional full days.
+//         $rate += $additionalDays * (float) $company->rate_perday;
+
+//         // If there are any remaining hours, bill them.
+//         if ($remainingHours > 0) {
+//             $rate += ceil($remainingHours) * (float) $company->rate_perhour;
+//         }
+//         // $hoursParked = $remainingHours;
+//     }
+
+
+        
+    //   $daysParked = max(1,($daysParked -1) ) ;
+    //   if ($daysParked == 1){
+      
+    //     if ($hoursParked  > 24)
+    //          $hoursParked  -= ($daysParked * 24);
+    //     else
+    //         $hoursParked = 0;  
+    //     }
+
+    //   else{
+    //  $hoursParked  -= ($daysParked * 24);
+    //   }
+
+    // $rate = ((int) $daysParked* (float) $company->rate_perday)
+    //           + ((int)  $hoursParked  * (float) $company->rate_perhour);
+
+
+    $minutesDiff =  $start->diffInMinutes($end); // absolute minutes
+
+$hoursParked = (int) ceil($minutesDiff / 60);   // round UP to next hour
+$daysParked  = (int) ceil($minutesDiff / 1440); // round UP to next day
+$daysParked = max(1, $daysParked);
+
+
+$rate = null;
+
+if ($company->rate == 'perhour') {
+    // Simple per hour rate
+ 
+    $rate = $hoursParked * (float) $company->rate_perhour;
+
+} elseif ($company->rate == 'perday') {
+    // Simple per day rate
+    $rate = $daysParked * (float) $company->rate_perday;
+
+} else {
+    // Base = 1 full day
+   $rate =  $company->rate_perday;
+   $daysParked = max(1,($daysParked - 1));
+    // $hoursParked = (int) floor($minutesDiff / 60);
+    // if ($daysParked = 1){
+
+    // }
+
+
+    // if ($hoursParked >= 24) {
+    //     // Additional full days (after the first 24h)
+    //     $additionalDays = floor(($hoursParked - 24) / 24);
+    //     $rate += $additionalDays * (float) $company->rate_perday;
+
+    //     // Remaining hours after full days
+    //     $remainingHours = ($hoursParked - 24) % 24;
+
+    //     if ($remainingHours > 0) {
+    //         $rate += $remainingHours * (float) $company->rate_perhour;
+    //     }
+
+    //     $hoursParked = $remainingHours;
+    //      dd(['mindiff' => $minutesDiff, 'hoursparkedssss' => $hoursParked,]);
+    // }
+    
+
+    // dd(['mindiff' => $minutesDiff, 'hoursparked' => $hoursParked,]);
+}
+
+
+    //     // }else
+    //     //     $rate = ((int) $daysParked * (float) $company->rate_perday);
+    
 
     $ticket->PARKFEE =  $rate;
 
@@ -347,7 +444,7 @@ public function submit_park_out(Request $request)
         'TOTALMINUTES'  => $minutesDiff,
         'days_parked'   => $daysParked,
         'hours_parked'  => $hoursParked,
-        'PARKOUTDATETIME' => $parkOutDateTime
+        'PARKOUTDATETIME' => $end
     ])->save();
 
 

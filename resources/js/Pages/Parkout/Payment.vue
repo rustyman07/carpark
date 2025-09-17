@@ -18,16 +18,16 @@
         Ticket No: {{ ticket.data.ticket_no }}
       </v-card-text>
       <v-card-text class="py-1 px-2">
-        Park in Date Time: {{ formatDate(ticket.data.park_datetime) }}
+        Park in Date Time: {{ formatDate(ticket.data.park_datetime) }} <span>{{ parkinTime }}</span>
       </v-card-text>
       <v-card-text class="py-1 px-2">
-        Park out Date Time: {{ formatDate(ticket.data.parkout_datetime) }}
+        Park out Date Time: {{ formatDate(ticket.data.parkout_datetime) }}  <span>{{ parkoutTime }}</span>
       </v-card-text>
       <v-card-text v-if="ticket.data.days_parked !== null" class="py-1 px-2">
         No of Days: {{ ticket.data.days_parked }}
       </v-card-text>
-      <v-card-text v-if="ticket.data.hours_parked !== null" class="py-1 px-2">
-        No of Hours: {{ ticket.data.hours_parked }}
+      <v-card-text v-if="hoursPark !== null" class="py-1 px-2">
+        No of Hours: {{ hoursPark }}
       </v-card-text>
       <v-card-text class="py-1 px-2">
         Total Bill: {{ formatCurrency(ticket.data.park_fee) }}
@@ -115,6 +115,28 @@ const cashAmount = ref(null)
 const scannedCards = computed(() => props.scannedCards || [])
 const totalCovered = computed(() => props.totalCovered || 0)
 const cashNeeded   = computed(() => props.cashNeeded || 0)
+
+
+const hoursPark = computed(()=>{
+
+       return props.ticket.data.hours_parked 
+})
+
+
+const parkinTime = computed(() => {
+  return props.ticket.data.park_datetime
+    ? dayjs(props.ticket.data.park_datetime).format("hh:mm A") 
+    : null
+})
+const parkoutTime = computed(() => {
+  return props.ticket.data.parkout_datetime
+    ? dayjs(props.ticket.data.parkout_datetime).format("hh:mm A") 
+    : null
+})
+
+
+
+
 // Data table headers
 const headers = [
   { key: 'card_number', title: 'Card Number' },
