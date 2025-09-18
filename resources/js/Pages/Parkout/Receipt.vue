@@ -45,6 +45,11 @@
                 <p class="w-10 "> : </p>
                 <p class="ml-2">{{ duration }}</p>
             </div>
+                   <div class="d-flex  text-body-2 pb-2 ">
+                <p class="font-weight-bold w-25">Park Fee</p>
+                <p class="w-10"> : </p>
+                <p class="ml-2">{{formatCurrency(props.ticket.park_fee) }}</p>
+            </div>
 
               
             <div class="d-flex  text-body-2 pb-2 ">
@@ -53,11 +58,37 @@
                 <p class="ml-2">{{formatCurrency(props.amount) }}</p>
             </div>
 
-           <div v-if="ticket.mode_of_payment === 'card'" class="d-flex text-body-2">
+    
+
+           <!-- <div v-if="ticket.mode_of_payment === 'card'" class="d-flex text-body-2">
 				<p class="font-weight-bold w-25">Balance </p>
 				<p class="w-10 "> : </p>
 				<p class="ml-2">{{ props.balance }}</p>
-			</div>
+
+
+			</div> -->
+
+                 
+        <v-data-table-server
+       class="border border-gray-300 rounded"
+         density="compact"
+          :headers="headers"
+          :items="filteredCard"
+          :items-per-page="5"
+          :loading="false"
+             flat
+          disable-sort
+          hide-default-footer
+        >
+       
+        </v-data-table-server>
+                <div class="text-body-2">
+                <ul>
+                    <li v-for = "item in filteredCash">
+                        <div> Paid in Cash {{  item.amount}}</div>
+                    </li>
+                </ul>
+            </div>
 						<!-- Receipt Body -->
         <!-- <v-row class="mb-2">
             <v-col cols="6" class="font-weight-bold">From: <span>{{parkinDate}}</span> </v-col>
@@ -106,6 +137,7 @@ const props = defineProps({
   },
   company:  Object,
   amount: Number,
+  details: Array,
 
 })
 
@@ -115,7 +147,23 @@ const page = usePage();
 
 // const ticket = page.props.ticket
 
+const headers = [
+  { key: 'card_number', title: 'Card Number' },
+  { key: 'no_of_days', title: 'No. of Days' },
+//   { key: 'price', title: 'Price' },
+    { key: 'amount', title: 'Amount' },
+  { key: 'balance', title: 'Balance', class: 'bg-blue-darken-4' },
+]
 
+
+const filteredCard = computed(()=>{
+   return props.details.filter((a)=>a.card_id !== null);
+})
+
+
+const filteredCash = computed(()=>{
+   return props.details.filter((a)=>a.card_id == null);
+})
 
 
 // Format entry time
@@ -132,7 +180,6 @@ const parkinTime = computed(() => {
     ? dayjs(props.ticket.park_datetime).format("hh:mm A") 
     : null
 })
-
 
 
 // Format exit time
@@ -157,11 +204,14 @@ const start = dayjs(props.ticket.park_datetime).startOf('minute')
 const end = dayjs(props.ticket.parkout_datetime).startOf('minute')
 
 
+
+
+
   // Difference in minutes
   const diffMinutes = end.diff(start, 'minute')
 
-  const days = Math.floor(diffMinutes / (60 * 24))
-  const hours = Math.floor((diffMinutes % (60 * 24)) / 60)
+  const days = Math.ceil(diffMinutes / (60 * 24))
+  const hours = Math.ceil((diffMinutes % (60 * 24)) / 60)
   const minutes = diffMinutes % 60
 
   // Format smartly

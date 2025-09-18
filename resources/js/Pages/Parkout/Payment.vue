@@ -36,6 +36,15 @@
       <!-- Totals -->
 
       <!-- Scanned Cards -->
+        <div class="flex- align-right">
+                      <v-btn color="blue-darken-4 mb-4" @click="scanQR">
+              <v-icon left class="mr-4">mdi-qrcode-scan</v-icon>
+              Scan QR to use card
+            </v-btn>
+
+        </div>
+  
+   
      
         <v-data-table-server
        class="border border-gray-300 rounded"
@@ -48,12 +57,7 @@
           disable-sort
           hide-default-footer
         >
-          <template v-slot:top>
-            <v-btn color="blue-darken-4 mb-4" @click="scanQR">
-              <v-icon left class="mr-4">mdi-qrcode-scan</v-icon>
-              Scan QR to use card
-            </v-btn>
-          </template>
+       
         </v-data-table-server>
 
         <v-card-text class="py-1 px-2 mt-2">
@@ -72,6 +76,7 @@
         v-model="cashAmount"
         variant="outlined"
         type="number"
+        :disabled="disAbledPayment"
         ></v-text-field>
 
       <!-- Actions -->
@@ -134,6 +139,13 @@ const parkoutTime = computed(() => {
     : null
 })
 
+
+const disAbledPayment = computed(()=>{
+    if (totalCovered.value === props.ticket.data.park_fee){
+        return true;
+    }
+    else return false;
+})
 
 
 

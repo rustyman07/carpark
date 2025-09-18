@@ -11,14 +11,14 @@
             item-value="id"
             @update:modelValue="onTemplateChange"
           />
-
+<!-- 
           <v-text-field
             v-model="form.card_name"
             variant="underlined"
             label="Card Name"
             type="text"
             :error-messages="form.errors.card_name"
-          />
+          /> -->
           <v-text-field
             v-model="form.no_of_cards"
             variant="underlined"
@@ -31,6 +31,7 @@
             variant="underlined"
             label="No. of Days"
             type="number"
+            disabled
             :error-messages="form.errors.no_of_days"
           />
           <v-text-field
@@ -38,6 +39,7 @@
             variant="underlined"
             label="Price"
             type="number"
+            disabled
             :error-messages="form.errors.price"
           />
           <v-text-field
@@ -45,6 +47,7 @@
             variant="underlined"
             label="Discount"
             type="number"
+            disabled
             :error-messages="form.errors.discount"
           />
         </v-card-text>

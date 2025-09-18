@@ -309,121 +309,88 @@ public function submit_park_out(Request $request)
     
     // 4️⃣ Calculate fee
     $company = Company::find(1); 
-    $start = Carbon::parse($ticket->PARKDATETIME)->timezone(config('app.timezone'));
-        // $start         =             Carbon::parse('2025-09-16 23:22:55'); 
+    $start = Carbon::parse($ticket->PARKDATETIME)->timezone(config('app.timezone')); 
     $end =     Carbon::parse( $data['PARKOUTDATETIME'])->timezone(config('app.timezone'));
-     $end =     Carbon::parse('2025-09-16 23:23:42');
 
 
-     //$minutesDiff = floor($start->diffInSeconds($end) / 60);
-//      $minutesDiff = $start->diffInMinutes($end);          // absolute minutes
+//  $start =     Carbon::parse('2025-09-18 11:11:31'); 
+//  $end  =     Carbon::parse('2025-09-19 11:37:17');
+// $hoursParked = max(1,(int) $start->diffInHours($end)) ;
+// $daysParked = max(1,(int) $start->diffInDays($end));
+// $minutesDiff =  $start->diffInMinutes($end);
 
-//     $rate = null;
-//     $daysParked = null;
-//     $hoursParked = null;
-//     $hoursParked = (int) ceil($minutesDiff / 60);
-//     // $hoursParked = max(1, (int) ceil($minutesDiff / 60));
-//     $daysParked = (int) ceil($minutesDiff / 1440);
-//     $daysParked = max(1, $daysParked);
+// $ratePerhour = $hoursParked * (float) $company->rate_perhour;
+// $ratePerDay = $daysParked * (float) $company->rate_perday;
 
 
-//     if ($company->rate == 'perhour') {
-//         $rate = (int) $hoursParked * (float) $company->rate_perhour;
-//      }
-//     elseif ($company->rate == 'perday') {
-//     $rate = (int) $daysParked * (float) $company->rate_perday;
-//     }
-//     else {
-//          // The base rate is always the full day rate.
-//     $rate = (float) $company->rate_perday ;
-//       $daysParked = max(1, ($daysParked -1));
+// $rate = null;
+
+// if ($company->rate == 'perhour') {
+//     // Simple per hour rate
+ 
+//     $rate = $ratePerhour;
+
+// } elseif ($company->rate == 'perday') {
+//     // Simple per day rate
+//     $rate =  $ratePerDay ;
+
+// } else {
+//     // Base = 1 full day
+//     $rate = $ratePerDay ;
+//    if ($hoursParked >=24){
+//   $hours = $daysParked * 24;
+//   $remainingHours =  $hoursParked - $hours;
+//   $rate = $daysParked * (float) $company->rate_perday + $remainingHours * (float) $company->rate_perhour;
+//   $hoursParked = $remainingHours;
+
     
-// //    dd(['rate'=> $rate,'hours'=>$hoursParked] );
 
-//     // Check for any additional days (more than 24 hours).
-//     if ($hoursParked > 24) {
-//         // Calculate the number of full days after the first day.
-//         $additionalDays = floor(($hoursParked - 24) / 24);
+//    }
 
-//         // Calculate the remaining hours after accounting for additional days.
-//         $remainingHours = ($hoursParked - 24) % 24;
-        
-//         // Add the rate for the additional full days.
-//         $rate += $additionalDays * (float) $company->rate_perday;
+// }
 
-//         // If there are any remaining hours, bill them.
-//         if ($remainingHours > 0) {
-//             $rate += ceil($remainingHours) * (float) $company->rate_perhour;
-//         }
-//         // $hoursParked = $remainingHours;
-//     }
+// Use Carbon's diffInMinutes for the most precise duration
+$minutesParked = $start->diffInMinutes($end);
 
+// Initialize variables
+$rate = 0;
+$daysParked = 0;
+$remainingMinutes = 0;
+$hoursParked = 0;
 
-        
-    //   $daysParked = max(1,($daysParked -1) ) ;
-    //   if ($daysParked == 1){
-      
-    //     if ($hoursParked  > 24)
-    //          $hoursParked  -= ($daysParked * 24);
-    //     else
-    //         $hoursParked = 0;  
-    //     }
-
-    //   else{
-    //  $hoursParked  -= ($daysParked * 24);
-    //   }
-
-    // $rate = ((int) $daysParked* (float) $company->rate_perday)
-    //           + ((int)  $hoursParked  * (float) $company->rate_perhour);
-
-
-    $minutesDiff =  $start->diffInMinutes($end); // absolute minutes
-
-$hoursParked = (int) ceil($minutesDiff / 60);   // round UP to next hour
-$daysParked  = (int) ceil($minutesDiff / 1440); // round UP to next day
-$daysParked = max(1, $daysParked);
-
-
-$rate = null;
+// Handles negative or zero parking duration
+// if ($minutesParked <= 0) {
+//     return 0;
+// }
 
 if ($company->rate == 'perhour') {
-    // Simple per hour rate
- 
+    // Round up to the next full hour for billing, with a minimum of 1 hour
+    $hoursParked = max(1, ceil($minutesParked / 60));
+    // dd( ceil($minutesParked / 60));
     $rate = $hoursParked * (float) $company->rate_perhour;
-
 } elseif ($company->rate == 'perday') {
-    // Simple per day rate
+    // Round up to the next full day for billing, with a minimum of 1 day if any time is parked
+    $daysParked = max(1, ceil($minutesParked / (60 * 24)));
     $rate = $daysParked * (float) $company->rate_perday;
-
 } else {
-    // Base = 1 full day
-   $rate =  $company->rate_perday;
-   $daysParked = max(1,($daysParked - 1));
-    // $hoursParked = (int) floor($minutesDiff / 60);
-    // if ($daysParked = 1){
-
-    // }
-
-
-    // if ($hoursParked >= 24) {
-    //     // Additional full days (after the first 24h)
-    //     $additionalDays = floor(($hoursParked - 24) / 24);
-    //     $rate += $additionalDays * (float) $company->rate_perday;
-
-    //     // Remaining hours after full days
-    //     $remainingHours = ($hoursParked - 24) % 24;
-
-    //     if ($remainingHours > 0) {
-    //         $rate += $remainingHours * (float) $company->rate_perhour;
-    //     }
-
-    //     $hoursParked = $remainingHours;
-    //      dd(['mindiff' => $minutesDiff, 'hoursparkedssss' => $hoursParked,]);
-    // }
+    // Mixed: charge for full days, then remaining hours with a minimum of 1 hour6
+    $daysParked = floor($minutesParked / (60 * 24));
+    $remainingMinutes = $minutesParked % (60 * 24);
     
-
-    // dd(['mindiff' => $minutesDiff, 'hoursparked' => $hoursParked,]);
+    // Calculate the cost of full days
+    $rate = $daysParked * (float) $company->rate_perday;
+    
+    // If there are any minutes parked, charge for a minimum of 1 hour.
+    if ($daysParked == 0 && $remainingMinutes > 0) {
+        $hoursParked = 1;
+        $rate += $hoursParked * (float) $company->rate_perhour;
+    } elseif ($remainingMinutes > 0) {
+        $hoursParked = ceil($remainingMinutes / 60);
+        $rate += $hoursParked * (float) $company->rate_perhour;
+    }
 }
+
+
 
 
     //     // }else
@@ -441,7 +408,7 @@ if ($company->rate == 'perhour') {
         'PARKOUTHOUR'   => $data['PARKOUTHOUR'],
         'PARKOUTMINUTE' => $data['PARKOUTMINUTE'],
         'PARKOUTSECOND' => $data['PARKOUTSECOND'],
-        'TOTALMINUTES'  => $minutesDiff,
+        // 'TOTALMINUTES'  => $minutesDiff,
         'days_parked'   => $daysParked,
         'hours_parked'  => $hoursParked,
         'PARKOUTDATETIME' => $end
@@ -607,8 +574,6 @@ public function submit_payment(Request $request)
     ]);
 
 
-
-
     $ticket  = Ticket::findOrFail($request->ticket_id);
     $company = Company::find(1);
 
@@ -661,7 +626,7 @@ public function submit_payment(Request $request)
             }
 
             // Deduct only what this card can cover
-            $deduct = min($cardInventory->balance, $amountToPay);
+            $deduct = min($cardInventory->balance, $amountToPay);  
 
             // Update card balance
             $cardInventory->balance -= $deduct;
@@ -682,9 +647,9 @@ public function submit_payment(Request $request)
                 'no_of_days'   => $cardInventory->no_of_days ?? 0,
             ]);
 
-            // Reduce remaining fee
-            $amountToPay -= $deduct ;
-            $totalPaid += $deduct ;
+          
+            $amountToPay -= $deduct ;    // Reduce remaining fee
+            $totalPaid += $deduct ; // totalofcards paid
     
 
             // dd([
@@ -847,20 +812,11 @@ public function submit_payment(Request $request)
         }
       
 
-         $payment = Payment::where('ticket_id',$ticket->id)->first();
+        $payment = Payment::where('ticket_id',$ticket->id)->first();
 
-            $balance = $payment->balance;
-    
-        // if ($ticket->mode_of_payment ==='card'){
-        //    $card = CardInventoryDetail::where('qr_code_hash',$ticket->QRCODE)->first();
-        //    if(!$card){
-        //     //  return back()->with('error', 'Invalid QR Code.');
-        //       abort(404, 'Invalid QR Code');
-        //    }
-        //    $balance = $card?->balance;
-        // }
-   
 
+        $details =  $payment->details;
+        $balance = $payment->balance;
         $company = Company::findOrFail(1);
 
         return Inertia('Parkout/Receipt',[
@@ -868,6 +824,7 @@ public function submit_payment(Request $request)
             'balance' => $balance,
             'company' => $company,
             'amount'  => $payment?->amount ?? 0.00,
+            'details' => $details
             
         ]);
     }
