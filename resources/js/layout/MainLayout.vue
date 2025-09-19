@@ -89,6 +89,7 @@ const items = [
   { title: 'Park Out', value: 'park_out', route: 'parkout', icon: 'mdi-car-key' },
   { title: 'Card Template', route: 'card-template.index', value: 'card_template', icon: 'mdi-list-box-outline' },
   { title: 'Card Inventory', route: 'card-inventory.index', value: 'card_inventory', icon: 'mdi-list-box-outline' },
+    { title: 'Sell Card', route: 'sell-card.create', value: 'sell_card', icon: 'mdi-list-box-outline' },
   { title: 'Logs', value: 'logs', route: 'logs', icon: 'mdi-history' },
   { title: 'Sales Person', value: 'sales_person', route: 'sales-person.index', icon: 'mdi-account' },
   {

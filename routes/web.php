@@ -18,10 +18,6 @@ Route::get('parkin', [TicketController::class, 'index'])->name('parkin.index');
 Route::post('parkin', [TicketController::class, 'store'])->name('parkin.store');
 Route::get('parkin/{uuid}', [TicketController::class, 'show'])->name('parkin.show');
 
-// routes/web.php
-Route::post('/detect-plate', [TicketController::class, 'detect']);
-
-
 Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
 Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');
 Route::get('parkout/payment/{uuid}',[TicketController::class,'show_payment'])->name('show.payment');
@@ -54,9 +50,13 @@ Route::resource('card-template', CardTemplateController::class)
 Route::get('card-inventory',[CardInventoryController::class,'index'])->name('card-inventory.index');
 Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');
 
+Route::get('sell-card',[CardInventoryController::class,'sell_card'])->name('sell-card.create');
 
+Route::get('sell-card/available-card/{template_id}',[CardInventoryController::class,'show_no_available_cards'])->name('available_cards.show');
 
 Route::get('transaction/ticket-payments',[PaymentController::class, 'index'])->name('ticket.payments');
+
+
 
 // Route::get('card-inventory', [CardInventoryController::class, 'index'])->name('card-inventory.index');
 // Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');

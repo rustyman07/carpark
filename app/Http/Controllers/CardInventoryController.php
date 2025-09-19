@@ -41,84 +41,6 @@ class CardInventoryController extends Controller
         ]);
     }
 
-
-
-
-// public function store(Request $request)
-// {
-//     try {
-//         DB::beginTransaction();
-
-//         $amount = $request->price - ($request->discount ?? 0);
-
-//         // 1. Create the inventory batch (header)
-//         $inventory = CardInventory::create([
-//             'card_name'   => $request->card_name,
-//             'no_of_cards' => $request->no_of_cards,
-//             'no_of_days'  => $request->no_of_days,
-//             'price'       => $request->price,
-//             'discount'    => $request->discount,
-//             'amount'      => $amount,
-//             // 'createdby'   => auth()->id(),
-//         ]);
-
-//         // 2. Create detail rows (placeholders)
-//         $details = [];
-//         for ($i = 0; $i < $request->no_of_cards; $i++) {
-//             $details[] = [
-//                 'header_id'  => $inventory->id,
-//                 'card_number'  => 'temp_' . $i,   // temporary placeholder
-//                 'qr_code_hash' => 'temp_' . $i,  // temporary placeholder
-//                 'status'     => 'AVAILABLE',
-//                 'card_name'  => $request->card_name,
-//                 'no_of_days' => $request->no_of_days,
-//                 'price'      => $request->price,
-//                 'discount'   => $request->discount,
-//                 'amount'     => $amount,
-//                 'balance'    =>  $request->no_of_days,
-//                 'created_at' => now(),
-//                 'updated_at' => now(),
-//             ];
-//         }
-
-//         // 3. Insert details
-//         CardInventoryDetail::insert($details);
-//         $year = date('Y');  
-
-//         // 4. Fetch them back (IDs available now)
-//         $insertedDetails = CardInventoryDetail::where('header_id', $inventory->id)->get();
-
-//         foreach ($insertedDetails as $detail) {
-//             // predictable but internal code
-//           //  $card_number   = $year . '1000' . $detail->id;
-
-//             $card_number =  $year . sprintf('%05d', $detail->id);
-
-//             $hashedCode = Hash::make($card_number);
-
-//             $detail->update([
-//                 'card_number'  => $card_number,
-//                 'qr_code_hash' => $hashedCode,
-//             ]);
-//         }
-
-//         DB::commit();
-
-//         return redirect()->route('card-inventory.index')->with([
-//             'success' => 'Card Inventory with details created successfully!',
-//         ]);
-
-//     } catch (\Throwable $e) {
-//         DB::rollBack();
-
-//         return redirect()->back()->with([
-//             'success' => false,
-//             'message' => 'Failed to create card inventory.',
-//             'error'   => $e->getMessage(),
-//         ]);
-//     }
-// }
-
  public function store(Request $request)
     {
         $data = $request->validate([
@@ -196,5 +118,26 @@ class CardInventoryController extends Controller
         }
     }
 
+    public function sell_card(){
+             
+        $cardTemplate = CardTemplate::where('cancelled', 0)->get();
 
+        return Inertia('SellCards/Create',[
+            'cardTemplate' => $cardTemplate
+        ]);
+    }
+
+public function show_no_available_cards($template_id)
+{
+    $totalAvailable = CardInventory::where('card_template_id', $template_id)
+        ->withCount(['details' => function($query) {
+            $query->whereNull('deleted_at'); // only count non-deleted details
+        }])
+        ->get()
+        ->sum('details_count'); // sum the counts from each inventory
+
+    return response()->json([
+        'available_quantity' => $totalAvailable
+    ]);
+}
 }

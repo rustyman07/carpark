@@ -28,7 +28,9 @@ return new class extends Migration
             $table->foreignId('sales_person_id')->nullable()->constrained('sales_people')->onDelete('set null');
             // Payment details
             $table->string('qr_code')->nullable();
-            $table->decimal('amount', 10, 2)->default(0.00);
+            $table->decimal('amount', 8, 2)->default(0.00);
+            $table->decimal('total_amount', 8, 2)->default(0.00);
+            $table->decimal('change', 8, 2)->default(0.00);
             $table->string('card_number')->nullable();
             $table->enum('payment_type', ['reload', 'ticket']);
             $table->enum('payment_method', ['cash', 'card', 'mobile', 'bank']);

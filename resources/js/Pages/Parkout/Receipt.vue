@@ -52,11 +52,7 @@
             </div>
 
               
-            <div class="d-flex  text-body-2 pb-2 ">
-                <p  class="font-weight-bold w-25" >Amount</p>
-                <p class="w-10 "> : </p>
-                <p class="ml-2">{{formatCurrency(props.amount) }}</p>
-            </div>
+
 
     
 
@@ -89,6 +85,25 @@
                     </li>
                 </ul>
             </div>
+
+            <div class="d-flex  text-body-2 pb-2 ">
+                <p  class="font-weight-bold w-25" >Amount</p>
+                <p class="w-10 "> : </p>
+                <p class="ml-2">{{formatCurrency(props.payment.amount) }}</p>
+            </div>
+              <div class="d-flex  text-body-2 pb-2 align-end">
+                <p  class="font-weight-bold w-25" >Total Amount</p>
+                <p class="w-10 "> : </p>
+                <p class="ml-2">{{formatCurrency(props.payment.total_amount) }}</p>
+            </div>
+          <v-divider></v-divider>
+            <div class="d-flex  text-body-2 pb-2 ">
+                <p  class="font-weight-bold w-25" >Change</p>
+                <p class="w-10 "> : </p>
+                <p class="ml-2">{{formatCurrency(props.payment.change) }}</p>
+            </div>
+
+
 						<!-- Receipt Body -->
         <!-- <v-row class="mb-2">
             <v-col cols="6" class="font-weight-bold">From: <span>{{parkinDate}}</span> </v-col>
@@ -138,6 +153,7 @@ const props = defineProps({
   company:  Object,
   amount: Number,
   details: Array,
+  payment: Object,
 
 })
 
@@ -209,9 +225,8 @@ const end = dayjs(props.ticket.parkout_datetime).startOf('minute')
 
   // Difference in minutes
   const diffMinutes = end.diff(start, 'minute')
-
-  const days = Math.ceil(diffMinutes / (60 * 24))
-  const hours = Math.ceil((diffMinutes % (60 * 24)) / 60)
+  const days = Math.floor(diffMinutes / (60 * 24))
+  const hours = Math.floor((diffMinutes % (60 * 24)) / 60)
   const minutes = diffMinutes % 60
 
   // Format smartly

@@ -11,6 +11,8 @@ class Payment extends Model
     protected $fillable = [
         'ticket_id',
         'amount',
+        'total_amount',
+        'change',
         'days_deducted',
         'payment_type',
         'payment_method',
