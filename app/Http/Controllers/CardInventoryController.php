@@ -44,6 +44,7 @@ class CardInventoryController extends Controller
  public function store(Request $request)
     {
         $data = $request->validate([
+            'card_template_id' =>'required|integer',
             'card_name'   => 'required|string|max:255',
             'no_of_cards' => 'required|integer|min:1',
             'no_of_days'  => 'required|integer|min:1',
@@ -59,11 +60,12 @@ class CardInventoryController extends Controller
             
             // 1. Create the inventory batch (header)
             $inventory = CardInventory::create([
-                'card_name'   => $request->card_name,
-                'no_of_cards' => $request->no_of_cards,
-                'no_of_days'  => $request->no_of_days,
-                'price'       => $request->price,
-                'discount'    => $request->discount,
+                'card_template_id'=> $data['card_template_id'],
+                'card_name'   => $data['card_name'],
+                'no_of_cards' => $data['no_of_cards'],
+                'no_of_days'  => $data['no_of_days'],
+                'price'       => $data['price'],
+                'discount'    => $data['discount'],
                 'amount'      => $amount,
             ]);
             
@@ -83,18 +85,19 @@ class CardInventoryController extends Controller
                 $hashedCode = Hash::make($card_number);
 
                 $details[] = [
-                    'header_id'    => $inventory->id,
+                    'card_inventory_id'    => $inventory->id,
+                    'card_template_id'=> $data['card_template_id'],
                     'card_number'  => $card_number,
                     'qr_code_hash' => $hashedCode,
                     'status'       => 'AVAILABLE',
-                    'card_name'    => $request->card_name,
-                    'no_of_days'   => $request->no_of_days,
-                    'price'        => $request->price,
-                    'discount'     => $request->discount,
+                    'card_name'    =>$data['card_name'],
+                    'no_of_days'   =>  $data['no_of_days'],
+                    'price'        =>  $data['price'],
+                    'discount'     =>  $data['discount'],
                     'amount'       => $amount,
-                    'balance'      => $request->price,
+                    'balance'      => $data['price'],
                     'created_at'   => now(),
-                    'updated_at'   => now(),
+                    // 'updated_at'   => now(),
                 ];
             }
 
@@ -126,18 +129,19 @@ class CardInventoryController extends Controller
             'cardTemplate' => $cardTemplate
         ]);
     }
-
 public function show_no_available_cards($template_id)
 {
-    $totalAvailable = CardInventory::where('card_template_id', $template_id)
-        ->withCount(['details' => function($query) {
-            $query->whereNull('deleted_at'); // only count non-deleted details
-        }])
-        ->get()
-        ->sum('details_count'); // sum the counts from each inventory
+    $Availblecard = CardInventoryDetail::where('card_template_id', $template_id)
+    ->where('status','AVAILABLE')
+    ->whereNull('deleted_at')
+    ->count();
+
+      
 
     return response()->json([
-        'available_quantity' => $totalAvailable
+        'available_quantity' => $Availblecard
     ]);
 }
+
 }
+

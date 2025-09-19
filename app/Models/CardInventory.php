@@ -26,6 +26,6 @@ class CardInventory extends Model
 
 public function details(){
 
-    return $this->hasMany(CardInventoryDetail::class,'header_id');
+    return $this->hasMany(CardInventoryDetail::class);
 }
 }

@@ -6,7 +6,7 @@
         :items="props.cardTemplate"
         item-title="card_name"
         item-value="id"
-        v-model="form.template_id"
+        v-model="form.card_template_id"
         variant="outlined"
         label="Select Card"
       />
@@ -56,7 +56,7 @@ const quantityAvailable = ref('');
 // });
 
 const form = ref({
-  template_id: null,
+  card_template_id: null,
   quantity: null,
   soldBy: '',
 });
@@ -80,7 +80,7 @@ const form = ref({
 
 
 // Watch the selected card
-watch(() => form.value.template_id, (newVal) => {
+watch(() => form.value.card_template_id, (newVal) => {
   if (!newVal) {
     quantityAvailable.value = '';
     return;

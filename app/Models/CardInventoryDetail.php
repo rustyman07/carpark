@@ -12,7 +12,8 @@ class CardInventoryDetail extends Model
      use SoftDeletes;
 
        protected $fillable = [
-    'header_id',
+    'card_inventory_id',
+    'card_template_id',
     'card_name',
     'card_number',
     'qr_code_hash',
