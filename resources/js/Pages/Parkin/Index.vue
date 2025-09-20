@@ -106,6 +106,8 @@ const createTicket = () => {
     }
   });
 };
+
+console.log('test');
 </script>
 
 <style scoped>
