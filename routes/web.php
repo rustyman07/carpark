@@ -25,8 +25,7 @@ Route::post('parkout/payment',[TicketController::class,'submit_payment'])->name(
 // Route::post('process-qr-Payment', [TicketController::class, 'processQrPayment'])->name('process.qr');
 Route::get('parkout/receipt',[TicketController::class,'parkout_receipt'])->name('parkout.receipt');
 
-
-Route::post('scan-qr-cards', [TicketController::class, 'scan_qr_cards'])->name('scan.qr.cards');
+;
 
 Route::prefix('sales-person')->name('sales-person.')->group(function () {
     Route::get('/', [SalesPersonController::class, 'index'])->name('index');
@@ -50,9 +49,12 @@ Route::resource('card-template', CardTemplateController::class)
 Route::get('card-inventory',[CardInventoryController::class,'index'])->name('card-inventory.index');
 Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');
 
-Route::get('sell-card',[CardInventoryController::class,'sell_card'])->name('sell-card.create');
+Route::post('scan-qr-cards', [CardInventoryController::class, 'scan_qr_cards'])->name('scan.qr.cards');
 
-Route::get('sell-card/available-card/{template_id}',[CardInventoryController::class,'show_no_available_cards'])->name('available_cards.show');
+Route::get('sell-card',[CardInventoryController::class,'sell_card'])->name('sell-card.create');
+Route::post('sell-card',[CardInventoryController::class,'sell_card_payment'])->name('sell-card.payment');
+
+// Route::get('sell-card/api/available-card/{template_id}',[CardInventoryController::class,'show_no_available_cards'])->name('available_cards.show');
 
 Route::get('transaction/ticket-payments',[PaymentController::class, 'index'])->name('ticket.payments');
 

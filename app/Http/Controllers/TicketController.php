@@ -24,6 +24,8 @@ class TicketController extends Controller
     public function index()
     {
         //
+   session()->forget('scanned_cards_payment');
+
 
            return inertia('Parkin/Index',);
     }
@@ -475,9 +477,6 @@ public function show_payment(string $uuid)
         $remainingFee -= $covered;
         $totalCovered += $covered ;
 
-
-
-
         $processedCards[] = [
             'id'               => $card['id'],
             'card_number'      => $card['card_number'],
@@ -499,37 +498,6 @@ public function show_payment(string $uuid)
     ]);
 }
 
-public function scan_qr_cards(Request $request)
-{
-    $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->first();
-
-    if (!$card) {
-        return back()->withErrors(['qr_code' => 'Invalid QR Code']);
-    }
-
-    if ($card->balance <= 0) {
-        return back()->with(['error' =>'Insufficient balance']);
-    }
-
-    $ticketId = $request->ticket_id;
-    $scanned = session()->get("scanned_cards.$ticketId", []);
-
-    if (!array_key_exists($card->id, $scanned)) {
-        $scanned[$card->id] = [
-            'id'          => $card->id,
-            'card_number' => $card->card_number,
-            'balance'     => $card->balance,
-            'price'       => $card->price ?? 0,
-            'no_of_days'  => $card->no_of_days ?? 0,
-        ];
-    }
-
-    session()->put("scanned_cards.$ticketId", $scanned);
-
-    // ✅ Redirect to show_payment route, not just "back"
-return redirect()->route('show.payment', ['uuid' => $request->ticket_uuid])
-    ->with('success', 'Card linked successfully');
-}
 
 
 

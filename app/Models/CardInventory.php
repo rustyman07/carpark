@@ -28,4 +28,8 @@ public function details(){
 
     return $this->hasMany(CardInventoryDetail::class);
 }
+
+
+
+
 }

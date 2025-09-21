@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\CardInventory;
 use App\Models\CardTemplate;
 use App\Models\CardInventoryDetail;
+use App\Models\Payment;
+use App\Models\PaymentDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
@@ -25,7 +27,6 @@ class CardInventoryController extends Controller
         ->orderBy('created_at', 'desc'); // order by latest first
 
 
-        // Apply a filter only if date parameters exist in the request.
         if ($dateFrom && $dateTo) {
             $cardDetailQuery->whereDate('created_at', '>=', $dateFrom)
                             ->whereDate('created_at', '<=', $dateTo);
@@ -58,7 +59,6 @@ class CardInventoryController extends Controller
 
             $amount = $request->price - ($request->discount ?? 0);
             
-            // 1. Create the inventory batch (header)
             $inventory = CardInventory::create([
                 'card_template_id'=> $data['card_template_id'],
                 'card_name'   => $data['card_name'],
@@ -75,10 +75,7 @@ class CardInventoryController extends Controller
             $lastDetailId = CardInventoryDetail::max('id') ?? 0;
             
             for ($i = 0; $i < $request->no_of_cards; $i++) {
-                // 2. Generate the card number and hash *before* inserting
-                // This assumes your ID generation logic is based on sequential numbers.
-                // A better approach would be to get the next auto-increment ID from the database
-                // but this is a quick fix based on your existing code.
+
 
                 $cardId = $lastDetailId + 1 + $i;
                 $card_number = $year . sprintf('%05d', $cardId);
@@ -101,7 +98,7 @@ class CardInventoryController extends Controller
                 ];
             }
 
-            // 3. Perform a single bulk insert
+            //  Perform a single bulk insert
             CardInventoryDetail::insert($details);
 
             DB::commit();
@@ -142,6 +139,158 @@ public function show_no_available_cards($template_id)
         'available_quantity' => $Availblecard
     ]);
 }
+
+
+public function scan_qr_cards(Request $request)
+{
+    if ($request->is_sell_card) {
+        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)
+            ->where('status', 'AVAILABLE')
+            ->first();
+    } else {
+        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->first();
+    }
+
+    // ❌ Invalid QR
+    if (!$card) {
+        return redirect()->back()->withErrors([
+            'qr_code' => 'Invalid QR Code',
+        ]);
+    }
+
+    // ❌ No balance
+    if ($card->balance <= 0) {
+        return redirect()->back()->withErrors([
+            'qr_code' => 'Insufficient balance',
+        ]);
+    }
+
+    // ✅ If not selling card
+    if (!$request->is_sell_card) {
+        $ticketId = $request->ticket_id;
+        $scanned = session()->get("scanned_cards.$ticketId", []);
+
+        if (!array_key_exists($card->id, $scanned)) {
+            $scanned[$card->id] = [
+                'id'          => $card->id,
+                'card_number' => $card->card_number,
+                'balance'     => $card->balance,
+                'price'       => $card->price ?? 0,
+                'no_of_days'  => $card->no_of_days ?? 0,
+            ];
+        }
+
+        session()->put("scanned_cards.$ticketId", $scanned);
+
+        return redirect()
+            ->route('show.payment', ['uuid' => $request->ticket_uuid])
+            ->with('success', 'Card linked successfully');
+    }
+
+    // ✅ If selling card
+    $scanned = session()->get("scanned_cards_payment", []);
+
+    if (!array_key_exists($card->id, $scanned)) {
+        $scanned[$card->id] = [
+            'id'          => $card->id,
+            'card_name'   => $card->card_name,
+            'card_number' => $card->card_number,
+            'balance'     => $card->balance,
+            'price'       => $card->price ?? 0,
+            'no_of_days'  => $card->no_of_days ?? 0,
+        ];
+    }
+
+    session()->put("scanned_cards_payment", $scanned);
+
+    return redirect()
+        ->back()
+        ->with('success', 'Card added to payment');
+}
+
+
+
+public function sell_card_payment(Request $request)
+{
+    $data = $request->validate([
+        'cash_amount' => 'numeric',
+        'cards'       => 'nullable|array',
+        'cards.*'     => 'integer|exists:card_inventory_details,id',
+    ]);
+
+    $cards = $data['cards'] ?? [];
+
+    // calculate total from selected cards
+    $total_amount = CardInventoryDetail::whereIn('id', $cards)->sum('price');
+
+    // check if cash is enough
+    if (!empty($data['cash_amount']) && $total_amount > $data['cash_amount']) {
+        return back()->withErrors(['error' => 'Insufficient cash amount']);
+    }
+
+    try {
+        DB::transaction(function () use ($cards, $data, $total_amount) {
+            $cash    = $data['cash_amount'] ?? $total_amount;
+            $change  = $cash - $total_amount;
+
+            // create payment record
+            $payment = Payment::create([
+                'total_amount'   => $total_amount, // actual total of the cards
+                'amount'     => $cash,         // how much customer paid
+                'change'   => $change,       // cash - total
+                'paid_at'  => now(),
+            ]);
+
+            foreach ($cards as $cardId) {
+                $cardInventory = CardInventoryDetail::findOrFail($cardId);
+
+                $cardInventory->status = 'SOLD';
+                $cardInventory->save();
+
+                $payment->details()->create([
+                    'card_id'     => $cardInventory->id,
+                    'card_number' => $cardInventory->card_number,
+                    'qr_code'     => $cardInventory->qr_code,
+                    'amount'      => $cardInventory->price,
+                    'balance'     => $cardInventory->balance,
+                    'card_name'   => $cardInventory->card_name,
+                    'discount'    => $cardInventory->discount ?? 0,
+                    'no_of_days'  => $cardInventory->no_of_days ?? 0,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Payment recorded successfully!');
+    } catch (\Exception $e) {
+        return back()->withErrors(['error' => 'Transaction failed: ' . $e->getMessage()]);
+    }
+}
+
+
+public function transactions($card_id){
+
+$transactions = PaymentDetail::where('card_id', $card_id)
+    ->whereHas('payment.ticket') // only include if payment has a ticket
+    ->with(['payment.ticket' => function($query) {
+        $query->select('id', 'PLATENO'); // select the fields you want
+    }])
+    ->get();
+
+
+
+
+
+    // $transactions = PaymentDetail::where('card_id',$card_id)->get();
+
+    
+
+    
+        return response()->json([
+            'transactions' => $transactions,
+        ]);
+}
+
+
 
 }
 

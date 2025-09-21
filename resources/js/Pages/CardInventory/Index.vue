@@ -7,6 +7,7 @@
     </div>
 
     <Create v-model="showDialog" :cardTemplate="cardTemplate" v-model:loading="showLoadingDialog" v-model:progress="progress" />
+    <Transactions  v-if = "showTransactionsDialog"  v-model="showTransactionsDialog"  :card_id = "card_id" />
 
      <v-dialog   v-model="showLoadingDialog" max-width="320" persistent>
       <v-list class="bg-grey-darken-4" elevation="12" rounded="lg">
@@ -88,16 +89,19 @@
         </template>
 
         <template v-slot:item.status="{ item }">
-          <span
+        <span
             :class="
-              item.status === 'AVAILABLE'
+            item.status === 'AVAILABLE'
                 ? 'bg-green-lighten-5 text-green-darken-1 pa-1'
+                : item.status === 'CONSUMED'
+                ? 'bg-red-lighten-5 text-red-darken-1 pa-1'
                 : 'bg-yellow-lighten-5 text-yellow-darken-4 pa-1'
             "
-          >
+        >
             {{ item.status }}
-          </span>
+        </span>
         </template>
+
 
         <template v-slot:item.created_at="{ item }">
           {{ formatDate(item.created_at) }}
@@ -105,6 +109,14 @@
 
         <template v-slot:item.qr_code_hash="{ item }">
           <img :src="qrCodeMap[item.id]" alt="QR Code" width="80" />
+        </template>
+
+           <template v-slot:item.action="{ item }">
+          <v-btn
+            color="primary"
+            
+            @click="viewTransactions(item.id)"
+          >View Transactions</v-btn>
         </template>
 
         <template v-slot:item.download="{ item }">
@@ -121,17 +133,22 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch ,reactive} from 'vue';
 import dayjs from 'dayjs';
 import Create from './Create.vue';
 import { usePage, router } from '@inertiajs/vue3';
 import QRCode from 'qrcode';
 import { formatCurrency } from '../../utils/utility';
+import Transactions from './Transactions.vue';
+
 
 
 // Dialog state
 const showDialog = ref(false);
 const showLoadingDialog = ref(false); 
+const showTransactionsDialog = ref(false);
+const sellCardPassinfo = reactive({});
+const card_id = ref(null);
 
 
 const progress = ref(0);
@@ -148,6 +165,7 @@ const headers = [
   { key: 'balance', title: 'Balance' },
   { key: 'status', title: 'Status' },
   { key: 'created_at', title: 'Date Created' },
+  {key: 'action',title: 'Actin'},
   { key: 'download', title: 'Download' },
 ];
 
@@ -156,12 +174,18 @@ const page = usePage();
 const cardTemplate = computed(() => page.props.cardTemplate);
 const cardDetail = computed(() => page.props.cardDetail);
 
+
 // Date filters
 const filters = ref({
   // v-date-input returns a Date object, so we'll use null as the initial value.
   startDate: new Date(),
   endDate: new Date(),
 });
+
+const sell_card_info = ()=>{
+
+
+}
 
 // ✅ Local page ref so Vuetify can update it
 const pageNumber = ref(cardDetail.value.current_page);
@@ -243,4 +267,20 @@ const downloadQRCode = (item) => {
   link.click();
   document.body.removeChild(link);
 };
+
+
+const viewTransactions = (id)=>{
+
+    showTransactionsDialog.value = true;
+    // sellCardPassinfo = {
+    //     card_name : item.card_name,
+    //     id : item.id,
+    //     card_number : item.card_number
+
+
+    // }
+
+    card_id.value = id;
+
+}
 </script>

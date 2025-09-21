@@ -34,4 +34,6 @@ public function cardInventory(){
     return $this->belongsTo(CardInventory::class);
 }
 
+
+
 }
