@@ -111,18 +111,19 @@
           <img :src="qrCodeMap[item.id]" alt="QR Code" width="80" />
         </template>
 
-           <template v-slot:item.action="{ item }">
+           <template v-slot:item.transactions="{ item }">
           <v-btn
-            color="primary"
-            
+            size="small"
+              icon="mdi-eye-outline"
+               variant="text"
             @click="viewTransactions(item.id)"
-          >View Transactions</v-btn>
+          ></v-btn>
         </template>
 
         <template v-slot:item.download="{ item }">
           <v-btn
             icon="mdi-download"
-            color="primary"
+            variant="text"
             size="small"
             @click="downloadQRCode(item)"
           ></v-btn>
@@ -165,7 +166,7 @@ const headers = [
   { key: 'balance', title: 'Balance' },
   { key: 'status', title: 'Status' },
   { key: 'created_at', title: 'Date Created' },
-  {key: 'action',title: 'Actin'},
+  {key: 'transactions',title: 'Transactions'},
   { key: 'download', title: 'Download' },
 ];
 

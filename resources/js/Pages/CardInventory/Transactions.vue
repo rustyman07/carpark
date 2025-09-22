@@ -1,80 +1,79 @@
 <template>
-  <v-dialog v-model="dialog" max-width="500">
-    <v-card class="rounded-lg">
-      <!-- Header -->
-      <v-card-title    class="d-flex align-center justify-space-between text-white py-1 px-4 bg-blue-darken-4">
-        <span class="text-h6">🚗 Transactions for Card: {{ props.card_id }}</span>
-        <v-btn icon="mdi-close" variant="text" @click="dialog = false" color="white"></v-btn>
-      </v-card-title>
-
+  <v-dialog 
+    v-model="dialog" 
+    :fullscreen="$vuetify.display.smAndDown"
+    max-width="600"
+  >
+    <v-card class="rounded">
+<v-toolbar flat density="compact">
+  <v-toolbar-title class="text-subtitle-1 text-medium-emphasis font-weight-regular ps-4">
+    <span class="text-truncate">Transactions for Card: {{ props.card_id }}</span>
+  </v-toolbar-title>
+  <v-spacer></v-spacer>
+  <v-btn icon="mdi-close" variant="text" @click="dialog = false"></v-btn>
+</v-toolbar>
       <v-divider></v-divider>
 
-      <!-- Body -->
-      <v-card-text>
-        <div v-if="loading" class="text-center py-6">
+      <v-card-text class="py-4">
+        <div v-if="loading" class="text-center py-12">
           <v-progress-circular indeterminate color="primary"></v-progress-circular>
         </div>
 
-        <div v-else-if="error" class="text-center text-error py-6">
-          {{ error }}
+        <div v-else-if="error" class="text-center text-error py-12">
+          <v-icon class="mb-2">mdi-alert-circle-outline</v-icon>
+          <p>{{ error }}</p>
+        </div>
+        
+        <div v-else-if="Object.keys(groupedTransactions).length === 0" class="text-center py-12">
+          <v-icon class="mb-4" size="64" color="grey-lighten-2">mdi-cash-remove</v-icon>
+          <p class="text-subtitle-1 text-medium-emphasis">No transactions available.</p>
+          <p class="text-caption text-medium-emphasis">There are no records for this card yet.</p>
         </div>
 
         <div v-else>
-          <!-- Loop by day -->
-          <v-card
-            v-for="(dayTransactions, date) in groupedTransactions"
-            :key="date"
-            class="mb-6 rounded-lg"
-            elevation="4"
-          >
-            <!-- Date Header -->
-            <v-card-title class="bg-grey-lighten-4 text-subtitle-1 font-weight-bold">
-              📅 {{ date }}
-            </v-card-title>
+          <div v-for="(dayTransactions, date) in groupedTransactions" :key="date">
+            <div class="text-caption font-weight-bold text-medium-emphasis px-4 py-2 mt-4">
+              {{ date }}
+            </div>
 
-            <v-divider></v-divider>
-
-            <!-- Transactions list -->
-            <v-list density="compact">
+            <v-list class="bg-surface rounded-lg">
               <v-list-item
                 v-for="t in dayTransactions"
                 :key="t.id"
-                class="py-3"
               >
                 <template #prepend>
-                  <v-avatar color="blue-lighten-4" size="40">
-                    <v-icon color="blue">mdi-car</v-icon>
+                  <v-avatar color="grey-lighten-4" size="40">
+                    <v-icon color="grey-darken-1" size="24">mdi-car</v-icon>
                   </v-avatar>
                 </template>
 
-                <v-list-item-content>
-                  <v-list-item-title class="font-weight-medium">
-                    Plate No: <span class="text-primary">{{ t.payment?.ticket?.PLATENO }}</span>
-                  </v-list-item-title>
-                  <v-list-item-subtitle>
-                    Amount: <strong class="text-success">₱{{ t.amount }}</strong> |
-                    Status: 
-                    <v-chip
-                      :color="t.payment?.status === 'paid' ? 'green' : 'orange'"
-                      size="small"
-                      label
-                    >
-                      {{ t.payment?.status }}
-                    </v-chip>
-                  </v-list-item-subtitle>
-                </v-list-item-content>
+                <v-list-item-title class="font-weight-medium text-body-2">
+                  <span class="text-medium-emphasis">Plate No:</span>
+                  <span class="text-primary font-weight-regular ms-1">{{ t.payment?.ticket?.PLATENO }}</span>
+                </v-list-item-title>
 
-                <template #append>
-                  <v-btn size="small" icon="mdi-information" variant="text" color="primary"></v-btn>
-                </template>
+                <v-list-item-subtitle class="text-caption mt-1 text-medium-emphasis">
+                  Amount: <span class="font-weight-bold text-success">₱{{ t.amount }}</span> 
+                  <span class="mx-1">·</span>
+                  Status:
+                  <v-chip
+                    :color="t.payment?.status === 'paid' ? 'green-darken-2' : 'orange-darken-2'"
+                    size="x-small"
+                    label
+                    class="ms-1"
+                  >
+                    {{ t.payment?.status }}
+                  </v-chip>
+                </v-list-item-subtitle>
               </v-list-item>
             </v-list>
-          </v-card>
+          </div>
         </div>
       </v-card-text>
     </v-card>
   </v-dialog>
 </template>
+
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -86,6 +85,8 @@ const props = defineProps({
   card_id: Number
 })
 
+const dialog = defineModel({ type: Boolean, default: false })
+
 const transactions = ref([])
 const loading = ref(false)
 const error = ref(null)
@@ -93,7 +94,7 @@ const error = ref(null)
 // Group by day
 const groupedTransactions = computed(() => {
   return transactions.value.reduce((acc, t) => {
-    const day = WordformatDate(t.created_at, "MMMM DD, YYYY") // e.g. "September 21, 2025"
+    const day = WordformatDate(t.created_at, "MMMM DD, YYYY")
     if (!acc[day]) acc[day] = []
     acc[day].push(t)
     return acc
@@ -103,9 +104,8 @@ const groupedTransactions = computed(() => {
 onMounted(async () => {
   loading.value = true
   try {
-    const { data } = await axios.get(route('transactions', props.card_id)) 
+    const { data } = await axios.get(route('transactions', props.card_id))
     transactions.value = data.transactions
-    console.log('✅ Transactions fetched', transactions.value)
   } catch (err) {
     console.error('❌ Fetch error:', err)
     error.value = err.response?.data?.message || 'Failed to load transactions'

@@ -9,6 +9,7 @@ use App\Models\PaymentDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
 
 use Illuminate\Http\Request;
 
@@ -126,19 +127,19 @@ class CardInventoryController extends Controller
             'cardTemplate' => $cardTemplate
         ]);
     }
-public function show_no_available_cards($template_id)
-{
-    $Availblecard = CardInventoryDetail::where('card_template_id', $template_id)
-    ->where('status','AVAILABLE')
-    ->whereNull('deleted_at')
-    ->count();
+// public function show_no_available_cards($template_id)
+// {
+//     $Availblecard = CardInventoryDetail::where('card_template_id', $template_id)
+//     ->where('status','AVAILABLE')
+//     ->whereNull('deleted_at')
+//     ->count();
 
       
 
-    return response()->json([
-        'available_quantity' => $Availblecard
-    ]);
-}
+//     return response()->json([
+//         'available_quantity' => $Availblecard
+//     ]);
+// }
 
 
 public function scan_qr_cards(Request $request)
@@ -203,9 +204,12 @@ public function scan_qr_cards(Request $request)
 
     session()->put("scanned_cards_payment", $scanned);
 
-    return redirect()
-        ->back()
-        ->with('success', 'Card added to payment');
+
+
+return Inertia::render('SellCards/Create', [
+    'scannedCards' => $scanned
+]);
+      
 }
 
 

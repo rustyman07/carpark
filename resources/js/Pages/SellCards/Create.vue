@@ -1,149 +1,90 @@
 <template>
-    <QrScanner   v-model="isScanQR" :closeScanner = "closeScanner" />
-    <!-- <v-layout>
-    <v-card class="pa-4" min-width="400">
+  <QrScanner v-model="isScanQR" :closeScanner="closeScanner" />
 
-    <v-select
-        :cards="props.cardTemplate"
-        card-title="card_name"
-        card-value="id"
-        v-model="form.card_template_id"
-        variant="outlined"
-        label="Select Card"
-    /> 
-            <v-text-field
-        label="Card Number"
-        v-model="form.card_number"
-        variant="outlined"
-    />
-
-    <v-text-field
-        label="Price"
-        v-model="form.price"
-        variant="outlined"
-    />
-
-
-
-    <v-btn color="blue-darken-4" @click="submitForm">
-        Submit
-    </v-btn>
-    <v-btn color="blue-darken-4" @click="scanQR">
-        Scan QR
-    </v-btn>
-    </v-card>
-    </v-layout> -->
-
-    
   <v-container class="d-flex justify-center align-center fill-height">
-    <v-card class="pa-5" min-width="350">
-      <!-- Ticket Info -->
-      <!-- <v-card-text class="py-1 px-2">
-        Ticket No: {{ ticket.data.ticket_no }}
-      </v-card-text>
-      <v-card-text class="py-1 px-2">
-        Park in Date Time: {{ formatDate(ticket.data.park_datetime) }} <span>{{ parkinTime }}</span>
-      </v-card-text>
-      <v-card-text class="py-1 px-2">
-        Park out Date Time: {{ formatDate(ticket.data.parkout_datetime) }}  <span>{{ parkoutTime }}</span>
-      </v-card-text>
-      <v-card-text v-if="ticket.data.days_parked !== null" class="py-1 px-2">
-        No of Days: {{ ticket.data.days_parked }}
-      </v-card-text>
-      <v-card-text v-if="hoursPark !== null" class="py-1 px-2">
-        No of Hours: {{ hoursPark }}
-      </v-card-text>
-      <v-card-text class="py-1 px-2">
-        Total Bill: {{ formatCurrency(ticket.data.park_fee) }}
-      </v-card-text> -->
+    <v-card class="pa-6" max-width="480" elevation="10" rounded="lg">
+      
+      <!-- Header -->
+      <v-card-title class="text-h6 font-weight-bold text-center pb-2">
+        Sell Card Payment
+      </v-card-title>
+      <v-divider></v-divider>
 
-      <!-- Totals -->
+      <!-- Scan Button -->
+      <div class="d-flex justify-center my-5">
+        <v-btn color="blue-darken-4" size="large" variant="flat" @click="scanQR">
+          <v-icon left>mdi-qrcode-scan</v-icon>
+          Scan QR
+        </v-btn>
+      </div>
 
       <!-- Scanned Cards -->
-        <div class="flex- align-right">
-                      <v-btn color="blue-darken-4 mb-4" @click="scanQR">
-              <v-icon left class="mr-4">mdi-qrcode-scan</v-icon>
-              Scan 
-            </v-btn>
-
-        </div>
-  
-   
-     
-        <!-- <v-data-table-server
-       class="border border-gray-300 rounded"
-         density="compact"
-          :headers="headers"
-          :cards="cards"
-          :cards-per-page="5"
-          :loading="false"
-       flat
-          disable-sort
-          hide-default-footer
+      <div v-if="scannedCards.length" class="mb-4">
+        <v-card
+          v-for="card in scannedCards"
+          :key="card.id"
+          variant="outlined"
+          class="pa-3 mb-2 d-flex align-center justify-space-between"
         >
+          <div class="d-flex align-center">
+            <v-icon color="blue-darken-3" size="28" class="mr-3">mdi-credit-card</v-icon>
+            <div>
+              <div class="text-body-2 font-weight-medium">{{ card.card_number }}</div>
+              <div class="text-caption text-grey">{{ card.card_name }}</div>
+            </div>
+          </div>
+          <div class="text-body-2 font-weight-bold">{{ card.price }}</div>
+        </v-card>
+      </div>
+      <div v-else class="text-center text-grey text-caption mb-4">
+        No cards scanned yet
+      </div>
 
-      
-       
-        </v-data-table-server> -->
+      <v-divider></v-divider>
 
-  <v-card v-for="card in cards" flat rounded class="border pa-1 mb-2 ">
-    <div class="d-flex pr-2 ps-2 " >
-        <div>
-            <v-icon size="25" class="mr-2 d-flex  opacity-80  h-100 ">mdi-card</v-icon>
-        </div>
-         
-    <div class="d-flex justify-space-between w-100" >
-        <div class="d-flex flex-column ps-1">
-            <div class="text-caption 1 opacity-80 ">{{ card.card_number }}</div>
-            <div class="text-caption1 font-italic opacity-80 font-weight-bold ">{{ card.card_name }}</div>
-        </div>
-    <div class=" d-flex flex-column font-weight-bold justify-center  opacity-80 ">{{ card.price }}</div>
-    </div>   
-    </div>
-
-
-
-  </v-card>
-
- 
-    <!-- <v-text-field
-        label="Sold To"
-        variant="outlined"
-        v-model="form.soldBy"
-    /> -->
-
-   <!-- <v-card-text 
-   class="py-1 px-2"
-   >
-       Cash
-      </v-card-text> -->
-   <v-text-field
-     label="Cash"
-        v-model="cashAmount"
-        variant="outlined"
-        type="number"
-        :disabled="disAbledPayment"
-        ></v-text-field> 
+      <!-- Payment Section -->
+      <v-card-text class="pt-4">
+        <v-text-field
+          v-model="cashAmount"
+          label="Cash Amount"
+          type="number"
+          variant="outlined"
+          density="comfortable"
+          prepend-inner-icon="mdi-cash"
+        />
+      </v-card-text>
 
       <!-- Actions -->
-<v-row>
-  <v-col cols="6">
-    <v-btn   @click="submitPayment"  color="blue-darken-4">Pay</v-btn>
-  </v-col>
-  <v-col cols="6">
-    <v-btn block @click="cancelPayment" color="red-darken-2">Cancel</v-btn>
-  </v-col>
-</v-row>
+      <v-card-actions class="mt-2">
+        <v-row dense class="w-100">
+          <v-col cols="6">
+            <v-btn 
+              block 
+              color="blue-darken-4" 
+              variant="flat"
+              @click="submitPayment"
+              :disabled="!cashAmount && !scannedCards.length"
+            >
+              Pay
+            </v-btn>
+          </v-col>
+          <v-col cols="6">
+            <v-btn 
+              block 
+              color="red-darken-2" 
+              variant="text" 
+              @click="cancelPayment"
+            >
+              Cancel
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-actions>
 
-
-
-        
-     
     </v-card>
   </v-container>
-
-    
 </template>
+
 
 <script setup>
 import { router, useForm, } from '@inertiajs/vue3';
