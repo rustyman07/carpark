@@ -3,25 +3,38 @@
 
   <v-container class="d-flex justify-center align-center fill-height">
     <v-card class="pa-6" max-width="480" elevation="10" rounded="lg">
+
+      <!-- Autocomplete -->
+<v-autocomplete
+  v-model="selected"
+  v-model:search="search"
+  :items="items"
+  item-title="card_number"
+  item-value="id"
+  label="Search Card Number"
+  density="compact"
+  :loading="loading"
+  hide-no-data
+  hide-details
+  variant="outlined"
+></v-autocomplete>
+
+
       
-      <!-- Header -->
-      <v-card-title class="text-h6 font-weight-bold text-center pb-2">
-        Sell Card Payment
-      </v-card-title>
-      <v-divider></v-divider>
+      <v-divider> <div class="text-caption" >OR</div></v-divider>
 
       <!-- Scan Button -->
-      <div class="d-flex justify-center my-5">
-        <v-btn color="blue-darken-4" size="large" variant="flat" @click="scanQR">
-          <v-icon left>mdi-qrcode-scan</v-icon>
+   
+        <v-btn class="mb-2" color="blue-darken-4" block size="large" variant="flat" @click="scanQR">
+          <v-icon class="mr-2">mdi-qrcode-scan</v-icon>
           Scan QR
         </v-btn>
-      </div>
+
 
       <!-- Scanned Cards -->
-      <div v-if="scannedCards.length" class="mb-4">
+      <div v-if="cards.length" class="mb-4">
         <v-card
-          v-for="card in scannedCards"
+          v-for="card in cards"
           :key="card.id"
           variant="outlined"
           class="pa-3 mb-2 d-flex align-center justify-space-between"
@@ -43,7 +56,7 @@
       <v-divider></v-divider>
 
       <!-- Payment Section -->
-      <v-card-text class="pt-4">
+     
         <v-text-field
           v-model="cashAmount"
           label="Cash Amount"
@@ -52,7 +65,7 @@
           density="comfortable"
           prepend-inner-icon="mdi-cash"
         />
-      </v-card-text>
+    
 
       <!-- Actions -->
       <v-card-actions class="mt-2">
@@ -63,7 +76,7 @@
               color="blue-darken-4" 
               variant="flat"
               @click="submitPayment"
-              :disabled="!cashAmount && !scannedCards.length"
+              :disabled="!cashAmount && !cards.length"
             >
               Pay
             </v-btn>
@@ -71,8 +84,8 @@
           <v-col cols="6">
             <v-btn 
               block 
-              color="red-darken-2" 
-              variant="text" 
+              color="grey-darken-2" 
+              variant="flat" 
               @click="cancelPayment"
             >
               Cancel
@@ -85,176 +98,190 @@
   </v-container>
 </template>
 
-
 <script setup>
-import { router, useForm, } from '@inertiajs/vue3';
-import { ref, watch ,computed, onBeforeUnmount} from 'vue';
-import { Html5Qrcode } from 'html5-qrcode'
+import { ref, computed, watch, onBeforeUnmount } from 'vue';
+import { router, useForm } from '@inertiajs/vue3';
+import { Html5Qrcode } from 'html5-qrcode';
 import { route } from 'ziggy-js';
 import QrScanner from '../../Components/QrScanner.vue';
-import axios from 'axios'
+import axios from 'axios';
+
+
+// ----------------------
+// Props & Refs
+// ----------------------
 const props = defineProps({
   cardTemplate: Array,
-  scannedCards : Array
+  scannedCards: Array
 });
 
-const quantityAvailable = ref('');
-const isScanQR = ref(false);
-const html5QrCode = ref(null)
 
-// const form = useForm({
-//   template_id: null,
-//   quantity: null,
-//   soldBy: ''
-// });
-
-// const form = ref({
-//   card_number: null,
-//   price: null,
-//   soldBy: '',
-// });
-const headers = [
-  { key: 'card_number', title: 'Card Number' },
-  { key: 'no_of_days', title: 'No. of Days' },
-  { key: 'price', title: 'Price' },
-  { key: 'balance', title: 'Balance', class: 'bg-blue-darken-4' },
-]
-
+// ----------------------
+// Autocomplete Setup
+// ----------------------
+const selected = ref(null);
+const items = ref([]);
 const cards = ref([]);
-const cashAmount = ref(null)
-const scannedCards = computed(() => props.scannedCards || [])
-// const cards = computed(() => {
-//   return scannedCards.value.map(card => ({
-//     card_number: card.card_number,
-//     no_of_days: card.no_of_days,
-//     price: formatCurrency(card.price),
-//     balance: card.balance,
-//   }))
-// })
-
-// Watch card selection and fetch available quantity dynamically
-// watch(() => form.template_id, (newVal) => {
-//   if (newVal) {
-//     router
-//       .get(route('available_cards.show', newVal), {}, { preserveState: true })
-//       .then((response) => {
-//         // The backend returns JSON, so read it directly
-//         quantityAvailable.value = response.props.available_quantity ?? 0;
-//       })
-//       .catch(() => {
-//         quantityAvailable.value = 'Error fetching quantity';
-//       });
-//   } else {
-//     quantityAvailable.value = '';
-//   }
-// });
+const loading = ref(false);
+const search = ref(''); // Keep this ref to bind with v-model:search
 
 
-// Watch the selected card
-// watch(() => form.value.card_template_id, (newVal) => {
-//   if (!newVal) {
-//     quantityAvailable.value = '';
-//     return;
-//   }
+const isScanQR = ref(false);
+const html5QrCode = ref(null);
+const cashAmount = ref(null);
 
-//   // Fetch available cards from backend
-//   fetch(route('available_cards.show', newVal))
-//     .then(res => res.json())
-//     .then(data => {
-//       quantityAvailable.value = data.available_quantity;
-//     })
-//     .catch(() => {
-//       quantityAvailable.value = 'Error fetching quantity';
-//     });
-// });
+// const scannedCards = computed(() => props.scannedCards || []);
 
 
-const scanQR = async () => {
-  isScanQR.value = true
-  setTimeout(startScanner, 300)
+
+
+
+// Simple debounce function
+function debounce(func, delay = 300) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(this, args), delay);
+  };
 }
 
+// Fetch cards from backend
+const fetchCards = debounce((val) => {
+  if (!val) {
+    items.value = [];
+    loading.value = false;
+    return;
+  }
+
+  loading.value = true;
+  axios.get(route('card.inventory.search'), { params: { q: val } })
+    .then(res => {
+      items.value = res.data;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+}, 300);
+
+// Watch the search input from v-autocomplete
+watch(search, (val) => {
+  fetchCards(val);
+    console.log(selected.value);
+
+});
+
+
+watch(selected, (val) => {
+  if (val) {
+    const newItem = items.value.find((item) => item.id === val);
+    if (newItem) { // It's good practice to check if the item was found
+      cards.value.push(newItem);
+    }
+  }
+  console.log(cards.value);
+});
+
+// The `onSearch` method is no longer needed
+
+
+// ----------------------
+// QR Scanner
+// ----------------------
+const scanQR = async () => {
+  isScanQR.value = true;
+  setTimeout(startScanner, 300);
+};
+
 const startScanner = async () => {
-  if (!isScanQR.value) return
+  if (!isScanQR.value) return;
 
   try {
-    html5QrCode.value = new Html5Qrcode('reader')
+    html5QrCode.value = new Html5Qrcode('reader');
     await html5QrCode.value.start(
       { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 250, height: 250 } },
       async (decodedText) => {
-        console.log('QR code detected ✅', decodedText)
+        await closeScanner();
 
-        await closeScanner()
-
-        // Send QR to backend -> backend updates session -> Inertia reloads page with updated cards & totals
+        // Send QR to backend -> Inertia reload
         router.post(route('scan.qr.cards'), {
- qr_code: decodedText,
-            is_sell_card: true,
-        })
+          qr_code: decodedText,
+          is_sell_card: true,
+        }, {
+          // ⭐ The onSuccess callback is here ⭐
+          onSuccess: (page) => {
+            console.log(page);
+            cards.value.push(page.props.scannedCards)
+            // This code runs after the backend successfully processes the request
+            // and the Inertia page has been reloaded.
+
+
+            console.log('QR card scanned and added successfully!');
+            // You can add a success notification here, for example:
+            // showToast('Card added!');
+          },
+          onError: (errors) => {
+            // This runs if there are validation errors from the server.
+            console.error('Failed to add card:', errors);
+            // showToast('Error adding card.');
+          },
+          onFinish: () => {
+            // This runs regardless of success or failure.
+            console.log('Finished processing QR code scan.');
+          },
+        });
       }
-    )
+    );
   } catch (err) {
-    console.error('Error starting camera:', err.message)
+    console.error('Error starting camera:', err.message);
   }
-}
-
-
-const submitPayment = () => {
-    console.log('Submitting payment with cards:', cards.value)
-  const form = useForm({
-    cash_amount: cashAmount.value,
-    cards: cards.value.map(c => c.id),
-  })
-
-  form.post(route('sell-card.payment'), {
-    onSuccess: () => {
-        
-    //   router.get(route('parkout.index'))
-    },
-  })
-}
-
-
-
-
-
-
-
-const cancelPayment = () => {
-  router.get(route('parkin.index'))
-}
-
+};
 
 const closeScanner = async () => {
   if (html5QrCode.value) {
     try {
-      await html5QrCode.value.stop()
-      await html5QrCode.value.clear()
+      await html5QrCode.value.stop();
+      await html5QrCode.value.clear();
     } catch (e) {
-      console.error('Error closing scanner:', e)
+      console.error('Error closing scanner:', e);
     }
-    html5QrCode.value = null
+    html5QrCode.value = null;
   }
-  isScanQR.value = false
-}
+  isScanQR.value = false;
+};
+
+// ----------------------
+// Payment & Cancel
+// ----------------------
+const submitPayment = () => {
+  const form = useForm({
+    cash_amount: cashAmount.value,
+    cards: cards.value.map(c => c.id),
+  });
+
+  form.post(route('sell-card.payment'), {
+    onSuccess: () => {},
+  });
+};
+
+const cancelPayment = () => {
+  router.get(route('parkin.index'));
+};
 
 // ----------------------
 // Lifecycle
 // ----------------------
 onBeforeUnmount(() => {
-  closeScanner()
-})
-
+  closeScanner();
+});
 </script>
 
 <style scoped>
-
-.text-caption{
-    line-height: 1rem;
+.text-caption {
+  line-height: 1rem;
 }
-.text-caption1{
-    font-size: 14px;
-    line-height: 1rem;
+.text-caption1 {
+  font-size: 14px;
+  line-height: 1rem;
 }
 </style>

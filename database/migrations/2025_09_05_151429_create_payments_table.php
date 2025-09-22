@@ -32,11 +32,11 @@ return new class extends Migration
             $table->decimal('total_amount', 8, 2)->default(0.00);
             $table->decimal('change', 8, 2)->default(0.00);
             $table->string('card_number')->nullable();
-            $table->enum('payment_type', ['reload', 'ticket']);
-            $table->enum('payment_method', ['cash', 'card', 'mobile', 'bank']);
+            $table->enum('payment_type', ['Card', 'Ticket']);
+            $table->enum('payment_method', ['Cash', 'Card']);
             $table->integer('days_deducted')->nullable();
             $table->string('transaction_ref', 100)->nullable();
-            $table->enum('status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
+            $table->enum('status', ['Pending', 'Paid', 'Failed', 'Refunded'])->default('Pending');
             $table->timestamp('paid_at')->nullable();
             $table->text('remarks')->nullable();    
             $table->timestamps();

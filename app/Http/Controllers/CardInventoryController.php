@@ -207,7 +207,7 @@ public function scan_qr_cards(Request $request)
 
 
 return Inertia::render('SellCards/Create', [
-    'scannedCards' => $scanned
+    'scannedCards' =>  $scanned[$card->id]
 ]);
       
 }
@@ -217,19 +217,24 @@ return Inertia::render('SellCards/Create', [
 public function sell_card_payment(Request $request)
 {
     $data = $request->validate([
-        'cash_amount' => 'numeric',
+        'cash_amount' => 'required|numeric',
         'cards'       => 'nullable|array',
         'cards.*'     => 'integer|exists:card_inventory_details,id',
     ]);
 
     $cards = $data['cards'] ?? [];
 
+
+    if (empty($cards)){
+           return back()->withErrors(['cards' => 'Please select or scan a card']);
+    }
+
     // calculate total from selected cards
     $total_amount = CardInventoryDetail::whereIn('id', $cards)->sum('price');
 
     // check if cash is enough
     if (!empty($data['cash_amount']) && $total_amount > $data['cash_amount']) {
-        return back()->withErrors(['error' => 'Insufficient cash amount']);
+        return back()->withErrors(['cash_amount' => 'Insufficient cash amount']);
     }
 
     try {
@@ -242,7 +247,9 @@ public function sell_card_payment(Request $request)
                 'total_amount'   => $total_amount, // actual total of the cards
                 'amount'     => $cash,         // how much customer paid
                 'change'   => $change,       // cash - total
-                'paid_at'  => now(),
+                'status'    => 'paid',
+                'payment_type'  =>'CARD',
+                 'paid_at'  => now(),
             ]);
 
             foreach ($cards as $cardId) {
@@ -264,7 +271,7 @@ public function sell_card_payment(Request $request)
             }
         });
 
-        return back()->with('success', 'Payment recorded successfully!');
+        return redirect(route('sell-card.create'))->with('success', 'Payment recorded successfully!');
     } catch (\Exception $e) {
         return back()->withErrors(['error' => 'Transaction failed: ' . $e->getMessage()]);
     }
@@ -280,13 +287,7 @@ $transactions = PaymentDetail::where('card_id', $card_id)
     }])
     ->get();
 
-
-
-
-
     // $transactions = PaymentDetail::where('card_id',$card_id)->get();
-
-    
 
     
         return response()->json([

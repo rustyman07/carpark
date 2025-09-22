@@ -80,14 +80,13 @@
         ></v-text-field>
 
       <!-- Actions -->
-<v-row>
-  <v-col cols="6">
+
+
     <v-btn     :disabled="scannedCards.length === 0 && !cashAmount" block @click="submitPayment" color="blue-darken-4">Pay</v-btn>
-  </v-col>
-  <v-col cols="6">
+
+  <!-- <v-col cols="6">
     <v-btn block @click="cancelPayment" color="red-darken-2">Cancel</v-btn>
-  </v-col>
-</v-row>
+  </v-col> -->
 
         
      
@@ -152,7 +151,7 @@ const disAbledPayment = computed(()=>{
 // Data table headers
 const headers = [
   { key: 'card_number', title: 'Card Number' },
-  { key: 'no_of_days', title: 'No. of Days' },
+//   { key: 'no_of_days', title: 'No. of Days' },
   { key: 'price', title: 'Price' },
   { key: 'balance', title: 'Balance', class: 'bg-blue-darken-4' },
 ]

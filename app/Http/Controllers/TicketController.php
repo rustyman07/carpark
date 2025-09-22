@@ -369,18 +369,18 @@ if ($company->rate == 'perhour') {
     // dd( ceil($minutesParked / 60));
     $rate = $hoursParked * (float) $company->rate_perhour;
 } elseif ($company->rate == 'perday') {
-    // Round up to the next full day for billing, with a minimum of 1 day if any time is parked
+
     $daysParked = max(1, ceil($minutesParked / (60 * 24)));   //  minutes parr / 1440,
-    // Calculate rate
+
     $rate = $daysParked * (float) $company->rate_perday;
   
 
 } else {
-    // Mixed: charge for full days, then remaining hours with a minimum of 1 hour6
+
     $daysParked = floor($minutesParked / (60 * 24));
     $remainingMinutes = $minutesParked % (60 * 24);
     
-    // Calculate the cost of full days
+
     $rate = $daysParked * (float) $company->rate_perday;
     
     // If there are any minutes parked, charge for a minimum of 1 hour.
@@ -413,14 +413,6 @@ if ($company->rate == 'perhour') {
         'PARKOUTDATETIME' => $end
     ])->save();
 
-
-//     Payment::create([
-//     'ticket_id'      => $ticket->id,
-//     'amount'         => $ticket->PARKFEE, // initial calculated fee
-//     'payment_type'   => 'ticket',
-// ]);
-
-    // 5️⃣ Success response
    
     return redirect()->route('show.payment', [
         'uuid' => $ticket->uuid
@@ -466,8 +458,6 @@ public function show_payment(string $uuid)
         $totalCovered += $covered ;
 
 
-
-
         $processedCards[] = [
             'id'               => $card['id'],
             'card_number'      => $card['card_number'],
@@ -489,142 +479,120 @@ public function show_payment(string $uuid)
     ]);
 }
 
-// public function scan_qr_cards(Request $request)
-// {
-//     $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->first();
-
-//     if (!$card) {
-//         return back()->withErrors(['qr_code' => 'Invalid QR Code']);
-//     }
-
-//     if ($card->balance <= 0) {
-//         return back()->with(['error' =>'Insufficient balance']);
-//     }
-
-//     $ticketId = $request->ticket_id;
-//     $scanned = session()->get("scanned_cards.$ticketId", []);
-
-//     if (!array_key_exists($card->id, $scanned)) {
-//         $scanned[$card->id] = [
-//             'id'          => $card->id,
-//             'card_number' => $card->card_number,
-//             'balance'     => $card->balance,
-//             'price'       => $card->price ?? 0,
-//             'no_of_days'  => $card->no_of_days ?? 0,
-//         ];
-//     }
-
-//     session()->put("scanned_cards.$ticketId", $scanned);
-
-//     // ✅ Redirect to show_payment route, not just "back"
-// return redirect()->route('show.payment', ['uuid' => $request->ticket_uuid])
-//     ->with('success', 'Card linked successfully');
-// }
-
-
-
-
 public function submit_payment(Request $request)
 {
-    $validationRules = [
-        'ticket_id' => 'required|exists:tickets,id',
-    ];
-
-    $request->validate($validationRules);
+    $data = $request->validate([
+        'ticket_id'   => 'required|exists:tickets,id',
+        'cash_amount' => 'nullable|numeric|min:0', // optional, only needed if cards don't cover
+        'cards'       => 'nullable|array',         // optional array of card IDs
+    ]);
 
     $ticket  = Ticket::findOrFail($request->ticket_id);
     $company = Company::find(1);
 
     if ($ticket->REMARKS === 'PAID') {
-        return back()->with('error', 'This ticket has already been paid.');
+        return redirect()->route('parkin.index')
+                         ->with(['error' => 'This ticket has already been paid']);
     }
 
-    // Pull cards from session (not just request)
-    $scannedCards = session()->get("scanned_cards.$ticket->id", []);
+    $cards       = $data['cards'] ?? [];
+    $totalPaid   = 0;
+    $amountToPay = $ticket->PARKFEE ?? 0;
+    $payment     = null;
 
-    // Run coverage calculation
-    $coverage = $this->calculateCoverage($scannedCards, $ticket->PARKFEE );
+    try {
+        DB::transaction(function () use ($ticket, $cards, $data, &$payment, &$totalPaid, &$amountToPay, $request) {
 
-    DB::transaction(function () use ($ticket, $coverage, $request) {
-        // Mark ticket as paid
-        $ticket->REMARKS         = 'PAID';
-        $ticket->mode_of_payment = $request->mode_of_payment ?? 'card';
-        $ticket->save();
+            // Determine payment method
+            $ticket->REMARKS = 'PAID';
+            $ticket->mode_of_payment = count($cards) ? 'card' : 'cash';
+            $ticket->save();
 
-        // Create header payment
-        $payment = Payment::create([
-            'ticket_id'      => $ticket->id,
-            'ticket_no'      => $ticket->TICKETNO,
-            'amount'         => $ticket->PARKFEE ?? 0.00,
-            'days_deducted'  => $request->days_parked ?? 0,
-            'payment_type'   => 'ticket',
-            'payment_method' => $request->mode_of_payment ?? 'card',
-            'status'         => 'paid',
-            'paid_at'        => now(),
-        ]);
-
-        // Apply deductions to each card
-        foreach ($coverage['cards'] as $cardData) {
-            if ($cardData['covered'] <= 0) {
-                continue; // skip cards that didn’t cover anything
-            }
-
-            $cardInventory = CardInventoryDetail::find($cardData['id']);
-            if (!$cardInventory) {
-                continue;
-            }
-
-            // Update card balance
-            $cardInventory->balance = $cardData['remainingBalance'];
-            if ($cardInventory->balance <= 0) {
-                $cardInventory->status = 'CONSUMED';
-            }
-            $cardInventory->save();
-
-            // Record payment detail
-            $payment->details()->create([
-                'card_id'     => $cardInventory->id,
-                'card_number' => $cardInventory->card_number,
-                'qr_code'     => $cardInventory->qr_code,
-                'amount'      => $cardData['covered'],
-                'balance'     => $cardData['remainingBalance'],
-                'card_name'   => $cardInventory->card_name,
-                'discount'    => $cardInventory->discount ?? 0,
-                'no_of_days'  => $cardInventory->no_of_days ?? 0,
+            // Create payment header
+            $payment = Payment::create([
+                'ticket_id'      => $ticket->id,
+                'ticket_no'      => $ticket->TICKETNO,
+                'days_deducted'  => $ticket->days_parked ?? 0,
+                'payment_type'   => 'ticket',
+                'payment_method' => $ticket->mode_of_payment,
+                'status'         => 'paid',
+                'paid_at'        => now(),
             ]);
-        }
 
-        // If still not fully covered → add Cash record
-        if ($coverage['cashNeeded'] > 0) {
-            $payment->details()->create([
-                'card_id'     => null,
-                'card_number' => null,
-                'qr_code'     => null,
-                'amount'      => $coverage['cashNeeded'],
-                'balance'     => null,
-                'card_name'   => 'Cash',
-                'discount'    => 0,
-                'no_of_days'  => 0,
+            // Deduct progressively from cards
+            foreach ($cards as $cardId) {
+                if ($amountToPay <= 0) break;
+
+                $cardInventory = CardInventoryDetail::findOrFail($cardId);
+
+                $deduct = min($cardInventory->balance, $amountToPay);
+                $cardInventory->balance -= $deduct;
+                if ($cardInventory->balance <= 0) {
+                    $cardInventory->status = 'CONSUMED';
+                }
+                $cardInventory->save();
+
+                $payment->details()->create([
+                    'card_id'     => $cardInventory->id,
+                    'card_number' => $cardInventory->card_number,
+                    'qr_code'     => $cardInventory->qr_code,
+                    'amount'      => $deduct,
+                    'balance'     => $cardInventory->balance,
+                    'card_name'   => $cardInventory->card_name,
+                    'discount'    => $cardInventory->discount ?? 0,
+                    'no_of_days'  => $cardInventory->no_of_days ?? 0,
+                ]);
+
+                $amountToPay -= $deduct;
+                $totalPaid += $deduct;
+            }
+
+            // Remaining fee is cash
+            if ($amountToPay > 0) {
+                $cashProvided = $data['cash_amount'] ?? 0;
+
+                if ($cashProvided < $amountToPay) {
+                    throw new \Exception('Cash provided is less than the remaining balance.');
+                }
+
+                $payment->details()->create([
+                    'card_id'     => null,
+                    'card_number' => null,
+                    'qr_code'     => null,
+                    'amount'      => $amountToPay,
+                    'balance'     => null,
+                    'card_name'   => 'Cash',
+                    'discount'    => 0,
+                    'no_of_days'  => 0,
+                ]);
+            }
+
+            $change = ($data['cash_amount'] ?? 0) - $amountToPay;
+
+            $payment->update([
+                'amount'       => $data['cash_amount'] ?? 0.00,
+                'total_amount' => $totalPaid + $amountToPay,
+                'change'       => $change,
             ]);
-        }
-    });
+        });
 
-    // Clear session cards after payment
-    session()->forget("scanned_cards.$ticket->id");
+        // Clear scanned cards from session
+        session()->forget('scanned_cards');
 
-    $responseWith = [
-        'success' => 'Payment successful!',
-        'id'      => $ticket->uuid,
-        'company' => $company,
-        'cards'   => $coverage['cards'],
-    ];
+        // Redirect with success
+        return redirect()->route('parkout.receipt', ['id' => $ticket->uuid])
+                         ->with([
+                             'success' => 'Payment successful!',
+                             'id'      => $ticket->uuid,
+                             'company' => $company,
+                             'cards'   => $cards,
+                         ]);
 
-    return redirect()
-        ->route('parkout.receipt', ['id' => $ticket->uuid])
-        ->with($responseWith);
+    } catch (\Exception $e) {
+        // Handle any transaction error, including insufficient cash
+        return back()->with('error', $e->getMessage());
+    }
 }
-
-
 
 
 

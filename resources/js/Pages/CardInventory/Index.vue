@@ -166,8 +166,9 @@ const headers = [
   { key: 'balance', title: 'Balance' },
   { key: 'status', title: 'Status' },
   { key: 'created_at', title: 'Date Created' },
-  {key: 'transactions',title: 'Transactions'},
-  { key: 'download', title: 'Download' },
+  { key: 'transactions', title: 'Transactions', align: 'center' },
+  // Align the 'Download' column to the center
+  { key: 'download', title: 'Download', align: 'center' },
 ];
 
 // Inertia props

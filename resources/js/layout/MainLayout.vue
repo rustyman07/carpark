@@ -184,10 +184,18 @@ watch(
         errorCardMsg.value = val.qr_code;
       }
 
-            if (val.cash_amount) {
-        showErrorCard.value = true;
-        errorCardMsg.value = val.cash_amount;
-      }
+    if (val.cash_amount) {
+    showErrorCard.value = true;
+    errorCardMsg.value = val.cash_amount;
+    }
+
+    
+    if (val.cards) {
+    showErrorCard.value = true;
+    errorCardMsg.value = val.cards;
+    }
+
+    
     }
   },
   { immediate: true }
