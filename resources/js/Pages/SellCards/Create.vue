@@ -53,7 +53,13 @@
         No cards scanned yet
       </div>
 
-      <v-divider></v-divider>
+
+
+        <v-divider></v-divider>
+<div class="my-2">Total: {{ new Intl.NumberFormat('en-US').format(total) }}</div>
+
+
+
 
       <!-- Payment Section -->
      
@@ -66,7 +72,7 @@
           prepend-inner-icon="mdi-cash"
         />
     
-
+      
       <!-- Actions -->
       <v-card-actions class="mt-2">
         <v-row dense class="w-100">
@@ -169,6 +175,18 @@ watch(search, (val) => {
     console.log(selected.value);
 
 });
+
+// watch(cards,
+
+
+// )
+const total = computed(() => {
+  return cards.value.reduce((acc, curr) => acc + Number(curr.price || 0), 0);
+});
+
+
+
+
 
 
 watch(selected, (val) => {

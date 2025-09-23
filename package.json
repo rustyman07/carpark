@@ -24,6 +24,7 @@
         "qrcode.vue": "^3.6.0",
         "sass": "^1.90.0",
         "sass-loader": "^13.0.2",
+        "vue-currency-input": "^3.2.1",
         "vuetify": "^3.9.5",
         "ziggy-js": "^2.5.3"
     }
