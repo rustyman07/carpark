@@ -7,7 +7,7 @@
     </div>
 
     <Create v-model="showDialog" :cardTemplate="cardTemplate" v-model:loading="showLoadingDialog" v-model:progress="progress" />
-    <Transactions  v-if = "showTransactionsDialog"  v-model="showTransactionsDialog"  :card_id = "card_id" />
+    <Transactions  v-if = "showTransactionsDialog"  v-model="showTransactionsDialog"  :selectedCard = "selectedCard" />
 
      <v-dialog   v-model="showLoadingDialog" max-width="320" persistent>
       <v-list class="bg-grey-darken-4" elevation="12" rounded="lg">
@@ -116,7 +116,7 @@
             size="small"
               icon="mdi-eye-outline"
                variant="text"
-            @click="viewTransactions(item.id)"
+            @click="viewTransactions(item)"
           ></v-btn>
         </template>
 
@@ -149,7 +149,7 @@ const showDialog = ref(false);
 const showLoadingDialog = ref(false); 
 const showTransactionsDialog = ref(false);
 const sellCardPassinfo = reactive({});
-const card_id = ref(null);
+const selectedCard = ref({});
 
 
 const progress = ref(0);
@@ -271,7 +271,7 @@ const downloadQRCode = (item) => {
 };
 
 
-const viewTransactions = (id)=>{
+const viewTransactions = (item)=>{
 
     showTransactionsDialog.value = true;
     // sellCardPassinfo = {
@@ -282,7 +282,7 @@ const viewTransactions = (id)=>{
 
     // }
 
-    card_id.value = id;
+    selectedCard.value = item;
 
 }
 </script>

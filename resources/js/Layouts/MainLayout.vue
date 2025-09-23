@@ -109,6 +109,7 @@ const items = [
     icon: 'mdi-cog',
     children: [{ title: 'Company', value: 'company_card_template', route: 'company.index', icon: 'mdi-credit-card-settings' }],
   },
+    { title: 'Log out', value: 'log_out', route: 'logout', icon: 'mdi-logout' },
 ];
 
 const activeItem = computed(() => {
@@ -128,7 +129,11 @@ const activeItem = computed(() => {
 });
 
 function navigate(item) {
-  if (item.route) {
+  if (!item.route) return;
+
+  if (item.route === 'logout') {
+    router.post(route('logout'));
+  } else {
     router.visit(route(item.route));
   }
 }

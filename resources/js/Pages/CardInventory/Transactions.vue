@@ -7,7 +7,7 @@
     <v-card class="rounded">
 <v-toolbar flat density="compact">
   <v-toolbar-title class="text-subtitle-1 text-medium-emphasis font-weight-regular ps-4">
-    <span class="text-truncate">Transactions for Card: {{ props.card_id }}</span>
+    <span class="text-truncate">Transactions for Card: {{ props.selectedCard.card_number }}</span>
   </v-toolbar-title>
   <v-spacer></v-spacer>
   <v-btn icon="mdi-close" variant="text" @click="dialog = false"></v-btn>
@@ -82,7 +82,7 @@ import { route } from 'ziggy-js';
 import { WordformatDate } from '../../utils/utility';
 
 const props = defineProps({
-  card_id: Number
+  selectedCard: Object
 })
 
 const dialog = defineModel({ type: Boolean, default: false })
@@ -104,7 +104,7 @@ const groupedTransactions = computed(() => {
 onMounted(async () => {
   loading.value = true
   try {
-    const { data } = await axios.get(route('transactions', props.card_id))
+    const { data } = await axios.get(route('transactions', props.selectedCard.id))
     transactions.value = data.transactions
   } catch (err) {
     console.error('❌ Fetch error:', err)
