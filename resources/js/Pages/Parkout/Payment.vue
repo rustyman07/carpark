@@ -18,10 +18,10 @@
         Ticket No: {{ ticket.data.ticket_no }}
       </v-card-text>
       <v-card-text class="py-1 px-2">
-        Park in Date Time: {{ formatDate(ticket.data.park_datetime) }} <span>{{ parkinTime }}</span>
+        Park in: {{ formatDate(ticket.data.park_datetime) }} <span>{{ parkinTime }}</span>
       </v-card-text>
       <v-card-text class="py-1 px-2">
-        Park out Date Time: {{ formatDate(ticket.data.parkout_datetime) }}  <span>{{ parkoutTime }}</span>
+        Park out: {{ formatDate(ticket.data.parkout_datetime) }}  <span>{{ parkoutTime }}</span>
       </v-card-text>
       <v-card-text v-if="ticket.data.days_parked !== null" class="py-1 px-2">
         No of Days: {{ ticket.data.days_parked }}

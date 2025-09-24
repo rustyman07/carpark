@@ -36,7 +36,7 @@
       >
         <template v-slot:top>
           <v-row class="pa-2" justify="end">
-            <v-col cols="12" sm="4" md="3">
+            <v-col cols="12" sm="4" md="2">
               <v-date-input
                 v-model="filters.startDate"
                       prepend-icon=""
@@ -48,7 +48,7 @@
               />
             </v-col>
 
-            <v-col cols="12" sm="4" md="3">
+            <v-col cols="12" sm="4" md="2">
               <v-date-input
                 v-model="filters.endDate"
                  prepend-icon=""
@@ -60,8 +60,9 @@
               />
             </v-col>
 
-            <v-col cols="12" sm="4" md="2">
+            <v-col cols="12" sm="4" md="1">
               <v-btn
+                 size="small"
                 color="primary"
                 @click="applyDateFilter"
                 prepend-icon="mdi-magnify"

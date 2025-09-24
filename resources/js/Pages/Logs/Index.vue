@@ -1,36 +1,7 @@
 <template>
   <v-container>
     <!-- Date + Type Filters -->
-    <div class="d-flex ga-4">
-      <v-text-field
-        type="date"
-        v-model="dateFrom"
-        label="From"
-        variant="underlined"
-        persistent-placeholder
-      />
-
-      <v-text-field
-        type="date"
-        v-model="dateTo"
-        label="To"
-        variant="underlined"
-        persistent-placeholder
-      />
-
-      <v-select
-        label="Select"
-        :items="types"
-        item-title="label"
-        item-value="value"
-        v-model="selectedType"
-      />
-
-      <!-- Filter Button -->
-      <v-btn color="primary" @click="applyFilter">
-        Search
-      </v-btn>
-    </div>
+    
 
     <!-- Table -->
     <v-card title="Parking Logs"  class="mt-4">
@@ -41,6 +12,63 @@
          hide-default-footer
        :items-per-page="items.length"
       >
+    
+   <template v-slot:top>
+
+        <v-row class="pa-2" justify="end">
+          <v-col cols="12" sm="4" md="2">
+            <v-date-input
+             v-model="dateFrom"
+             prepend-icon=""
+            label="From"
+            prepend-inner-icon="$calendar"
+            density="compact"
+            hideDetails="auto"
+            variant="underlined"
+            />
+        </v-col>
+      <v-col cols="12" sm="4" md="2">
+       <v-date-input
+             v-model="dateTo"
+             prepend-icon=""
+            label="To"
+            prepend-inner-icon="$calendar"
+            density="compact"
+            hideDetails="auto"
+            variant="underlined"
+            />
+    </v-col>
+       <v-col cols="12" sm="4" md="2">
+      <v-select
+        label="Select"
+        :items="types"
+        item-title="label"
+        item-value="value"
+        v-model="selectedType"
+        density="compact"
+         hideDetails="auto"
+        variant="underlined"
+      />
+    </v-col>
+         <v-col cols="12" sm="4" md="1">
+      <!-- Filter Button -->
+      <v-btn  size ="small"color="primary" @click="applyFilter">
+        Search
+      </v-btn>
+        </v-col>
+
+    </v-row>
+
+    
+
+    
+   </template>
+
+
+
+
+
+
       <template v-slot:item.ACTION = "{ item}">
         <v-btn 
         color="error"

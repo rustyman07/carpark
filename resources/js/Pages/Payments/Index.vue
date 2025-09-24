@@ -1,11 +1,11 @@
 <template>
   <v-container>
-    <div class="d-flex justify-end mb-4">
-      <!-- Optional: Add new payment button -->
+    <!-- <div class="d-flex justify-end mb-4">
+
       <v-btn color="success" @click="addPayment">
         Add Payment
       </v-btn>
-    </div>
+    </div> -->
 
     <!-- Table -->
     <v-card title="Ticket Payments" class="mt-4">
@@ -58,10 +58,14 @@ import { formatCurrency,formatDate } from '../../utils/utility'
 // Table headers
 const headers = [
   { key: 'id', title: 'ID' },
-  { key: 'card_name', title: 'Card Name' },
-  { key: 'amount', title: 'Amount' },
-  { key: 'days_deducted', title: 'Days Deducted' },
-  { key: 'payment_method', title: 'Payment Method' },
+//   { key: 'card_name', title: 'Card Name' },
+  { key: 'amount', title: 'Cash Amount' },
+{ key: 'total_amount', title: 'Total Amount' },
+
+//   { key: 'days_deducted', title: 'Days Deducted' },
+//   { key: 'payment_method', title: 'Payment Method' },
+   { key: 'change', title: 'Change' },
+      { key: 'payment_type', title: 'Payment Type' },
   { key: 'status', title: 'Status' },
   { key: 'paid_at', title: 'Paid At' },
 ]
