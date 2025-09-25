@@ -358,43 +358,42 @@ public function submit_park_out(Request $request)
 // $minutesParked = $start->diffInMinutes($end);
 $minutesParked = floor($start->diffInSeconds($end) / 60);
 
-// Initialize variables
 $rate = 0;
 $daysParked = 0;
 $remainingMinutes = 0;
 $hoursParked = 0;
 
-
-
 if ($company->rate == 'perhour') {
-    // Round up to the next full hour for billing, with a minimum of 1 hour
+
+    // Per-hour billing (still rounds up to minimum 1 hour)
     $hoursParked = max(1, ceil($minutesParked / 60));
-    // dd( ceil($minutesParked / 60));
     $rate = $hoursParked * (float) $company->rate_perhour;
+
 } elseif ($company->rate == 'perday') {
 
-    $daysParked = max(1, ceil($minutesParked / (60 * 24)));   //  minutes parr / 1440,
-
+    // ✅ Always charge at least 1 day even if less than 24h
+    $daysParked = max(1, ceil($minutesParked / 1440));
     $rate = $daysParked * (float) $company->rate_perday;
-  
 
-} else {
+} else { // ✅ combination logic
 
-    $daysParked = floor($minutesParked / (60 * 24));
-    $remainingMinutes = $minutesParked % (60 * 24);
-    
+    if ($minutesParked <= 1440) {
+        // ✅ Less than or equal to 1 day → charge full 1 day rate
+        $rate = (float) $company->rate_perday;
+    } else {
+        // ✅ More than 1 day → count full days + hourly for remainder
+        $daysParked = floor($minutesParked / 1440);
+        $remainingMinutes = $minutesParked % 1440;
 
-    $rate = $daysParked * (float) $company->rate_perday;
-    
-    // If there are any minutes parked, charge for a minimum of 1 hour.
-    if ($daysParked == 0 && $remainingMinutes > 0) {
-        $hoursParked = 1;
-        $rate += $hoursParked * (float) $company->rate_perhour;
-    } elseif ($remainingMinutes > 0) {
-        $hoursParked = ceil($remainingMinutes / 60);
-        $rate += $hoursParked * (float) $company->rate_perhour;
+        $rate = $daysParked * (float) $company->rate_perday;
+
+        if ($remainingMinutes > 0) {
+            $hoursParked = ceil($remainingMinutes / 60);
+            $rate += $hoursParked * (float) $company->rate_perhour;
+        }
     }
 }
+
 
     $ticket->PARKFEE =  $rate;
 

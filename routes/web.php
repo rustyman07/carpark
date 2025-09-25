@@ -51,6 +51,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::get('company', [CompanyController::class, 'index'])->name('company.index');
+     Route::put('company/{id}', [CompanyController::class, 'update'])->name('company.update');
 
     Route::resource('card-template', CardTemplateController::class)
         ->only(['index', 'store', 'update']);

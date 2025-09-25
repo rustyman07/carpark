@@ -1,6 +1,6 @@
 <template>
-  <v-card>
-    <v-layout style="min-height: 100vh;">
+  <v-card class="">
+    <v-layout style="min-height: 100vh" >
       <v-app-bar color="blue-darken-4">
         <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-toolbar-title>Carpark</v-toolbar-title>
@@ -74,7 +74,7 @@
         </v-list>
       </v-navigation-drawer>
 
-      <v-main class="flex-1 bg-grey-lighten-5">
+      <v-main class="flex-1 bg-stone-100">
         <slot />
       </v-main>
     </v-layout>
