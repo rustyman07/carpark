@@ -4,6 +4,12 @@
       <v-app-bar color="blue-darken-4">
         <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-toolbar-title>Carpark</v-toolbar-title>
+        <v-spacer></v-spacer>
+
+    <!-- ✅ Auth user display -->
+    <div class="mr-5"   v-if="props.auth.user.name">
+    Welcome, {{ props.auth.user.name }}
+    </div>
       </v-app-bar>
 
       <v-snackbar
@@ -82,6 +88,9 @@ import { router, usePage } from '@inertiajs/vue3';
 
 const drawer = ref(false);
 const page = usePage();
+const props = defineProps({
+      auth  : Object,
+})
 
 const items = [
   { title: 'Home', value: 'home', route: 'home', icon: 'mdi-home' },
@@ -102,6 +111,7 @@ const items = [
       { title: 'Card Payments', route: 'card-payments', value: 'card_payments', icon: 'mdi-list-box-outline' },
     ],
   },
+      { title: 'Users', value: 'users', route: 'users.index', icon: 'mdi-account-group' },
   {
     title: 'Settings',
     value: 'settings',

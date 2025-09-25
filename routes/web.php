@@ -37,8 +37,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('parkin', [TicketController::class, 'store'])->name('parkin.store');
     Route::get('parkin/{uuid}', [TicketController::class, 'show'])->name('parkin.show');
 
-    Route::post('/detect-plate', [TicketController::class, 'detect']);
-
     Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
     Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');
     Route::get('parkout/payment/{uuid}', [TicketController::class, 'show_payment'])->name('show.payment');
@@ -62,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('scan-qr-cards', [CardInventoryController::class, 'scan_qr_cards'])->name('scan.qr.cards');
     Route::get('sell-card', [CardInventoryController::class, 'sell_card'])->name('sell-card.create');
     Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment');
+
 
     Route::get('transaction/ticket-payments', [PaymentController::class, 'index'])->name('ticket.payments');
 });

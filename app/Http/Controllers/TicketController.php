@@ -7,7 +7,7 @@ use App\Models\Ticket;
 use App\Models\Company;
 use App\Models\CardInventoryDetail;
 use App\Models\PaymentDetail;
-
+use Illuminate\Support\Facades\Auth;
 use App\Models\CardsTransaction;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -104,7 +104,9 @@ public function store(Request $request)
 
     // Defaults
     $data['CANCELLED'] = 0;
-   $data['TICKETNO'] = 0;
+    $data['TICKETNO'] = 0;
+    $data['CREATEDBY'] =  Auth::id();
+    $data['PARKINBY'] =  Auth::id();
    
 
     DB::transaction(function () use ($data,) {
@@ -270,6 +272,7 @@ public function submit_park_out(Request $request)
         $data['PARKOUTMINUTE'] = $parkOutDateTime->minute;
         $data['PARKOUTSECOND'] = $parkOutDateTime->second;
         $data['PARKOUTDATETIME'] = $parkOutDateTime;
+       
 
     //  $ticket = Ticket::where('PLATENO', $data['PLATENO'])
     //      ->where('REMARKS',0)
@@ -393,9 +396,6 @@ if ($company->rate == 'perhour') {
     }
 }
 
-
-    
-
     $ticket->PARKFEE =  $rate;
 
     $ticket->fill([
@@ -410,8 +410,9 @@ if ($company->rate == 'perhour') {
         'TOTALMINUTES'  => $minutesDiff,
         'days_parked'   => $daysParked,
         'hours_parked'  => $hoursParked,
-        'PARKOUTDATETIME' => $end
-    ])->save();
+        'PARKOUTDATETIME' => $end,
+        'PARKOUTBY'     =>  Auth::id()
+     ])->save();
 
    
     return redirect()->route('show.payment', [

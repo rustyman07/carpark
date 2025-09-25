@@ -1,6 +1,6 @@
 <!-- Create.vue -->
 <template>
-  <v-dialog v-model="dialog" max-width="600">
+  <v-dialog v-model="dialog" max-width="350">
     <form @submit.prevent = "isEdit? update() : create()">
       <v-card title="TEMPLATE">
       <v-card-text>

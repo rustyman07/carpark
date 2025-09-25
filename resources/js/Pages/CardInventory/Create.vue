@@ -1,6 +1,6 @@
 <!-- Create.vue -->
 <template>
-  <v-dialog v-model="dialog" max-width="600">
+  <v-dialog v-model="dialog" max-width="350">
     <form @submit.prevent="isEdit ? update() : create()">
       <v-card title="TEMPLATE">
         <v-card-text>
@@ -9,6 +9,7 @@
             :items="props.cardTemplate"
             item-title="card_name"
             item-value="id"
+            variant="underlined"
             @update:modelValue="onTemplateChange"
           />
 <!-- 
@@ -31,7 +32,7 @@
             variant="underlined"
             label="No. of Days"
             type="number"
-            disabled
+            readonly
             :error-messages="form.errors.no_of_days"
           />
           <v-text-field
@@ -39,7 +40,7 @@
             variant="underlined"
             label="Price"
             type="number"
-            disabled
+            readonly
             :error-messages="form.errors.price"
           />
           <v-text-field
@@ -47,7 +48,7 @@
             variant="underlined"
             label="Discount"
             type="number"
-            disabled
+            readonly
             :error-messages="form.errors.discount"
           />
         </v-card-text>
@@ -56,7 +57,7 @@
 
         <v-card-actions>
           <v-spacer />
-          <v-btn text="Close" variant="plain" @click="dialog = false" />
+          <v-btn text="Close" variant="plain" @click="closeDialog" />
           <v-btn
             color="primary"
             :text="isEdit ? 'UPDATE' : 'SAVE'"
@@ -91,11 +92,11 @@ let progressInterval = null
 
 // 🔹 form
 const form = useForm({
-  no_of_cards: 1,
+  no_of_cards: null,
   card_template_id: null,
   card_name: '',
-  no_of_days: 1,
-  price: 0,
+  no_of_days: null,
+  price: null,
   discount: null
 })
 
@@ -137,6 +138,12 @@ const update = () =>
       console.log(errors)
     }
   })
+
+
+  const closeDialog = ()=>{
+    dialog.value = false;
+    form.reset()
+  }
 
 const onTemplateChange = (id) => {
   const selected = props.cardTemplate.find((t) => t.id === id)
