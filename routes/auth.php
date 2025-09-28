@@ -19,17 +19,17 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
-        ->name('password.request');
+    // Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
+    //     ->name('password.request');
 
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->name('password.email');
+    // Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+    //     ->name('password.email');
 
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
-        ->name('password.reset');
+    // Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
+    //     ->name('password.reset');
 
-    Route::post('reset-password', [NewPasswordController::class, 'store'])
-        ->name('password.store');
+    // Route::post('reset-password', [NewPasswordController::class, 'store'])
+    //     ->name('password.store');
 });
 
 Route::middleware('auth')->group(function () {
@@ -38,6 +38,14 @@ Route::middleware('auth')->group(function () {
         ->name('users.index');
     Route::get('users/register', [UserController::class, 'create'])
         ->name('register');
+
+    Route::get('/users/{user}/reset-password', [UserController::class, 'showResetForm'])
+        ->name('users.reset-password.form');
+
+    Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])
+        ->name('users.reset-password');
+
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 
     Route::post('users', [UserController::class, 'store'])
         ->name('users.store');

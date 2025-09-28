@@ -1,8 +1,8 @@
 <template>
     <v-container class="d-flex justify-center align-center fill-height" >
-        <v-card ref="receiptContent" elevation="1" min-width="300" class="pa-4">
+        <v-card ref="receiptContent" elevation="1" min-width="350">
         <!-- Header -->
-		 <div class="d-flex flex-column   align-center justify-center text-caption ">
+		 <div class="flex flex-column   align-center justify-center text-caption ">
 			<p  >{{ company.name }}</p>
 			<p>{{ company.address }}</p>
 			<p>{{ company.contact }}</p>
@@ -12,52 +12,52 @@
             <p class="">Thank you for parking with us</p>
         </div> -->
             <!-- <v-icon icon="mdi-parking"></v-icon> -->
-            <v-divider class="my-2"></v-divider>
-            <h3 class="font-weight-bold">Parking Receipt</h3>
-            <v-divider class="my-2"></v-divider>
-
-        <div  class="d-flex flex-column align-center ">
-            <p class=" text-lightText text-caption">Ticket No.</p>
-            <h2 class="font-weight-bold ">{{props.ticket.ticket_no }}</h2>
-        </div>
-
-            <div class="d-flex  text-body-2 pb-2 mt-4">
-                <p class="font-weight-bold w-25">Plate No</p>
-                <p class="w-10"> : </p>
-                <p class="ml-2">{{props.ticket.plate_no }}</p>
+ 
+        <div class="text-sm text-gray-500 px-4">
+            
+            <div  class="flex justify-between  mt-4 py-1  ">
+                <p class=" ">Ticket No.</p>
+                <p class="font-medium ml-2  text-sm ">{{props.ticket.ticket_no }}</p>
             </div>
 
-            <div class="d-flex text-body-2 pb-2">
-                <p class="font-weight-bold w-25" >From </p>
-                <p class="w-10"> : </p>
-                <p class="ml-2" >{{ parkinDate }}</p>
-                <p  class="ml-4" >{{ parkinTime }}</p>
-            </div>          
-            <div class="d-flex  text-body-2 pb-2">
-                <p  class="font-weight-bold w-25 ">To</p>
-                <p class="w-10 "> : </p>
-                <p class="ml-2">{{ parkoutDate }}</p>
-                <p  class="ml-4" >{{ parkoutTime }}</p>
+            <div class="flex justify-between   py-1 "  >
+                <p class="w-25">Plate No</p>
+                <p class=" font-medium ml-2  text-sm">{{props.ticket.plate_no }}</p>
             </div>
-       
-            <div class="d-flex  text-body-2 pb-2 ">
-                <p  class="font-weight-bold w-25" >Duration</p>
-                <p class="w-10 "> : </p>
-                <p class="ml-2">{{ duration }}</p>
-            </div>
-                   <div class="d-flex  text-body-2 pb-2 ">
-                <p class="font-weight-bold w-25">Park Fee</p>
-                <p class="w-10"> : </p>
-                <p class="ml-2">{{formatCurrency(props.ticket.park_fee) }}</p>
+                 
+            <div class="d-flex justify-between  py-1 ">
+                <p class="w-25" >From </p>
+                <div class="flex text-sm">
+                <p class="ml-2 font-medium " >{{ parkinDate }}</p>
+                <p  class="ml-4 font-medium " >{{ parkinTime }}</p>
+                </div>        
+            </div>     
+             
+            <div class="flex justify-between py-1 ">
+                <p  class=" w-25 ">To</p>
+                <div class="flex  text-sm">
+                    <p class="ml-2 font-medium ">{{ parkoutDate }}</p>
+                    <p  class="ml-4 font-medium " >{{ parkoutTime }}</p>
+                </div>
             </div>
 
-              
+            <div class="flex  justify-between py-1">
+                <p  class=" w-25" >Duration</p>
+                <p class="ml-2  font-medium  text-sm ">{{ duration }}</p>
+            </div>
 
+            
+            <v-divider></v-divider>
+           
+                   <div class="flex justify-between py-1 ">
+                <p class=" w-25">Park Fee</p>
+                <p class="ml-2 font-medium  text-sm ">{{formatCurrency(props.ticket.park_fee) }}</p>
+            </div>
 
     
 
-           <!-- <div v-if="ticket.mode_of_payment === 'card'" class="d-flex text-body-2">
-				<p class="font-weight-bold w-25">Balance </p>
+           <!-- <div v-if="ticket.mode_of_payment === 'card'" class="d-flex ">
+				<p class=" w-25">Balance </p>
 				<p class="w-10 "> : </p>
 				<p class="ml-2">{{ props.balance }}</p>
 
@@ -65,7 +65,7 @@
 			</div> -->
 
                  
-        <v-data-table-server
+        <v-data-table-server v-if = "filteredCard.length"
        class="border border-gray-300 rounded"
          density="compact"
           :headers="headers"
@@ -78,47 +78,47 @@
         >
        
         </v-data-table-server>
-                <div class="text-body-2">
+                <div class="">
                 <ul>
-                    <li v-for = "item in filteredCash">
-                        <div> Paid in Cash {{  item.amount}}</div>
-                    </li>
+                    <div v-for = "item in filteredCash" class="flex justify-between py-1 ">
+                        <div> Paid in Cash</div>
+                        <div class="font-medium"> {{  item.amount}}</div>
+                    </div>
                 </ul>
             </div>
 
-            <div class="d-flex  text-body-2 pb-2 ">
-                <p  class="font-weight-bold w-25" >Amount</p>
-                <p class="w-10 "> : </p>
-                <p class="ml-2">{{formatCurrency(props.payment.amount) }}</p>
+            <div class="flex justify-between py-1  ">
+                <p  class=" w-25" >Amount</p>
+                <p class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.amount) }}</p>
             </div>
-              <div class="d-flex  text-body-2 pb-2 align-end">
-                <p  class="font-weight-bold w-25" >Total Amount</p>
-                <p class="w-10 "> : </p>
-                <p class="ml-2">{{formatCurrency(props.payment.total_amount) }}</p>
+              <div class="flex justify-between py-1">
+                <p  >Total Amount</p>
+                <p class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.total_amount) }}</p>
             </div>
           <v-divider></v-divider>
-            <div class="d-flex  text-body-2 pb-2 ">
-                <p  class="font-weight-bold w-25" >Change</p>
-                <p class="w-10 "> : </p>
-                <p class="ml-2">{{formatCurrency(props.payment.change) }}</p>
+            <div class="flex justify-between py-1">
+                <p  >Change</p>
+             
+                <p class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.change) }}</p>
             </div>
-
+        </div>
+              
 
 						<!-- Receipt Body -->
         <!-- <v-row class="mb-2">
-            <v-col cols="6" class="font-weight-bold">From: <span>{{parkinDate}}</span> </v-col>
+            <v-col cols="6" class="">From: <span>{{parkinDate}}</span> </v-col>
             <v-col cols="6">{{ plate }}</v-col>
         </v-row>
         <v-row class="mb-2">
-            <v-col cols="6" class="font-weight-bold">To:</v-col>
+            <v-col cols="6" class="">To:</v-col>
             <v-col cols="6">{{ new Date().toLocaleString() }}</v-col>
         </v-row>
         <v-row class="mb-2">
-            <v-col cols="6" class="font-weight-bold">Duration:</v-col>
+            <v-col cols="6" class="">Duration:</v-col>
             <v-col cols="6">{{ duration }} hours</v-col>
         </v-row>
         <v-row class="mb-2">
-            <v-col cols="6" class="font-weight-bold">Amount:</v-col>
+            <v-col cols="6" class="">Amount:</v-col>
             <v-col cols="6">₱{{ amount }}</v-col>
         </v-row> -->
 

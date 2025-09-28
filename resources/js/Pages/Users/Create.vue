@@ -10,7 +10,7 @@
               variant="underlined"
               :error-messages="form.errors.username"
             />
-            <v-text-field
+            <!-- <v-text-field
             v-model="form.password"
             label="Password"
             variant="underlined"
@@ -18,10 +18,11 @@
             :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
             @click:append-inner="showPassword = !showPassword"
             :error-messages="form.errors.password"
-            />
+            /> -->
 
             <v-select
             v-model="form.role"
+            label = "Role"
             :items="role"
             item-title="name"
             item-value="id"
@@ -43,8 +44,12 @@
             :error-messages="form.errors.contact"
           />
         </v-card-text>
+<Link :href="route('users.reset-password.form', props.selectedItem.id)" class="text-blue-500 hover:underline">
+  Reset Password
+</Link>
 
         <v-divider />
+     
 
         <v-card-actions>
           <v-spacer />
@@ -63,7 +68,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
+import { useForm, router ,Link} from '@inertiajs/vue3'
 
 const dialog = defineModel({ type: Boolean, default: false })
 const props = defineProps({
@@ -84,7 +89,7 @@ const form = useForm({
 
 
 const role = [
-    {id : 1 , name : 'Administrator',
+    {id : 1 , name : 'Admin',
     },
      {id : 2 , name : 'Staff'
     }
@@ -118,15 +123,15 @@ const create = () =>
     onSuccess: () => {
       form.reset()
       dialog.value = false
-      router.reload({ only: ['salesPerson'], preserveState: true })
+
     }
   })
 
 const update = () =>
-  form.put(route('sales-person.update', props.selectedItem.id), {
+  form.put(route('users.update', props.selectedItem.id), {
     onSuccess: () => {
       dialog.value = false
-      router.reload({ only: ['salesPerson'], preserveState: true })
+    //   router.reload({ only: ['salesPerson'], preserveState: true })
     }
   })
 </script>

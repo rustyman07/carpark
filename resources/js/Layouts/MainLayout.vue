@@ -1,5 +1,4 @@
 <template>
-  <v-card class="">
     <v-layout style="min-height: 100vh" >
       <v-app-bar color="blue-darken-4">
         <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
@@ -74,11 +73,11 @@
         </v-list>
       </v-navigation-drawer>
 
-      <v-main class="flex-1 bg-stone-100">
+        <v-main class = "bg-blue-lighten-5">
         <slot />
       </v-main>
     </v-layout>
-  </v-card>
+
 </template>
 
 <script setup>

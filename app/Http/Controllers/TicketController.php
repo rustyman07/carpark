@@ -109,7 +109,7 @@ public function store(Request $request)
     $data['PARKINBY'] =  Auth::id();
    
 
-    DB::transaction(function () use ($data,) {
+    DB::transaction(function () use ($data) {
         $ticket = Ticket::create($data);
      
         $ticketno = '1' . sprintf('%06d', $ticket->id);
@@ -126,18 +126,16 @@ public function store(Request $request)
     return redirect()->route('parkin.show',['uuid' => $uuid])->with('success', 'Ticket created successfully!');
 }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $uuid)
-    {
 
-        
-        $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
-        return inertia('Parkin/Show', [
-            'ticket' => $ticket
-        ]);
-    }
+public function show(string $uuid)
+{
+
+    
+    $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+    return inertia('Parkin/Show', [
+        'ticket' => $ticket
+    ]);
+}
 
     /**
      * Show the form for editing the specified resource.
@@ -283,6 +281,15 @@ public function submit_park_out(Request $request)
             $ticket = Ticket::where('QRCODE', $data['qr_code'])
                 ->WhereNull('deleted_at')
                 ->first();
+
+
+                    
+        if (!$ticket) {
+            return redirect()->back()->with([
+                'error' => 'Ticket not found for this QR code.',
+                'success' => false
+            ]);
+        }
 
     
 
@@ -552,7 +559,7 @@ public function submit_payment(Request $request)
                 $cashProvided = $data['cash_amount'] ?? 0;
 
                 if ($cashProvided < $amountToPay) {
-                    throw new \Exception('Cash provided is less than the remaining balance.');
+                    throw new \Exception('Insufficient Amount.');
                 }
 
                 $payment->details()->create([
@@ -589,7 +596,7 @@ public function submit_payment(Request $request)
                          ]);
 
     } catch (\Exception $e) {
-        // Handle any transaction error, including insufficient cash
+
         return back()->with('error', $e->getMessage());
     }
 }
@@ -621,48 +628,6 @@ public function submit_payment(Request $request)
             
         ]);
     }
-
-
-
-//     private function calculateCoverage(array $scannedCards, float $fee): array
-// {
-//     $remainingFee   = $fee;
-//     $totalCovered   = 0;
-//     $processedCards = [];
-
-//     foreach ($scannedCards as $card) {
-//         if ($remainingFee <= 0) {
-//             $processedCards[] = [
-//                 'card_number'      => $card['card_number'],
-//                 'balance'          => $card['balance'],
-//                 'covered'          => 0,
-//                 'remainingBalance' => $card['balance'],
-//             ];
-//             continue;
-//         }
-
-//         $covered = min($card['balance'], $remainingFee);
-//         $remainingFee -= $covered;
-//         $totalCovered += $covered;
-
-//         $processedCards[] = [
-//             'id'               => $card['id'],
-//             'card_number'      => $card['card_number'],
-//             'balance'          => $card['balance'],
-//             'covered'          => $covered,
-//             'remainingBalance' => $card['balance'] - $covered,
-//         ];
-//     }
-
-//     return [
-//         'cards'       => $processedCards,
-//         'totalCovered'=> $totalCovered,
-//         'cashNeeded'  => max(0, $remainingFee),
-//     ];
-// }
-
-
-
 
 
 }

@@ -4,21 +4,18 @@ import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <div
-        class="background-container bg-gray-100/30 bg-[url(/images/carpark.png)]  bg-blend-lighten flex min-h-screen flex-col items-center  pt-6 sm:justify-center sm:pt-0"
-    >
-        <!-- <div>
-            <Link href="/">
-                <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
-            </Link>
-        </div> -->
+<div
+  class="relative bg-gray-100 bg-center bg-cover flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0"
+>
+  <!-- ✅ White overlay -->
+  <!-- <div class="absolute inset-0 bg-white/90"></div> -->
 
-        <div
-            class="mt-6  bg-w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg"
-        >
-            <slot />
-        </div>
-    </div>
+  <!-- ✅ Your content (kept above overlay) -->
+  <div class="relative z-10 w-full flex align-middle justify-center" >
+    <slot />
+  </div>
+</div>
+
 </template>
 
 <!-- <style> 
