@@ -54,11 +54,8 @@ import { router } from '@inertiajs/vue3'
 import Create from './Create.vue'
 
 const props = defineProps({
-  users: { type: Object,
-     default: () => (
-        { data: [], next_page_url: null }
-    ) 
-}
+  users: Object,
+  auth: Object,
 })
 
 const showDialog = ref(false)
@@ -74,6 +71,7 @@ const headers = [
 const addusers = () => {
   selectedItem.value = {}
   showDialog.value = true
+ 
 }
 
 const editItem = (item) => {
@@ -81,16 +79,15 @@ const editItem = (item) => {
   showDialog.value = true
 }
 
-// const deleteItem = (item) => {
-//   if (confirm(`Delete ${item.firstname} ${item.lastname}?`)) {
-//     router.delete(route('sales-person.destroy', item.id), {
-//       onSuccess: () => {
-//         router.reload({ only: ['users'], preserveState: true })
-//       }
-//     })
-//   }
-// }
-
+const deleteItem = (item) => {
+  if (confirm(`Delete ${item.name}?`)) {
+    router.delete(route('users.destroy', item.id), {
+      onSuccess: () => {
+        // router.reload({ only: ['users'], preserveState: true })
+      }
+    })
+  }
+}
 // Optional: load more pagination
 const loadMore = () => {
   if (!props.users.next_page_url) return

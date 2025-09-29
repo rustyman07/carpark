@@ -10,7 +10,8 @@
               variant="underlined"
               :error-messages="form.errors.username"
             />
-            <!-- <v-text-field
+            <v-text-field
+            v-if="!isEdit"
             v-model="form.password"
             label="Password"
             variant="underlined"
@@ -18,7 +19,7 @@
             :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
             @click:append-inner="showPassword = !showPassword"
             :error-messages="form.errors.password"
-            /> -->
+            /> 
 
             <v-select
             v-model="form.role"
@@ -44,10 +45,13 @@
             :error-messages="form.errors.contact"
           />
         </v-card-text>
-<Link :href="route('users.reset-password.form', props.selectedItem.id)" class="text-blue-500 hover:underline">
+<Link 
+  v-if="isEdit && props.selectedItem.id" 
+  :href="route('users.reset-password.form', { user: props.selectedItem.id })" 
+  class="text-blue-500 hover:underline"
+>
   Reset Password
 </Link>
-
         <v-divider />
      
 
@@ -86,6 +90,8 @@ const form = useForm({
   role: null,
   contact: ''
 })
+
+const showPassword = ref(false)
 
 
 const role = [

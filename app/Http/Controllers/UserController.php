@@ -33,8 +33,9 @@ class UserController extends Controller
         ]);
 
         //  Auth::login($user);
+return redirect()->route('users.index')->with('success', 'User has been created successfully.');
 
-        return redirect(route('dashboard', absolute: false));
+
     }
 
     public function index(){
@@ -42,7 +43,8 @@ class UserController extends Controller
         $users = User::whereNull('deleted_at')->get();
 
         return Inertia('Users/Index',[
-            'users' => $users
+            'users' => $users,
+          
         ]);
 
 
@@ -92,6 +94,12 @@ public function update(User $user, Request $request)
     return redirect()->route('users.index')->with('success', 'User updated successfully.');
 }
 
+
+public function destroy(User $user): RedirectResponse
+{
+    $user->delete();
+    return redirect()->route('users.index')->with('success', 'User deleted successfully.');
+}
 
 
 }
