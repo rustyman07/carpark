@@ -18,7 +18,6 @@ return new class extends Migration
             $table->integer('role')->default(2);
             $table->softDeletes();
             $table->string('password');
-              $table->softDeletes();
             $table->string('contact')->nullable();
             $table->rememberToken();
             $table->timestamps();

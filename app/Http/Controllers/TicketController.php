@@ -158,7 +158,13 @@ public function show(string $uuid)
      */
     public function destroy(string $id)
     {
-    $ticket = Ticket::findOrFail($id);
+    $ticket = Ticket::where('id',$id)->where('ISPARKOUT',0)->first();
+
+    if(!$ticket){
+        return back()->with('error','Cant be deleted ticket');
+    }
+
+
     $ticket->delete(); // soft delete (sets deleted_at timestamp)
 
     return redirect()->back()->with('success', 'Ticket deleted successfully.');

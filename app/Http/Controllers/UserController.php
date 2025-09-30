@@ -19,7 +19,7 @@ class UserController extends Controller
             'username' => 'required|string|min:3|max:255|unique:'.User::class,
             'password' => 'required |min:3',
             'role'    =>  'required|integer',
-          'contact'  => 'nullable|integer',
+          'contact'  => 'nullable|string',
            //'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -49,6 +49,7 @@ return redirect()->route('users.index')->with('success', 'User has been created 
 
 
     }
+    
 
 public function resetPassword(Request $request, User $user)
 {
