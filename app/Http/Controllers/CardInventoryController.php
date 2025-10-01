@@ -149,21 +149,21 @@ public function scan_qr_cards(Request $request)
             ->where('status', 'AVAILABLE')
             ->first();
     } else {
-        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->first();
+        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->where('status', 'SOLD')->first();
     }
 
     // ❌ Invalid QR
     if (!$card) {
-        return redirect()->back()->withErrors([
-            'qr_code' => 'Invalid QR Code',
-        ]);
+        return redirect()->back()->with(
+            'error' , 'Invalid QR Code'
+        );
     }
 
     // ❌ No balance
     if ($card->balance <= 0) {
-        return redirect()->back()->withErrors([
-            'qr_code' => 'Insufficient balance',
-        ]);
+        return redirect()->back()->with(
+            'error', 'Insufficient balance',
+        );
     }
 
     // ✅ If not selling card
@@ -222,42 +222,51 @@ public function sell_card_payment(Request $request)
         'cards.*'     => 'integer|exists:card_inventory_details,id',
     ]);
 
-    $cards = $data['cards'] ?? [];
+    // ✅ Step 1: Deduplicate cards array
+    $cards = array_unique($data['cards'] ?? []);
 
-
-    if (empty($cards)){
-           return back()->withErrors(['cards' => 'Please select or scan a card']);
+    if (empty($cards)) {
+        return back()->withErrors(['cards' => 'Please select or scan a card']);
     }
 
-    // calculate total from selected cards
-    $total_amount = CardInventoryDetail::whereIn('id', $cards)->sum('price');
+    // ✅ Step 2: Only allow cards not already sold
+    $validCards = CardInventoryDetail::whereIn('id', $cards)
+        ->where('status', '!=', 'SOLD')
+        ->get();
 
-    // check if cash is enough
+    if ($validCards->count() !== count($cards)) {
+        return back()->withErrors(['cards' => 'Some cards are invalid or already sold.']);
+    }
+
+    // ✅ Step 3: Calculate total price
+    $total_amount = $validCards->sum('price');
+
+    // ✅ Step 4: Check cash amount
     if (!empty($data['cash_amount']) && $total_amount > $data['cash_amount']) {
         return back()->withErrors(['cash_amount' => 'Insufficient cash amount']);
     }
 
     try {
-        DB::transaction(function () use ($cards, $data, $total_amount) {
-            $cash    = $data['cash_amount'] ?? $total_amount;
-            $change  = $cash - $total_amount;
+        DB::transaction(function () use ($validCards, $data, $total_amount) {
+            $cash   = $data['cash_amount'] ?? $total_amount;
+            $change = $cash - $total_amount;
 
             // create payment record
             $payment = Payment::create([
-                'total_amount'   => $total_amount, // actual total of the cards
-                'amount'     => $cash,         // how much customer paid
-                'change'   => $change,       // cash - total
-                'status'    => 'paid',
-                'payment_type'  =>'CARD',
-                 'paid_at'  => now(),
+                'total_amount'  => $total_amount,
+                'amount'        => $cash,
+                'change'        => $change,
+                'status'        => 'paid',
+                'payment_type'  => 'CARD',
+                'paid_at'       => now(),
             ]);
 
-            foreach ($cards as $cardId) {
-                $cardInventory = CardInventoryDetail::findOrFail($cardId);
-
+            foreach ($validCards as $cardInventory) {
+                // Update card status
                 $cardInventory->status = 'SOLD';
                 $cardInventory->save();
 
+                // Create payment detail
                 $payment->details()->create([
                     'card_id'     => $cardInventory->id,
                     'card_number' => $cardInventory->card_number,
@@ -278,21 +287,23 @@ public function sell_card_payment(Request $request)
 }
 
 
-public function transactions($card_id){
+public function transactions($card_id)
+{
+    $transactions = PaymentDetail::where('card_id', $card_id)
+        ->whereHas('payment.ticket') // Only include if payment has a ticket
+        ->with([
+            'payment.ticket' => function ($query) {
+                $query->select('id', 'PLATENO', 'TICKETNO');
+            },
+            'cardInventory' => function ($query) {   // 👈 include card detail
+                $query->select('id', 'balance', 'card_number', 'card_name'); // pick fields you need
+            }
+        ])
+        ->get();
 
-$transactions = PaymentDetail::where('card_id', $card_id)
-    ->whereHas('payment.ticket') // only include if payment has a ticket
-    ->with(['payment.ticket' => function($query) {
-        $query->select('id', 'PLATENO'); // select the fields you want
-    }])
-    ->get();
-
-    // $transactions = PaymentDetail::where('card_id',$card_id)->get();
-
-    
-        return response()->json([
-            'transactions' => $transactions,
-        ]);
+    return response()->json([
+        'transactions' => $transactions,
+    ]);
 }
 
 

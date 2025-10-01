@@ -22,6 +22,7 @@
         "@inertiajs/vue3": "^2.1.2",
         "@mdi/font": "^7.4.47",
         "dayjs": "^1.11.13",
+        "html2canvas": "^1.4.1",
         "html2pdf.js": "^0.12.0",
         "html5-qrcode": "^2.3.8",
         "lodash": "^4.17.21",

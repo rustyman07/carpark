@@ -1,20 +1,21 @@
 <template>
   <v-dialog 
     v-model="dialog" 
-    :fullscreen="$vuetify.display.smAndDown"
-    max-width="600"
+    min-height="500"
+    max-width="370"
+    
   >
     <v-card class="rounded">
-<v-toolbar flat density="compact">
-  <v-toolbar-title class="text-subtitle-1 text-medium-emphasis font-weight-regular ps-4">
-    <span class="text-truncate">Transactions for Card: {{ props.selectedCard.card_number }}</span>
+<v-toolbar flat density="compact" class="bg-blue-darken-4">
+  <v-toolbar-title  >
+    <span class="text-base text-white"> Card: {{ props.selectedCard.card_number }}</span>
   </v-toolbar-title>
   <v-spacer></v-spacer>
   <v-btn icon="mdi-close" variant="text" @click="dialog = false"></v-btn>
 </v-toolbar>
       <v-divider></v-divider>
 
-      <v-card-text class="py-4">
+      <v-card-text class="py-4 bg-gray-100">
         <div v-if="loading" class="text-center py-12">
           <v-progress-circular indeterminate color="primary"></v-progress-circular>
         </div>
@@ -31,12 +32,43 @@
         </div>
 
         <div v-else>
+            <div class="flex justify-center ">
+              <div class="flex flex-col text-center mb-4 ">
+                  <span class="text-xs md:text-sm ">Currrent Balance</span>
+                  <span class="text-base md:text-3xl font-bold text-gray-500">{{ props.selectedCard.balance }}</span>
+              </div>
+            </div>
           <div v-for="(dayTransactions, date) in groupedTransactions" :key="date">
-            <div class="text-caption font-weight-bold text-medium-emphasis px-4 py-2 mt-4">
+            <div class="text-xs md:text-sm mb-1 ">
               {{ date }}
             </div>
 
-            <v-list class="bg-surface rounded-lg">
+            <div class =" mb-2 bg-white flex justify-between text-xs md:text-sm  shadow-md rounded-sm p-2" v-for="t in dayTransactions" >
+       <div class="flex gap-2">
+                 <v-avatar color="grey-lighten-4" size="40">
+                    <v-icon color="grey-darken-1" size="24">mdi-car</v-icon>
+                  </v-avatar>
+            <div class="flex flex-col flex-1">
+                <div>
+                    <span class="text-gray-500">Plate No: </span>
+                    <span class=" text-blue-500">{{t.payment?.ticket?.PLATENO  }}</span>
+                </div>
+            <div>
+                 <span class="text-gray-500">Ticket No:</span>
+                <span class="text-gray-500">{{t.payment?.ticket?.TICKETNO  }}</span>
+            </div>
+
+            </div>
+         
+
+       </div>
+            <div class="flex flex-col justify-center">
+                <span class=" text-sm text-red-600 font-semibold">-{{ t.amount }}</span>
+            </div>
+      
+            </div>
+
+            <!-- <v-list class="bg-surface rounded-lg">
               <v-list-item
                 v-for="t in dayTransactions"
                 :key="t.id"
@@ -57,7 +89,7 @@
                   <span class="mx-1">·</span>
                   Status:
                   <v-chip
-                    :color="t.payment?.status === 'paid' ? 'green-darken-2' : 'orange-darken-2'"
+                    :color="t.payment?.status === 'Paid' ? 'green-darken-2' : 'orange-darken-2'"
                     size="x-small"
                     label
                     class="ms-1"
@@ -66,7 +98,7 @@
                   </v-chip>
                 </v-list-item-subtitle>
               </v-list-item>
-            </v-list>
+            </v-list> -->
           </div>
         </div>
       </v-card-text>

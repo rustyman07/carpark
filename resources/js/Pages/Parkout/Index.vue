@@ -12,7 +12,7 @@
     </v-dialog>
 
   <!-- Main Layout -->
-    <v-layout class="d-flex flex-column align-center justify-center pa-16 h-100">
+    <v-layout class="d-flex flex-column align-center justify-center pa-5 h-100">
     <!-- Show ticket if found -->
 
 
@@ -28,7 +28,7 @@
             />
 
         <v-btn
-            :disabled="!form.PLATENO"
+          :disabled="form.processing ||!form.PLATENO"
             size="x-large"
             @click="submitPlate"
             block

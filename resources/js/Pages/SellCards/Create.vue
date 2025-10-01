@@ -2,10 +2,11 @@
   <QrScanner v-model="isScanQR" :closeScanner="closeScanner" />
 
   <v-container class="d-flex justify-center align-center fill-height">
-    <v-card class="pa-6" max-width="480" elevation="10" rounded="lg">
+    <v-card class="pa-6" max-width="480" elevation="1" rounded="lg">
 
       <!-- Autocomplete -->
 <v-autocomplete
+  class="small-label"
   v-model="selected"
   v-model:search="search"
   :items="items"
@@ -17,7 +18,8 @@
   hide-no-data
   hide-details
   variant="outlined"
-></v-autocomplete>
+
+/>
 
 
       
@@ -64,6 +66,7 @@
       <!-- Payment Section -->
      
         <v-text-field
+        class="small-label"
           v-model="cashAmount"
           label="Cash Amount"
           type="number"
@@ -186,19 +189,18 @@ const total = computed(() => {
   return cards.value.reduce((acc, curr) => acc + Number(curr.price || 0), 0);
 });
 
-
-
-
-
-
 watch(selected, (val) => {
   if (val) {
-    const newItem = items.value.find((item) => item.id === val);
-    if (newItem) { // It's good practice to check if the item was found
-      cards.value.push(newItem);
+    const newItem = items.value.find(item => item.id === val);
+    if (newItem) {
+      const alreadyExists = cards.value.some(card => card.id === newItem.id);
+      if (!alreadyExists) {
+        cards.value.push(newItem);
+      } else {
+        console.log('Item already added — skipping duplicate');
+      }
     }
   }
-  console.log(cards.value);
 });
 
 // The `onSearch` method is no longer needed
@@ -297,11 +299,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.text-caption {
-  line-height: 1rem;
+
+
+:deep(.small-label .v-field-label),
+:deep(.v-autocomplete__selection-text )
+
+{
+  font-size: 0.75rem !important;
 }
-.text-caption1 {
-  font-size: 14px;
-  line-height: 1rem;
+.autocomplete-overlay .v-list-item-title {
+  font-size: 0.75rem !important;
 }
+
 </style>

@@ -130,6 +130,7 @@ const headers = [
   { key: 'PLATENO', title: 'Plate No' },
   { key: 'PARKDATETIME', title: 'Park Date/Time' },
   { key: 'PARKOUTDATETIME', title: 'Park out Date/Time' },
+  {key: 'REMARKS', title:'Remarks'},
   { key: 'ACTION', title: 'Action'}
 
 ]

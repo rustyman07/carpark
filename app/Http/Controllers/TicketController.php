@@ -63,7 +63,6 @@ public function store(Request $request)
     //     ->exists();
 
 
-
     $ticket = Ticket::where('PLATENO', $data['PLATENO'])
         ->whereNotNull('PARKDATETIME')
         ->where('ISPARKOUT', 0)
@@ -118,6 +117,7 @@ public function store(Request $request)
         $ticket->update([
             'TICKETNO' =>      $ticketno,     
             'QRCODE'   => $hash_ticketno,
+            'REMARKS'  => 'Unpaid'
         ]);
     });
 
@@ -250,7 +250,7 @@ public function submit_park_out(Request $request)
 
     $data = $request->validate($rules, [
         'PLATENO.required' => 'Plate number is required',
-        'PLATENO.exists'   => 'Plate number not founds',
+        'PLATENO.exists'   => 'Plate number not found',
         'qr_code.required'  => 'QR code is required',
         'qr_code.exists'    => 'Invalid QR code',
     ]);
@@ -412,7 +412,6 @@ if ($company->rate == 'perhour') {
 
     $ticket->fill([
         'ISPARKOUT'     => 1,
-        'REMARKS'       => 'UNPAID',
         'PARKOUTYEAR'   => $data['PARKOUTYEAR'],
         'PARKOUTMONTH'  => $data['PARKOUTMONTH'],
         'PARKOUTDAY'    => $data['PARKOUTDAY'],
@@ -517,7 +516,7 @@ public function submit_payment(Request $request)
         DB::transaction(function () use ($ticket, $cards, $data, &$payment, &$totalPaid, &$amountToPay, $request) {
 
             // Determine payment method
-            $ticket->REMARKS = 'PAID';
+            $ticket->REMARKS = 'Paid';
             $ticket->mode_of_payment = count($cards) ? 'card' : 'cash';
             $ticket->save();
 

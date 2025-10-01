@@ -34,56 +34,62 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Log in" />
+  <Head title="Log in" />
 
-    <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-        {{ status }}
+  <div class="  text-4xl md:text-6xl text-white font-bold my-8"> CarPark System</div>
+
+<div
+  class="flex flex-col md:flex-row bg-white shadow-md sm:rounded-lg  md:w-[70%] max-w-[760px] min-w-[320px] mx-auto min-h-[350px] overflow-hidden"
+>
+
+    <!-- Left image side -->
+    <div
+      class="w-full md:w-1/2 h-48 md:h-auto bg-[url('/images/carpark.png')] bg-cover bg-center rounded-t-lg md:rounded-l-lg md:rounded-tr-none"
+    ></div>
+
+    <!-- Right form side -->
+    <div class="w-full md:w-1/2 p-8 flex flex-col justify-center">
+      <form @submit.prevent="submit">
+        <!-- Username -->
+        <div>
+          <InputLabel for="username" value="Username" />
+          <TextInput
+            id="username"
+            type="text"
+            class="mt-1 block w-full bg-gray-100 rounded-md border-none focus:ring-0 focus:outline-none"
+            v-model="form.username"
+            required
+            autofocus
+            autocomplete="username"
+          />
+          <InputError class="mt-2" :message="form.errors.username" />
+        </div>
+
+        <!-- Password -->
+        <div class="mt-4">
+          <InputLabel for="password" value="Password" />
+          <TextInput
+            id="password"
+            type="password"
+            class="mt-1 block w-full bg-gray-100 rounded-md border-none focus:ring-0 focus:outline-none"
+            v-model="form.password"
+            required
+            autocomplete="current-password"
+          />
+          <InputError class="mt-2" :message="form.errors.password" />
+        </div>
+
+        <!-- Submit button -->
+        <div class="mt-4 flex items-center justify-end">
+          <PrimaryButton
+            class="ms-4"
+            :class="{ 'opacity-25': form.processing }"
+            :disabled="form.processing"
+          >
+            Log in
+          </PrimaryButton>
+        </div>
+      </form>
     </div>
-<div class="flex bg-white shadow-md w-[760px] sm:rounded-lg h-[350px]">
-  <!-- Left image side -->
-  <div class="w-1/2 h-full bg-[url('/images/carpark.png')] bg-cover bg-center rounded-l-lg"></div>
-
-  <!-- Right form side -->
-  <div class="w-1/2 p-8 flex flex-col justify-center">
-    <form @submit.prevent="submit">
-      <div>
-        <InputLabel for="username" value="Username" />
-        <TextInput
-          id="username"
-          type="text"
-          class="mt-1 block w-full"
-          v-model="form.username"
-          required
-          autofocus
-          autocomplete="username"
-        />
-        <InputError class="mt-2" :message="form.errors.username" />
-      </div>
-
-      <div class="mt-4">
-        <InputLabel for="password" value="Password" />
-        <TextInput
-          id="password"
-          type="password"
-          class="mt-1 block w-full"
-          v-model="form.password"
-          required
-          autocomplete="current-password"
-        />
-        <InputError class="mt-2" :message="form.errors.password" />
-      </div>
-
-      <div class="mt-4 flex items-center justify-end">
-        <PrimaryButton
-          class="ms-4"
-          :class="{ 'opacity-25': form.processing }"
-          :disabled="form.processing"
-        >
-          Log in
-        </PrimaryButton>
-      </div>
-    </form>
   </div>
-</div>
-
 </template>

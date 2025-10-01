@@ -5,15 +5,15 @@ import { Link } from '@inertiajs/vue3';
 
 <template>
 <div
-  class="relative bg-gray-100 bg-center bg-cover flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0"
+  class="relative p-4 bg-blue-400 bg-center bg-cover flex flex-col min-h-screen items-center pt-6 sm:justify-center sm:pt-0"
 >
   <!-- ✅ White overlay -->
   <!-- <div class="absolute inset-0 bg-white/90"></div> -->
 
   <!-- ✅ Your content (kept above overlay) -->
-  <div class="relative z-10 w-full flex align-middle justify-center" >
+ 
     <slot />
-  </div>
+ 
 </div>
 
 </template>

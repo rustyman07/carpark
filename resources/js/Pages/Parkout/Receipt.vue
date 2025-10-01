@@ -1,65 +1,65 @@
 <template>
     <v-container class="d-flex justify-center align-center fill-height" >
-        <v-card ref="receiptContent" elevation="1" min-width="350">
+        <v-card ref="receiptContent" elevation="1" min-width="350" class="py-4">
         <!-- Header -->
 		 <div class="flex flex-column   align-center justify-center text-caption ">
-			<p  >{{ company.name }}</p>
+			<span  >{{ company.name }}</span>
 			<p>{{ company.address }}</p>
 			<p>{{ company.contact }}</p>
 		 </div>
 
         <!-- <div class="text-center mb-2 text-caption">
-            <p class="">Thank you for parking with us</p>
+            <span class="">Thank you for parking with us</span>
         </div> -->
             <!-- <v-icon icon="mdi-parking"></v-icon> -->
  
         <div class="text-sm text-gray-500 px-4">
             
             <div  class="flex justify-between  mt-4 py-1  ">
-                <p class=" ">Ticket No.</p>
-                <p class="font-medium ml-2  text-sm ">{{props.ticket.ticket_no }}</p>
+                <span class=" ">Ticket No.</span>
+                <span class="font-medium ml-2  text-sm ">{{props.ticket.ticket_no }}</span>
             </div>
 
             <div class="flex justify-between   py-1 "  >
-                <p class="w-25">Plate No</p>
-                <p class=" font-medium ml-2  text-sm">{{props.ticket.plate_no }}</p>
+                <span class="w-25">Plate No</span>
+                <span class=" font-medium ml-2  text-sm">{{props.ticket.plate_no }}</span>
             </div>
                  
             <div class="d-flex justify-between  py-1 ">
-                <p class="w-25" >From </p>
+                <span class="w-25" >From </span>
                 <div class="flex text-sm">
-                <p class="ml-2 font-medium " >{{ parkinDate }}</p>
-                <p  class="ml-4 font-medium " >{{ parkinTime }}</p>
+                <span class="ml-2 font-medium " >{{ parkinDate }}</span>
+                <span  class="ml-4 font-medium " >{{ parkinTime }}</span>
                 </div>        
             </div>     
              
             <div class="flex justify-between py-1 ">
-                <p  class=" w-25 ">To</p>
+                <span  class=" w-25 ">To</span>
                 <div class="flex  text-sm">
-                    <p class="ml-2 font-medium ">{{ parkoutDate }}</p>
-                    <p  class="ml-4 font-medium " >{{ parkoutTime }}</p>
+                    <span class="ml-2 font-medium ">{{ parkoutDate }}</span>
+                    <span  class="ml-4 font-medium " >{{ parkoutTime }}</span>
                 </div>
             </div>
 
             <div class="flex  justify-between py-1">
-                <p  class=" w-25" >Duration</p>
-                <p class="ml-2  font-medium  text-sm ">{{ duration }}</p>
+                <span  class=" w-25" >Duration</span>
+                <span class="ml-2  font-medium  text-sm ">{{ duration }}</span>
             </div>
 
             
-            <v-divider></v-divider>
+            <!-- <v-divider></v-divider> -->
            
                    <div class="flex justify-between py-1 ">
-                <p class=" w-25">Park Fee</p>
-                <p class="ml-2 font-medium  text-sm ">{{formatCurrency(props.ticket.park_fee) }}</p>
+                <span class=" w-25">Park Fee</span>
+                <span class="ml-2 font-medium  text-sm ">{{formatCurrency(props.ticket.park_fee) }}</span>
             </div>
 
     
 
            <!-- <div v-if="ticket.mode_of_payment === 'card'" class="d-flex ">
-				<p class=" w-25">Balance </p>
-				<p class="w-10 "> : </p>
-				<p class="ml-2">{{ props.balance }}</p>
+				<span class=" w-25">Balance </span>
+				<span class="w-10 "> : </span>
+				<span class="ml-2">{{ props.balance }}</span>
 
 
 			</div> -->
@@ -88,18 +88,18 @@
             </div>
 
             <div class="flex justify-between py-1  ">
-                <p  class=" w-25" >Amount</p>
-                <p class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.amount) }}</p>
+                <span  class=" w-25" >Amount</span>
+                <span class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.amount) }}</span>
             </div>
               <div class="flex justify-between py-1">
-                <p  >Total Amount</p>
-                <p class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.total_amount) }}</p>
+                <span class="font-semibold" >Total Amount</span>
+                <span class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.total_amount) }}</span>
             </div>
           <v-divider></v-divider>
             <div class="flex justify-between py-1">
-                <p  >Change</p>
+                <span  >Change</span>
              
-                <p class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.change) }}</p>
+                <span class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.change) }}</span>
             </div>
         </div>
               
@@ -122,13 +122,13 @@
             <v-col cols="6">₱{{ amount }}</v-col>
         </v-row> -->
 
-        <v-divider class="my-4"></v-divider>
+     
 
         <!-- Footer -->
-        <div class="text-center">
-            <!-- <p class="text-grey text-caption">Powered by Your Company</p> -->
+        <!-- <div class="text-center">
+    
             <v-btn data-html2pdf-ignore color="primary" block @click="downloadPdf">Print</v-btn>
-        </div>
+        </div> -->
         </v-card>
   </v-container>
 </template>
@@ -165,9 +165,9 @@ const page = usePage();
 
 const headers = [
   { key: 'card_number', title: 'Card Number' },
-  { key: 'no_of_days', title: 'No. of Days' },
+//   { key: 'no_of_days', title: 'No. of Days' },
 //   { key: 'price', title: 'Price' },
-    { key: 'amount', title: 'Amount' },
+    { key: 'amount', title: 'Amount Deducted' },
   { key: 'balance', title: 'Balance', class: 'bg-blue-darken-4' },
 ]
 
