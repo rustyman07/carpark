@@ -8,8 +8,8 @@
       <v-divider class="my-4"></v-divider>
 
       <div class="text-center">
-        <h2 class="font-weight-bold">Ticket No: {{ ticket.TICKETNO }}</h2>
-        <p class="text-h6">Plate No: {{ ticket.PLATENO }}</p>
+        <h2 class="font-weight-bold">Ticket No: {{ ticket.ticket_no }}</h2>
+        <p class="text-h6">Plate No: {{ ticket.plate_no }}</p>
         <p>Date Park In: {{ formattedDate }}</p>
       </div>
     </v-card>
@@ -27,9 +27,9 @@ const props = defineProps({
 
 console.log('test', props.ticket);
 // Generate QR Code content (could be ticket ID, or full JSON)
-const qrValue =  props.ticket.QRCODE;
+const qrValue =  props.ticket.qr_code;
 // Format date
 const formattedDate = dayjs(
-  `${props.ticket.PARKYEAR}-${props.ticket.PARKMONTH}-${props.ticket.PARKDAY} ${props.ticket.PARKHOUR}:${props.ticket.PARKMINUTE}:${props.ticket.PARKSECOND}`
+  `${props.ticket.park_year}-${props.ticket.park_month}-${props.ticket.park_day} ${props.ticket.park_hour}:${props.ticket.park_minute}:${props.ticket.park_second}`
 ).format('MMMM D, YYYY hh:mm: A')
 </script>

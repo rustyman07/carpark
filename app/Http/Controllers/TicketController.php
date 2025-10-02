@@ -43,81 +43,81 @@ public function store(Request $request)
 {
     // Validate inputs
     $data = $request->validate([
-        'PLATENO'    => 'required|string|min:3',
-        'PARKYEAR'   => 'nullable|integer',
-        'PARKMONTH'  => 'nullable|integer',
-        'PARKDAY'    => 'nullable|integer',
-        'PARKHOUR'   => 'nullable|integer',
-        'PARKMINUTE' => 'nullable|integer',
-        'PARKSECOND' => 'nullable|integer',
+        'plate_no'    => 'required|string|min:3',
+        'park_year'   => 'nullable|integer',
+        'park_month'  => 'nullable|integer',
+        'park_day'    => 'nullable|integer',
+        'park_hour'   => 'nullable|integer',
+        'park_minute' => 'nullable|integer',
+        'park_second' => 'nullable|integer',
     ]);
 
 
 
-    // $ticketExists = Ticket::where('PLATENO', $data['PLATENO'])
+    // $ticketExists = Ticket::where('plate_no', $data['plate_no'])
     //     ->where(function ($q) {
-    //         $q->whereIn('REMARKS', ['UNPAID'])
-    //           ->orWhereNull('REMARKS');
-    //     })->where('ISPARKOUT', 0)
+    //         $q->whereIn('remarks', ['UNPAID'])
+    //           ->orWhereNull('remarks');
+    //     })->where('is_park_out', 0)
     //     ->whereNull('deleted_at')
     //     ->exists();
 
 
-    $ticket = Ticket::where('PLATENO', $data['PLATENO'])
-        ->whereNotNull('PARKDATETIME')
-        ->where('ISPARKOUT', 0)
+    $ticket = Ticket::where('plate_no', $data['plate_no'])
+        ->whereNotNull('park_datetime')
+        ->where('is_park_out', 0)
         ->whereNull('deleted_at')
-        ->latest('PARKDATETIME')   // order by PARKDATETIME desc
+        ->latest('park_datetime')   // order by park_datetime desc
         ->first();
 
 
 
         if ($ticket) {
     return back()->withErrors([
-        'PLATENO' => "This plate number already has an active ticket with a ticket no of {$ticket->TICKETNO}.",
+        'plate_no' => "This plate number already has an active ticket with a ticket no of {$ticket->ticket_no}.",
     ])->withInput();
 }
 
-    // Build PARKDATETIME from inputs (fallback: now)
-    $parkDateTime = isset($data['PARKYEAR'], $data['PARKMONTH'], $data['PARKDAY'])
+    // Build park_datetime from inputs (fallback: now)
+    $park_datetime = isset($data['park_year'], $data['park_month'], $data['park_day'])
         ? Carbon::create(
-            $data['PARKYEAR'],
-            $data['PARKMONTH'],
-            $data['PARKDAY'],
-            $data['PARKHOUR']   ?? 0,
-            $data['PARKMINUTE'] ?? 0,
-            $data['PARKSECOND'] ?? 0
+            $data['park_year'],
+            $data['park_month'],
+            $data['park_day'],
+            $data['park_hour']   ?? 0,
+            $data['park_minute'] ?? 0,
+            $data['park_second'] ?? 0
         )
         : now();
 
     $uuid = (string) Str::uuid();
     // Always sync fields
-    $data['PARKYEAR']   = $parkDateTime->year;
-    $data['PARKMONTH']  = $parkDateTime->month;
-    $data['PARKDAY']    = $parkDateTime->day;
-    $data['PARKHOUR']   = $parkDateTime->hour;
-    $data['PARKMINUTE'] = $parkDateTime->minute;
-    $data['PARKSECOND'] = $parkDateTime->second;
-    $data['PARKDATETIME'] = $parkDateTime;
+    $data['park_year']   = $park_datetime->year;
+    $data['park_month']  = $park_datetime->month;
+    $data['park_day']    = $park_datetime->day;
+    $data['park_hour']   = $park_datetime->hour;
+    $data['park_minute'] = $park_datetime->minute;
+    $data['park_second'] = $park_datetime->second;
+    $data['park_datetime'] = $park_datetime;
     $data['uuid'] = $uuid;
 
     // Defaults
-    $data['CANCELLED'] = 0;
-    $data['TICKETNO'] = 0;
-    $data['CREATEDBY'] =  Auth::id();
-    $data['PARKINBY'] =  Auth::id();
+    $data['cancelled'] = 0;
+    $data['ticket_no'] = 0;
+    $data['create_by'] =  Auth::id();
+    $data['park_in_by'] =  Auth::id();
    
 
     DB::transaction(function () use ($data) {
         $ticket = Ticket::create($data);
      
-        $ticketno = '1' . sprintf('%06d', $ticket->id);
-        $hash_ticketno = Hash::make($ticketno);
+        $ticket_no = '1' . sprintf('%06d', $ticket->id);
+        $hash_ticket_no = Hash::make($ticket_no);
 
         $ticket->update([
-            'TICKETNO' =>      $ticketno,     
-            'QRCODE'   => $hash_ticketno,
-            'REMARKS'  => 'Unpaid'
+            'ticket_no' =>      $ticket_no,     
+            'qr_code'   => $hash_ticket_no,
+            'remarks'  => 'Unpaid'
         ]);
     });
 
@@ -158,7 +158,7 @@ public function show(string $uuid)
      */
     public function destroy(string $id)
     {
-    $ticket = Ticket::where('id',$id)->where('ISPARKOUT',0)->first();
+    $ticket = Ticket::where('id',$id)->where('is_park_out',0)->first();
 
     if(!$ticket){
         return back()->with('error','Cant be deleted ticket');
@@ -179,11 +179,11 @@ public function show(string $uuid)
 
 
         $query = Ticket::whereNull('deleted_at')
-            ->where('ISPARKOUT',$type ==='PARK-IN'? 0 : 1)
-            ->select('id','TICKETNO', 'PLATENO', 'PARKDATETIME', 'PARKOUTDATETIME','REMARKS')
+            ->where('is_park_out',$type ==='PARK-IN'? 0 : 1)
+            ->select('id','ticket_no', 'plate_no', 'park_datetime', 'park_out_datetime','remarks')
             ->orderByDesc('created_at');
 
-        $dateColumn = $type === 'PARK-IN' ? 'PARKDATETIME' : 'PARKOUTDATETIME';
+        $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
 
 
         if ($dateFrom && $dateTo) {
@@ -216,75 +216,75 @@ public function submit_park_out(Request $request)
     // 1️⃣ Validate input
     // $data = $request->validate([
     //     if($request->input('ISSCANQR' == true)){
-    //         'QRCODE' => 'required|string|exists:tickets,QRCODE',
+    //         'qr_code' => 'required|string|exists:tickets,qr_code',
     //     } else {     
-    //             'PLATENO'       => 'required|string|exists:tickets,PLATENO',       
+    //             'plate_no'       => 'required|string|exists:tickets,plate_no',       
     //     }
     
-    //     'PARKOUTYEAR'   => 'nullable|integer',
-    //     'PARKOUTMONTH'  => 'nullable|integer',
-    //     'PARKOUTDAY'    => 'nullable|integer',
-    //     'PARKOUTHOUR'   => 'nullable|integer',
-    //     'PARKOUTMINUTE' => 'nullable|integer',
-    //     'PARKOUTSECOND' => 'nullable|integer',
+    //     'park_out_year'   => 'nullable|integer',
+    //     'park_out_month'  => 'nullable|integer',
+    //     'park_out_day'    => 'nullable|integer',
+    //     'park_out_hour'   => 'nullable|integer',
+    //     'park_out_minute' => 'nullable|integer',
+    //     'park_out_second' => 'nullable|integer',
     // ], [
-    //     'PLATENO.required' => 'Plate number is required',
-    //     'PLATENO.exists'   => 'Plate number not found',
+    //     'plate_no.required' => 'Plate number is required',
+    //     'plate_no.exists'   => 'Plate number not found',
     // ]);
 
       $rules = [
-        'PARKOUTYEAR'   => 'nullable|integer',
-        'PARKOUTMONTH'  => 'nullable|integer',
-        'PARKOUTDAY'    => 'nullable|integer',
-        'PARKOUTHOUR'   => 'nullable|integer',
-        'PARKOUTMINUTE' => 'nullable|integer',
-        'PARKOUTSECOND' => 'nullable|integer',
+        'park_out_year'   => 'nullable|integer',
+        'park_out_month'  => 'nullable|integer',
+        'park_out_day'    => 'nullable|integer',
+        'park_out_hour'   => 'nullable|integer',
+        'park_out_minute' => 'nullable|integer',
+        'park_out_second' => 'nullable|integer',
     ];
 
  
     if ($request->boolean('is_scan_qr')) {
-        $rules['qr_code'] = 'required|string|exists:tickets,QRCODE';
+        $rules['qr_code'] = 'required|string|exists:tickets,qr_code';
     } else {
-        $rules['PLATENO'] = 'required|string|exists:tickets,PLATENO';
+        $rules['plate_no'] = 'required|string|exists:tickets,plate_no';
     }
 
     $data = $request->validate($rules, [
-        'PLATENO.required' => 'Plate number is required',
-        'PLATENO.exists'   => 'Plate number not found',
+        'plate_no.required' => 'Plate number is required',
+        'plate_no.exists'   => 'Plate number not found',
         'qr_code.required'  => 'QR code is required',
         'qr_code.exists'    => 'Invalid QR code',
     ]);
     
 
 
-    // 2️⃣ Compute PARKOUTDATETIME (use provided or fallback to now)
-  $parkOutDateTime = isset($data['PARKOUTYEAR'], $data['PARKOUTMONTH'], $data['PARKOUTDAY'])
+    // 2️⃣ Compute park_out_datetime (use provided or fallback to now)
+  $park_out_datetime = isset($data['park_out_year'], $data['park_out_month'], $data['park_out_day'])
     ? Carbon::create(
-        $data['PARKOUTYEAR'],
-        $data['PARKOUTMONTH'],
-        $data['PARKOUTDAY'],
-        $data['PARKOUTHOUR']   ?? 0,
-        $data['PARKOUTMINUTE'] ?? 0,
-        $data['PARKOUTSECOND'] ?? 0
+        $data['park_out_year'],
+        $data['park_out_month'],
+        $data['park_out_day'],
+        $data['park_out_hour']   ?? 0,
+        $data['park_out_minute'] ?? 0,
+        $data['park_out_second'] ?? 0
     )
     : now();
 
-        $data['PARKOUTYEAR']   = $parkOutDateTime->year;
-        $data['PARKOUTMONTH']  = $parkOutDateTime->month;
-        $data['PARKOUTDAY']    = $parkOutDateTime->day;
-        $data['PARKOUTHOUR']   = $parkOutDateTime->hour;
-        $data['PARKOUTMINUTE'] = $parkOutDateTime->minute;
-        $data['PARKOUTSECOND'] = $parkOutDateTime->second;
-        $data['PARKOUTDATETIME'] = $parkOutDateTime;
+        $data['park_out_year']   = $park_out_datetime->year;
+        $data['park_out_month']  = $park_out_datetime->month;
+        $data['park_out_day']    = $park_out_datetime->day;
+        $data['park_out_hour']   = $park_out_datetime->hour;
+        $data['park_out_minute'] = $park_out_datetime->minute;
+        $data['park_out_second'] = $park_out_datetime->second;
+        $data['park_out_datetime'] = $park_out_datetime;
        
 
-    //  $ticket = Ticket::where('PLATENO', $data['PLATENO'])
-    //      ->where('REMARKS',0)
-    //     ->latest('PARKDATETIME')
+    //  $ticket = Ticket::where('plate_no', $data['plate_no'])
+    //      ->where('remarks',0)
+    //     ->latest('park_datetime')
     //     ->first();
 
         if ($request->boolean('is_scan_qr')) {
-            $ticket = Ticket::where('QRCODE', $data['qr_code'])
+            $ticket = Ticket::where('qr_code', $data['qr_code'])
                 ->WhereNull('deleted_at')
                 ->first();
 
@@ -301,13 +301,13 @@ public function submit_park_out(Request $request)
 
         } else {
 
-                $ticket = Ticket::where('PLATENO', $data['PLATENO'])
+                $ticket = Ticket::where('plate_no', $data['plate_no'])
                 ->where(function ($q) {
-                    $q->whereIn('REMARKS', ['UNPAID'])
-                    ->orWhereNull('REMARKS');
+                    $q->whereIn('remarks', ['UNPAID'])
+                    ->orWhereNull('remarks');
                 })
                  ->WhereNull('deleted_at')
-                ->latest('PARKDATETIME')
+                ->latest('park_datetime')
                 ->first();
 
                         
@@ -325,8 +325,8 @@ public function submit_park_out(Request $request)
     
     // 4️⃣ Calculate fee
     $company = Company::find(1); 
-    $start = Carbon::parse($ticket->PARKDATETIME)->timezone(config('app.timezone')); 
-    $end =     Carbon::parse( $data['PARKOUTDATETIME'])->timezone(config('app.timezone'));
+    $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone')); 
+    $end =     Carbon::parse( $data['park_out_datetime'])->timezone(config('app.timezone'));
 
 
 //  $start =     Carbon::parse('2025-09-18 11:11:31'); 
@@ -408,21 +408,21 @@ if ($company->rate == 'perhour') {
 }
 
 
-    $ticket->PARKFEE =  $rate;
+    $ticket->park_fee =  $rate;
 
     $ticket->fill([
-        'ISPARKOUT'     => 1,
-        'PARKOUTYEAR'   => $data['PARKOUTYEAR'],
-        'PARKOUTMONTH'  => $data['PARKOUTMONTH'],
-        'PARKOUTDAY'    => $data['PARKOUTDAY'],
-        'PARKOUTHOUR'   => $data['PARKOUTHOUR'],
-        'PARKOUTMINUTE' => $data['PARKOUTMINUTE'],
-        'PARKOUTSECOND' => $data['PARKOUTSECOND'],
-        'TOTALMINUTES'  => $minutesDiff,
+        'is_park_out'     => 1,
+        'park_out_year'   => $data['park_out_year'],
+        'park_out_month'  => $data['park_out_month'],
+        'park_out_day'    => $data['park_out_day'],
+        'park_out_hour'   => $data['park_out_hour'],
+        'park_out_minute' => $data['park_out_minute'],
+        'park_out_second' => $data['park_out_second'],
+        'total_minutes'  => $minutesDiff,
         'days_parked'   => $daysParked,
         'hours_parked'  => $hoursParked,
-        'PARKOUTDATETIME' => $end,
-        'PARKOUTBY'     =>  Auth::id()
+        'park_out_datetime' => $end,
+        'park_out_by'     =>  Auth::id()
      ])->save();
 
    
@@ -438,13 +438,13 @@ public function show_payment(string $uuid)
     $ticketId = $ticket->id;
 
 
-        if ($ticket->REMARKS === 'PAID') {
+        if ($ticket->remarks === 'PAID') {
         return redirect()->route('parkout');
     }
 
     $scannedCards = session()->get("scanned_cards.$ticketId", []);
 
-    $remainingFee = $ticket->PARKFEE;
+    $remainingFee = $ticket->park_fee;
     $totalCovered = 0;
     $processedCards = [];
 
@@ -502,28 +502,28 @@ public function submit_payment(Request $request)
     $ticket  = Ticket::findOrFail($request->ticket_id);
     $company = Company::find(1);
 
-    if ($ticket->REMARKS === 'PAID') {
+    if ($ticket->remarks === 'PAID') {
         return redirect()->route('parkin.index')
                          ->with(['error' => 'This ticket has already been paid']);
     }
 
     $cards       = $data['cards'] ?? [];
     $totalPaid   = 0;
-    $amountToPay = $ticket->PARKFEE ?? 0;
+    $amountToPay = $ticket->park_fee ?? 0;
     $payment     = null;
 
     try {
         DB::transaction(function () use ($ticket, $cards, $data, &$payment, &$totalPaid, &$amountToPay, $request) {
 
             // Determine payment method
-            $ticket->REMARKS = 'Paid';
+            $ticket->remarks = 'Paid';
             $ticket->mode_of_payment = count($cards) ? 'card' : 'cash';
             $ticket->save();
 
             // Create payment header
             $payment = Payment::create([
                 'ticket_id'      => $ticket->id,
-                'ticket_no'      => $ticket->TICKETNO,
+                'ticket_no'      => $ticket->ticket_no,
                 'days_deducted'  => $ticket->days_parked ?? 0,
                 'payment_type'   => 'ticket',
                 'payment_method' => $ticket->mode_of_payment,

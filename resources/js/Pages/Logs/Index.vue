@@ -76,8 +76,8 @@
         >Void</v-btn>
       </template>
 
-      <template v-slot:item.PARKOUTDATETIME = "{ item}">
-           {{ item.PARKOUTDATETIME ? item.PARKOUTDATETIME : '-' }}
+      <template v-slot:item.park_out_datetime = "{ item}">
+           {{ item.park_out_datetime ? item.park_out_datetime : '-' }}
       </template>
 
 
@@ -126,12 +126,12 @@ const selectedType = ref('PARK-IN')
 
 
 const headers = [
-  { key: 'TICKETNO', title: 'Ticket No' },
-  { key: 'PLATENO', title: 'Plate No' },
-  { key: 'PARKDATETIME', title: 'Park Date/Time' },
-  { key: 'PARKOUTDATETIME', title: 'Park out Date/Time' },
-  {key: 'REMARKS', title:'Remarks'},
-  { key: 'ACTION', title: 'Action'}
+  { key: 'ticket_no', title: 'Ticket No' },
+  { key: 'plate_no', title: 'Plate No' },
+  { key: 'park_datetime', title: 'Park Date/Time' },
+  { key: 'park_out_datetime', title: 'Park out Date/Time' },
+  {key: 'remarks', title:'Remarks'},
+  { key: 'action', title: 'Action'}
 
 ]
 
@@ -144,8 +144,8 @@ const types = [
 function formatTickets(tickets) {
   return tickets.map((ticket) => ({
     ...ticket,
-    PARKDATETIME: formatDate(ticket.PARKDATETIME),
-    PARKOUTDATETIME:formatDate(ticket.PARKOUTDATETIME)
+    park_datetime: formatDate(ticket.park_datetime),
+    park_out_datetime:formatDate(ticket.park_out_datetime)
   }));
 }
 

@@ -21,12 +21,12 @@
         Park in: {{ formatDate(ticket.data.park_datetime) }} <span>{{ parkinTime }}</span>
       </v-card-text>
       <v-card-text class="py-1 px-2">
-        Park out: {{ formatDate(ticket.data.parkout_datetime) }}  <span>{{ parkoutTime }}</span>
+        Park out: {{ formatDate(ticket.data.park_out_datetime) }}  <span>{{ parkoutTime }}</span>
       </v-card-text>
-      <v-card-text v-if="ticket.data.days_parked !== null" class="py-1 px-2">
+            <v-card-text v-if=" ticket.data.days_parked !== 0 "class="py-1 px-2">
         No of Days: {{ ticket.data.days_parked }}
       </v-card-text>
-      <v-card-text v-if="hoursPark !== null" class="py-1 px-2">
+      <v-card-text v-if="hoursPark !== 0" class="py-1 px-2">
         No of Hours: {{ hoursPark }}
       </v-card-text>
       <v-card-text class="py-1 px-2">
@@ -133,8 +133,8 @@ const parkinTime = computed(() => {
     : null
 })
 const parkoutTime = computed(() => {
-  return props.ticket.data.parkout_datetime
-    ? dayjs(props.ticket.data.parkout_datetime).format("hh:mm A") 
+  return props.ticket.data.park_out_datetime
+    ? dayjs(props.ticket.data.park_out_datetime).format("hh:mm A") 
     : null
 })
 

@@ -40,7 +40,7 @@
               <v-text-field   
               v-model="filters.cardNumber"
                prepend-inner-icon="mdi-magnify"
-                label="Card number"
+                label="Search card number"
                 density="compact"
                 hideDetails="auto"
                 variant="outlined"

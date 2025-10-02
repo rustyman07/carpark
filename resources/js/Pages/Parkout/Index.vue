@@ -19,16 +19,16 @@
             <!-- Show input if no ticket -->
          <v-container   max-width ="450">
              <v-text-field
-            v-model="form.PLATENO"
+            v-model="form.plate_no"
             placeholder="Enter Plate No." 
             variant="underlined"
-            :error-messages="form.errors.PLATENO"
-            @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
+            :error-messages="form.errors.plate_no"
+            @input="form.plate_no = form.plate_no.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
             class="text-center-input "
             />
 
         <v-btn
-          :disabled="form.processing ||!form.PLATENO"
+          :disabled="form.processing ||!form.plate_no"
             size="x-large"
             @click="submitPlate"
             block
@@ -72,13 +72,13 @@ const formatDate = (date) => dayjs(date).format("MM/DD/YYYY")
 const formatFee = (fee) => `${Number(fee).toFixed(2)} PHP`
 
 const form = useForm({
-  PLATENO: "",
-  PARKOUTYEAR: now.year(),
-  PARKOUTMONTH: now.month() + 1,
-  PARKOUTDAY: now.date(),
-  PARKOUTHOUR: now.hour(),
-  PARKOUTMINUTE: now.minute(),
-  PARKOUTSECOND: now.second(),
+  plate_no: "",
+  park_out_year: now.year(),
+  park_out_month: now.month() + 1,
+  park_out_day: now.date(),
+  park_out_hour: now.hour(),
+  park_out_minute: now.minute(),
+  park_out_second: now.second(),
 })
 
 
@@ -96,7 +96,7 @@ const submitPlate = () => {
   form.post(route('parkout.submit'), {
     onSuccess: () => form.reset(),
     onError: (errors) => {
-      if (errors.PLATENO) {
+      if (errors.plate_no) {
 
         
  

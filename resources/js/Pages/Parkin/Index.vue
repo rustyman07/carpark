@@ -6,16 +6,16 @@
 
         <v-container   max-width ="450">
             <v-text-field
-            v-model="form.PLATENO"
+            v-model="form.plate_no"
             placeholder="Enter Plate No." 
             variant="underlined"
-            :error-messages="form.errors.PLATENO"
-            @input="form.PLATENO = form.PLATENO.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
+            :error-messages="form.errors.plate_no"
+            @input="form.plate_no = form.plate_no.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()"
             class="text-center-input "
             />
             
             <v-layout class="d-flex flex-column ga-2">
-                <v-btn size="x-large" @click="createTicket" block color="blue-darken-4"   :disabled="form.processing || !form.PLATENO">
+                <v-btn size="x-large" @click="createTicket" block color="blue-darken-4"   :disabled="form.processing || !form.plate_no">
                     New Ticket
                 </v-btn>
                 <v-layout class="d-flex ga-2 align-center">
@@ -74,31 +74,31 @@ onUnmounted(() => {
 
 // Use useForm to manage form state and submission
 const form = useForm({
-  PLATENO: '',
-  PARKYEAR: '',
-  PARKMONTH: '',
-  PARKDAY: '',
-  PARKHOUR: '',
-  PARKMINUTE: '',
-  PARKSECOND: '',
+  plate_no: '',
+  park_year: '',
+  park_month: '',
+  park_day: '',
+  park_hour: '',
+  park_minute: '',
+  park_second: '',
 });
 
 // Function to create ticket
 const createTicket = () => {
   // Get current timestamp and populate form fields
   const now = dayjs();
-  form.PARKYEAR = now.year();
-  form.PARKMONTH = now.month() + 1;
-  form.PARKDAY = now.date();
-  form.PARKHOUR = now.hour();
-  form.PARKMINUTE = now.minute();
-  form.PARKSECOND = now.second();
+  form.park_year = now.year();
+  form.park_month = now.month() + 1;
+  form.park_day = now.date();
+  form.park_hour = now.hour();
+  form.park_minute = now.minute();
+  form.park_second = now.second();
 
   // Submit the form
   form.post(route('parkin.store'), {
     onSuccess: () => {
       // Reset the plate number input after a successful submission
-      form.reset('PLATENO');
+      form.reset('plate_no');
     },
     onError: () => {
       // You can handle errors here, if any
