@@ -16,32 +16,37 @@ use Illuminate\Http\Request;
 class CardInventoryController extends Controller
 {
     //
-  public function index(Request $request)
-    {
+public function index(Request $request)
+{
+    $dateFrom    = $request->input('dateFrom');
+    $dateTo      = $request->input('dateTo');
+    $cardNumber  = $request->input('card_number');
 
-        $dateFrom = $request->input('dateFrom');
-        $dateTo   = $request->input('dateTo');
+    $cardTemplate = CardTemplate::where('cancelled', 0)->get();
 
+    $cardDetailQuery = CardInventoryDetail::where('cancelled', 0)
+        ->orderBy('created_at', 'desc');
 
-        $cardTemplate = CardTemplate::where('cancelled', 0)->get();
-           $cardDetailQuery = CardInventoryDetail::where('cancelled', 0)
-        ->orderBy('created_at', 'desc'); // order by latest first
-
-
-        if ($dateFrom && $dateTo) {
-            $cardDetailQuery->whereDate('created_at', '>=', $dateFrom)
-                            ->whereDate('created_at', '<=', $dateTo);
-        } else {
-            // If no dates are provided, show data for the last 30 days by default.
-            $cardDetailQuery->whereDate('created_at', '>=', now()->subDays(30)->toDateString())
-                            ->whereDate('created_at', '<=', now()->toDateString());
-        }
-
-        return inertia('CardInventory/Index', [
-            'cardTemplate' => $cardTemplate,
-            'cardDetail'   => $cardDetailQuery->paginate(10)->withQueryString()
-        ]);
+    // ✅ Add search by card number
+    if (!empty($cardNumber)) {
+        $cardDetailQuery->where('card_number', 'like', '%' . $cardNumber . '%');
     }
+
+    // ✅ Date range filter
+    if ($dateFrom && $dateTo) {
+        $cardDetailQuery->whereDate('created_at', '>=', $dateFrom)
+                        ->whereDate('created_at', '<=', $dateTo);
+    } else {
+        $cardDetailQuery->whereDate('created_at', '>=', now()->subDays(30)->toDateString())
+                        ->whereDate('created_at', '<=', now()->toDateString());
+    }
+
+    return inertia('CardInventory/Index', [
+        'cardTemplate' => $cardTemplate,
+        'cardDetail'   => $cardDetailQuery->paginate(10)->withQueryString()
+    ]);
+}
+
 
  public function store(Request $request)
     {
@@ -294,10 +299,8 @@ public function transactions($card_id)
         ->with([
             'payment.ticket' => function ($query) {
                 $query->select('id', 'PLATENO', 'TICKETNO');
-            },
-            'cardInventory' => function ($query) {   // 👈 include card detail
-                $query->select('id', 'balance', 'card_number', 'card_name'); // pick fields you need
             }
+            
         ])
         ->get();
 

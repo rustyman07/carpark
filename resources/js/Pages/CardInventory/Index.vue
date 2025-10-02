@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <div class="d-flex justify-end mb-4">
-      <v-btn color="success" @click="addCard">
+      <v-btn color="success"  @click="addCard">
         Generate Card
       </v-btn>
     </div>
@@ -35,40 +35,53 @@
         @update:page="goToPage"
       >
         <template v-slot:top>
-          <v-row class="pa-2" justify="end">
-            <v-col cols="12" sm="4" md="2">
-              <v-date-input
-                v-model="filters.startDate"
-                      prepend-icon=""
-      prepend-inner-icon="$calendar"
-                label="Start Date"
+          <v-row class="pa-2" justify="between">
+            <v-col cols="6" sm="3" md="3">
+              <v-text-field   
+              v-model="filters.cardNumber"
+               prepend-inner-icon="mdi-magnify"
+                label="Card number"
                 density="compact"
                 hideDetails="auto"
-                variant="underlined"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="4" md="2">
-              <v-date-input
-                v-model="filters.endDate"
-                 prepend-icon=""
-                prepend-inner-icon="$calendar"
-                label="End Date"
-                density="compact"
-                hideDetails="auto"
-                variant="underlined"
-              />
-            </v-col>
-
-            <v-col cols="12" sm="4" md="1">
-              <v-btn
-                 size="small"
-                color="primary"
-                @click="applyDateFilter"
-                prepend-icon="mdi-magnify"
+                variant="outlined"
               >
-                Filter
-              </v-btn>
+              </v-text-field>
+            </v-col>
+            <v-col cols="6">
+                <v-row>
+                    <v-col cols="4" sm="4" md="4">
+                    <v-date-input
+                        v-model="filters.startDate"
+                            prepend-icon=""
+                        prepend-inner-icon="$calendar"
+                        label="Start Date"
+                        density="compact"
+                        hideDetails="auto"
+                        variant="underlined"
+                    />
+                    </v-col>
+                    <v-col cols="4" sm="4" md="4">
+                    <v-date-input
+                        v-model="filters.endDate"
+                        prepend-icon=""
+                        prepend-inner-icon="$calendar"
+                        label="End Date"
+                        density="compact"
+                        hideDetails="auto"
+                        variant="underlined"
+                    />
+                    </v-col>
+
+                    <v-col cols="4" sm="4" md="4">
+                    <v-btn
+                        color="primary"
+                        @click="applyDateFilter"
+                        prepend-icon="mdi-magnify"
+                    >
+                        Filter
+                    </v-btn>
+                    </v-col>
+                </v-row>
             </v-col>
           </v-row>
         </template>
@@ -128,20 +141,92 @@
             size="small"
             @click="downloadQRCode(item)"
           ></v-btn>
-        </template>
+        </template> 
+
+        <!-- Hidden download card template -->
+<!-- 
+  <template v-slot:bottom>
+    <v-divider></v-divider>
+    <v-row class="px-4 py-2" justify="end">
+      <v-col cols="auto" class="text-right font-weight-bold">
+        Total Amount: {{ formatCurrency(totalAmount) }}
+      </v-col>
+    </v-row>
+  </template> -->
+<template v-slot:body.append>
+  <tr class=" bg-gray-200">
+    <td  class="text-left font-weight-bold">Total:</td>
+    <td  ></td>
+    <td class="font-semibold">{{ formatCurrency(totalPrice) }}</td>
+     <td class="font-semibold" >{{ formatCurrency(totalDiscount) }}</td>
+    <td class="font-semibold">{{ formatCurrency(totalAmount) }}</td>
+    <td class="font-semibold">{{ formatCurrency(totalBalance) }}</td>
+    <td  ></td>
+     <td  ></td>
+    <td  ></td>
+     <td  ></td>
+  </tr>
+</template>
+
+
       </v-data-table-server>
     </v-card>
+
+    <div
+  v-if="cardToDownload"
+  id="download-card"
+  class="absolute -top-[9999px] -left-[9999px] w-[300px] bg-white text-center rounded-xl shadow-lg p-6 flex flex-col items-center space-y-3 border border-gray-200"
+>
+  <h3 class="text-xl font-semibold text-gray-800">
+    {{ cardToDownload.card_number }}
+  </h3>
+
+  <img
+    :src="qrCodeMap[cardToDownload.id]"
+    alt="QR"
+    class="w-36 h-36 my-2"
+  />
+
+  <div class="text-left w-full space-y-1">
+    <p class="text-gray-700 text-sm">
+      <span class="font-bold">Amount:</span> {{ formatCurrency(cardToDownload.amount) }}
+    </p>
+    <p class="text-gray-700 text-sm">
+      <span class="font-bold">Balance:</span> {{ formatCurrency(cardToDownload.balance) }}
+    </p>
+    <p
+      class="text-sm font-bold"
+      :class="{
+        'text-green-600': cardToDownload.status === 'AVAILABLE',
+        'text-red-600': cardToDownload.status === 'CONSUMED',
+        'text-yellow-600': cardToDownload.status === 'PENDING'
+      }"
+    >
+      Status: {{ cardToDownload.status }}
+    </p>
+  </div>
+
+  <p class="text-xs text-gray-400 mt-4">
+    Generated: {{ formatDate(cardToDownload.created_at) }}
+  </p>
+</div>
+
   </v-container>
+
+  
+
+   
 </template>
 
 <script setup>
-import { ref, computed, watch ,reactive} from 'vue';
+import { ref, computed, watch ,reactive,nextTick} from 'vue';
 import dayjs from 'dayjs';
 import Create from './Create.vue';
 import { usePage, router } from '@inertiajs/vue3';
 import QRCode from 'qrcode';
 import { formatCurrency } from '../../utils/utility';
 import Transactions from './Transactions.vue';
+import html2canvas from 'html2canvas';
 
 
 
@@ -151,7 +236,7 @@ const showLoadingDialog = ref(false);
 const showTransactionsDialog = ref(false);
 const sellCardPassinfo = reactive({});
 const selectedCard = ref({});
-
+const cardToDownload = ref(null);
 
 const progress = ref(0);
 
@@ -180,9 +265,10 @@ const cardDetail = computed(() => page.props.cardDetail);
 
 // Date filters
 const filters = ref({
-  // v-date-input returns a Date object, so we'll use null as the initial value.
+
+  cardNumber : '',
   startDate: new Date(),
-  endDate: new Date(),
+ endDate: new Date(),
 });
 
 const sell_card_info = ()=>{
@@ -190,12 +276,32 @@ const sell_card_info = ()=>{
 
 }
 
-// ✅ Local page ref so Vuetify can update it
 const pageNumber = ref(cardDetail.value.current_page);
 
 const itemsPerPage = ref(cardDetail.value.per_page);
 
-// Keep pageNumber in sync when Laravel paginator updates
+const totalAmount = computed(() => {
+  if (!cardDetail.value?.data) return 0
+  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.amount || 0), 0)
+})
+
+const totalBalance = computed(() => {
+  if (!cardDetail.value?.data) return 0
+  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.balance || 0), 0)
+})
+
+const totalPrice = computed(() => {
+  if (!cardDetail.value?.data) return 0
+  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.price || 0), 0)
+})
+
+const totalDiscount = computed(() => {
+  if (!cardDetail.value?.data) return 0
+  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.discount || 0), 0)
+})
+
+
+
 watch(cardDetail, (newVal) => {
   if (newVal) {
     pageNumber.value = newVal.current_page;
@@ -205,7 +311,7 @@ watch(cardDetail, (newVal) => {
 // QR code map
 const qrCodeMap = ref({});
 
-// Watch cardDetail for changes and generate QR codes
+
 watch(
   cardDetail,
   async (newCards) => {
@@ -223,7 +329,7 @@ watch(
 );
 
 const applyDateFilter = () => {
-  // Format the dates to a string that Laravel's backend can understand
+
   const formattedStartDate = filters.value.startDate
     ? dayjs(filters.value.startDate).format('YYYY-MM-DD')
     : null;
@@ -234,6 +340,7 @@ const applyDateFilter = () => {
   router.get(
     route('card-inventory.index'),
     {
+        card_number: filters.value.cardNumber,
       dateFrom: formattedStartDate,
       dateTo: formattedEndDate,
       page: 1, // reset to first page when filtering
@@ -254,23 +361,61 @@ const addCard = () => {
 const goToPage = (pageNumber) => {
   router.get(
     route('card-inventory.index'),
-    { page: pageNumber },
-    { preserveState: true }
+    { 
+      page: pageNumber,
+    //   card_number: filters.value.cardNumber,
+    //   dateFrom: dayjs(filters.value.startDate).format('YYYY-MM-DD'),
+    //   dateTo: dayjs(filters.value.endDate).format('YYYY-MM-DD'),
+    },
+    { preserveState: true, replace: true }
   );
 };
+// const downloadQRCode = (item) => {
+//   const qrDataUrl = qrCodeMap.value[item.id];
+//   if (!qrDataUrl) return;
 
-const downloadQRCode = (item) => {
-  const qrDataUrl = qrCodeMap.value[item.id];
-  if (!qrDataUrl) return;
+//   const link = document.createElement('a');
+//   link.href = qrDataUrl;
+//   link.download = `${item.card_name || 'qrcode'}-${item.id}.png`;
+//   document.body.appendChild(link);
+//   link.click();
+//   document.body.removeChild(link);
+// };
 
-  const link = document.createElement('a');
-  link.href = qrDataUrl;
-  link.download = `${item.card_name || 'qrcode'}-${item.id}.png`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+
+const downloadQRCode = async (item) => {
+  cardToDownload.value = item;
+
+  // wait for the hidden card to render
+  await nextTick();
+
+  const cardElement = document.getElementById('download-card');
+  if (!cardElement) {
+    console.error('❌ Card element not found');
+    return;
+  }
+
+  try {
+    const canvas = await html2canvas(cardElement, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true, // very important if QR image is a DataURL or external
+    });
+
+    const imageURL = canvas.toDataURL('image/png');
+
+    const link = document.createElement('a');
+    link.href = imageURL;
+    link.download = `${item.card_number || 'card'}-${item.id}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    cardToDownload.value = null;
+  } catch (err) {
+    console.error('⚠️ Failed to download card:', err);
+  }
 };
-
 
 const viewTransactions = (item)=>{
 
@@ -287,3 +432,17 @@ const viewTransactions = (item)=>{
 
 }
 </script>
+
+<!-- <style scoped>
+:deep(.v-data-table table) {
+  border-collapse: separate !important;
+  border-spacing: 0 12px; /* horizontal vertical */
+}
+
+:deep(.v-data-table tbody tr) {
+    margin-bottom: 5px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 10px 10px rgba(0,0,0,0.06);
+}
+</style> -->

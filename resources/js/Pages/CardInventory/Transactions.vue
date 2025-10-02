@@ -43,28 +43,28 @@
               {{ date }}
             </div>
 
-            <div class =" mb-2 bg-white flex justify-between text-xs md:text-sm  shadow-md rounded-sm p-2" v-for="t in dayTransactions" >
-       <div class="flex gap-2">
-                 <v-avatar color="grey-lighten-4" size="40">
-                    <v-icon color="grey-darken-1" size="24">mdi-car</v-icon>
-                  </v-avatar>
-            <div class="flex flex-col flex-1">
-                <div>
-                    <span class="text-gray-500">Plate No: </span>
-                    <span class=" text-blue-500">{{t.payment?.ticket?.PLATENO  }}</span>
+            <div class =" mb-2  bg-white flex justify-between text-xs md:text-sm  shadow-md rounded-md p-2" v-for="t in dayTransactions" >
+               <div class="flex p-1  gap-2">
+                            <v-avatar color="grey-lighten-4" size="40">
+                                <v-icon color="grey-darken-1" size="24">mdi-car</v-icon>
+                            </v-avatar>
+                        <div class="flex flex-col flex-1">
+                            <div>
+                                <span class="text-gray-500">Plate No: </span>
+                                <span class=" text-blue-400 font-bold">{{t.payment?.ticket?.PLATENO  }}</span>
+                            </div>
+                        <div>
+                            <span class="text-gray-500">Ticket No:</span>
+                            <span class="text-gray-500">{{t.payment?.ticket?.TICKETNO  }}</span>
+                        </div>
+
+                        </div>
+                    
+
                 </div>
-            <div>
-                 <span class="text-gray-500">Ticket No:</span>
-                <span class="text-gray-500">{{t.payment?.ticket?.TICKETNO  }}</span>
-            </div>
-
-            </div>
-         
-
-       </div>
-            <div class="flex flex-col justify-center">
-                <span class=" text-sm text-red-600 font-semibold">-{{ t.amount }}</span>
-            </div>
+                        <div class="flex flex-col justify-center">
+                            <span class=" text-sm text-red-600 font-semibold">-{{ t.amount }}</span>
+                        </div>
       
             </div>
 
