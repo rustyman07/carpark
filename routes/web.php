@@ -6,6 +6,7 @@ use App\Http\Controllers\CardInventoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SalesPersonController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -29,7 +30,8 @@ use Inertia\Inertia;
 // --- Your custom routes ---
 // Protect all business routes behind authentication
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', fn () => Inertia::render('Home/Index'))->name('home');
+
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('logs', [TicketController::class, 'showLogs'])->name('logs');
     Route::delete('logs/{id}', [TicketController::class, 'destroy'])->name('logs.delete');
 

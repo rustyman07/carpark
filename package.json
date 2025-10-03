@@ -22,6 +22,7 @@
         "@inertiajs/inertia": "^0.11.1",
         "@inertiajs/vue3": "^2.1.2",
         "@mdi/font": "^7.4.47",
+        "apexcharts": "^5.3.5",
         "dayjs": "^1.11.13",
         "html2canvas": "^1.4.1",
         "html2pdf.js": "^0.12.0",
@@ -33,6 +34,7 @@
         "sass": "^1.90.0",
         "sass-loader": "^13.0.2",
         "vue-currency-input": "^3.2.1",
+        "vue3-apexcharts": "^1.8.0",
         "vuetify": "^3.9.5",
         "ziggy-js": "^2.5.3"
     }

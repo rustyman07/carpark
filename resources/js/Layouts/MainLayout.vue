@@ -92,7 +92,7 @@ const props = defineProps({
 })
 
 const items = [
-  { title: 'Home', value: 'home', route: 'home', icon: 'mdi-home' },
+  { title: 'Dashboard', value: 'dashboard', route: 'dashboard', icon: 'mdi-home' },
   { title: 'Park In', value: 'park_in', route: 'parkin.index', icon: 'mdi-parking' },
   { title: 'Park Out', value: 'park_out', route: 'parkout', icon: 'mdi-car-key' },
   { title: 'Card Template', route: 'card-template.index', value: 'card_template', icon: 'mdi-list-box-outline' },

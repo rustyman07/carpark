@@ -12,6 +12,7 @@ import { ZiggyVue } from "ziggy-js";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import "@mdi/font/css/materialdesignicons.css";
 import { VDateInput } from "vuetify/labs/VDateInput";
+import VueApexCharts from "vue3-apexcharts";
 
 import MainLayout from "@/Layouts/MainLayout.vue";
 
@@ -43,10 +44,7 @@ createInertiaApp({
         const app = createApp({ render: () => h(App, props) });
 
         // ✅ Use dynamic routes via @routes in Blade, no static import
-        app.use(plugin)
-           .use(ZiggyVue)
-           .use(vuetify)
-           .mount(el);
+        app.use(plugin).use(ZiggyVue).use(vuetify).use(VueApexCharts).mount(el);
 
         return app;
     },
