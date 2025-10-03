@@ -87,10 +87,13 @@
                 </ul>
             </div>
 
-            <div class="flex justify-between py-1  ">
-                <span  class=" w-25" >Amount</span>
-                <span class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.amount) }}</span>
+            <div v-if="props.payment.amount !== 0" class="flex justify-between py-1">
+            <span class="w-25">Amount</span>
+            <span class="ml-2 font-medium text-sm">
+                {{ formatCurrency(props.payment.amount) }}
+            </span>
             </div>
+
               <div class="flex justify-between py-1">
                 <span class="font-semibold" >Total Amount</span>
                 <span class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.total_amount) }}</span>
@@ -151,13 +154,14 @@ const props = defineProps({
     default: null,
   },
   company:  Object,
-  amount: Number,
   details: Array,
   payment: Object,
 
 })
 
 const page = usePage();
+
+console.log(props.payment)
 
 
 
@@ -200,24 +204,24 @@ const parkinTime = computed(() => {
 
 // Format exit time
 const parkoutDate = computed(() => {
-  return props.ticket?.parkout_datetime 
-    ? dayjs(props.ticket.parkout_datetime).format("MM/DD/YYYY")
+  return props.ticket?.park_out_datetime 
+    ? dayjs(props.ticket.park_out_datetime).format("MM/DD/YYYY")
     : null
 })
 
 const parkoutTime = computed(() => {
-  return props.ticket?.parkout_datetime
-    ? dayjs(props.ticket.parkout_datetime).format("hh:mm A") 
+  return props.ticket?.park_out_datetime
+    ? dayjs(props.ticket.park_out_datetime).format("hh:mm A") 
     : null
 })
 
 
 
 const duration = computed(() => {
-  if (!props.ticket?.park_datetime || !props.ticket?.parkout_datetime) return null
+  if (!props.ticket?.park_datetime || !props.ticket?.park_out_datetime) return null
 
 const start = dayjs(props.ticket.park_datetime).startOf('minute')
-const end = dayjs(props.ticket.parkout_datetime).startOf('minute')
+const end = dayjs(props.ticket.park_out_datetime).startOf('minute')
 
 
 

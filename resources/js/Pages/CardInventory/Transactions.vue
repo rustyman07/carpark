@@ -51,11 +51,11 @@
                         <div class="flex flex-col flex-1">
                             <div>
                                 <span class="text-gray-500">Plate No: </span>
-                                <span class=" text-blue-400 font-bold">{{t.payment?.ticket?.PLATENO  }}</span>
+                                <span class=" text-blue-400 font-bold">{{t.payment?.ticket?.plate_no  }}</span>
                             </div>
                         <div>
                             <span class="text-gray-500">Ticket No:</span>
-                            <span class="text-gray-500">{{t.payment?.ticket?.TICKETNO  }}</span>
+                            <span class="text-gray-500">{{t.payment?.ticket?.ticket_no  }}</span>
                         </div>
 
                         </div>
@@ -81,7 +81,7 @@
 
                 <v-list-item-title class="font-weight-medium text-body-2">
                   <span class="text-medium-emphasis">Plate No:</span>
-                  <span class="text-primary font-weight-regular ms-1">{{ t.payment?.ticket?.PLATENO }}</span>
+                  <span class="text-primary font-weight-regular ms-1">{{ t.payment?.ticket?.plate_no }}</span>
                 </v-list-item-title>
 
                 <v-list-item-subtitle class="text-caption mt-1 text-medium-emphasis">

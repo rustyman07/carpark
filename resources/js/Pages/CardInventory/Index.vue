@@ -105,9 +105,9 @@
         <template v-slot:item.status="{ item }">
         <span
             :class="
-            item.status === 'AVAILABLE'
+            item.status === 'Available'
                 ? 'bg-green-lighten-5 text-green-darken-1 pa-1'
-                : item.status === 'CONSUMED'
+                : item.status === 'Consumed'
                 ? 'bg-red-lighten-5 text-red-darken-1 pa-1'
                 : 'bg-yellow-lighten-5 text-yellow-darken-4 pa-1'
             "
@@ -197,9 +197,9 @@
     <p
       class="text-sm font-bold"
       :class="{
-        'text-green-600': cardToDownload.status === 'AVAILABLE',
-        'text-red-600': cardToDownload.status === 'CONSUMED',
-        'text-yellow-600': cardToDownload.status === 'PENDING'
+        'text-green-600': cardToDownload.status === 'Available',
+        'text-red-600': cardToDownload.status === 'Consumed',
+        'text-yellow-600': cardToDownload.status === 'Pending'
       }"
     >
       Status: {{ cardToDownload.status }}

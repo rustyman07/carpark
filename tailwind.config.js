@@ -11,7 +11,9 @@ module.exports = {
     preflight: false,      // ✅ don’t override Vuetify’s reset
   },
   theme: {
-    extend: {},
+    extend: {
+
+    },
   },
   plugins: [],
 }

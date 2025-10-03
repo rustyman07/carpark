@@ -26,7 +26,7 @@ class TicketResource extends JsonResource
             'park_out_datetime' => $this->park_out_datetime,
             'remarks' => $this->remarks,
             'mode_of_payment' => $this->mode_of_payment,
-            'park_fee' => $this->PARKFEE,
+            'park_fee' => $this->park_fee,
         ];
     }
 }

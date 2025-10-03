@@ -502,7 +502,7 @@ public function submit_payment(Request $request)
     $ticket  = Ticket::findOrFail($request->ticket_id);
     $company = Company::find(1);
 
-    if ($ticket->remarks === 'PAID') {
+    if ($ticket->remarks === 'Paid') {
         return redirect()->route('parkin.index')
                          ->with(['error' => 'This ticket has already been paid']);
     }
@@ -540,7 +540,7 @@ public function submit_payment(Request $request)
                 $deduct = min($cardInventory->balance, $amountToPay);
                 $cardInventory->balance -= $deduct;
                 if ($cardInventory->balance <= 0) {
-                    $cardInventory->status = 'CONSUMED';
+                    $cardInventory->status = 'Consumed';
                 }
                 $cardInventory->save();
 
@@ -567,7 +567,8 @@ public function submit_payment(Request $request)
                     throw new \Exception('Insufficient Amount.');
                 }
 
-                $payment->details()->create([
+                if ($cards){
+                            $payment->details()->create([
                     'card_id'     => null,
                     'card_number' => null,
                     'qr_code'     => null,
@@ -577,6 +578,9 @@ public function submit_payment(Request $request)
                     'discount'    => 0,
                     'no_of_days'  => 0,
                 ]);
+
+                }
+        
             }
 
             $change = ($data['cash_amount'] ?? 0) - $amountToPay;
@@ -628,7 +632,6 @@ public function submit_payment(Request $request)
             'ticket' => (new TicketResource($ticket))->resolve(),
             'payment' => $payment,
             'company' => $company,
-            'amount'  => $payment?->amount ?? 0.00,
             'details' => $details
             
         ]);

@@ -10,6 +10,7 @@ class Payment extends Model
 {
     protected $fillable = [
         'ticket_id',
+         'customer',
         'amount',
         'total_amount',
         'change',
@@ -22,6 +23,12 @@ class Payment extends Model
 
     protected $casts = [
         'paid_at' => 'datetime',
+        'amount' => 'float',
+        'total_amount' => 'float',
+        'change' => 'float',
+        'balance' => 'float',
+        'days_deducted' => 'integer',
+        
     ];
 
     // Relationships

@@ -92,7 +92,7 @@ public function index(Request $request)
                     'card_template_id'=> $data['card_template_id'],
                     'card_number'  => $card_number,
                     'qr_code_hash' => $hashedCode,
-                    'status'       => 'AVAILABLE',
+                    'status'       => 'Available',
                     'card_name'    =>$data['card_name'],
                     'no_of_days'   =>  $data['no_of_days'],
                     'price'        =>  $data['price'],
@@ -151,10 +151,10 @@ public function scan_qr_cards(Request $request)
 {
     if ($request->is_sell_card) {
         $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)
-            ->where('status', 'AVAILABLE')
+            ->where('status', 'Available')
             ->first();
     } else {
-        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->where('status', 'SOLD')->first();
+        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->where('status', 'Sold')->first();
     }
 
     // ❌ Invalid QR
@@ -222,31 +222,32 @@ return Inertia::render('SellCards/Create', [
 public function sell_card_payment(Request $request)
 {
     $data = $request->validate([
+        'customer'      => 'required|string',
         'cash_amount' => 'required|numeric',
         'cards'       => 'nullable|array',
         'cards.*'     => 'integer|exists:card_inventory_details,id',
     ]);
 
-    // ✅ Step 1: Deduplicate cards array
+    //  Deduplicate cards array
     $cards = array_unique($data['cards'] ?? []);
 
     if (empty($cards)) {
         return back()->withErrors(['cards' => 'Please select or scan a card']);
     }
 
-    // ✅ Step 2: Only allow cards not already sold
+    //  Only allow cards not already sold
     $validCards = CardInventoryDetail::whereIn('id', $cards)
-        ->where('status', '!=', 'SOLD')
+        ->where('status', '!=', 'Sold')
         ->get();
 
     if ($validCards->count() !== count($cards)) {
         return back()->withErrors(['cards' => 'Some cards are invalid or already sold.']);
     }
 
-    // ✅ Step 3: Calculate total price
+    //  Calculate total price
     $total_amount = $validCards->sum('price');
 
-    // ✅ Step 4: Check cash amount
+    //  Check cash amount
     if (!empty($data['cash_amount']) && $total_amount > $data['cash_amount']) {
         return back()->withErrors(['cash_amount' => 'Insufficient cash amount']);
     }
@@ -260,15 +261,17 @@ public function sell_card_payment(Request $request)
             $payment = Payment::create([
                 'total_amount'  => $total_amount,
                 'amount'        => $cash,
+                'customer'       => $data['customer'],
                 'change'        => $change,
-                'status'        => 'paid',
-                'payment_type'  => 'CARD',
+                'status'        => 'Paid',
+                'payment_type'  => 'Card',
+
                 'paid_at'       => now(),
             ]);
 
             foreach ($validCards as $cardInventory) {
                 // Update card status
-                $cardInventory->status = 'SOLD';
+                $cardInventory->status = 'Sold';
                 $cardInventory->save();
 
                 // Create payment detail
@@ -298,7 +301,7 @@ public function transactions($card_id)
         ->whereHas('payment.ticket') // Only include if payment has a ticket
         ->with([
             'payment.ticket' => function ($query) {
-                $query->select('id', 'PLATENO', 'TICKETNO');
+                $query->select('id', 'plate_no', 'ticket_no');
             }
             
         ])

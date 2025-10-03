@@ -15,7 +15,7 @@ class ApiController extends Controller
 
         $cards = CardInventoryDetail::where('card_number', 'like', "%{$query}%")
                     ->where('status','AVAILABLE')
-                    ->limit(10)
+                    ->limit(50)
                     ->get(['id', 'card_number','card_name','price']); // return only what you need
 
         return response()->json($cards);

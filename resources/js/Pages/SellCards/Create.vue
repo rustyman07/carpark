@@ -2,7 +2,7 @@
   <QrScanner v-model="isScanQR" :closeScanner="closeScanner" />
 
   <v-container class="d-flex justify-center align-center fill-height">
-    <v-card class="pa-6" max-width="480" elevation="1" rounded="lg">
+    <v-card class="pa-6"  max-width="480" width="400" elevation="1" rounded="lg">
 
       <!-- Autocomplete -->
 <v-autocomplete
@@ -34,23 +34,40 @@
 
 
       <!-- Scanned Cards -->
-      <div v-if="cards.length" class="mb-4">
-        <v-card
-          v-for="card in cards"
-          :key="card.id"
-          variant="outlined"
-          class="pa-3 mb-2 d-flex align-center justify-space-between"
-        >
-          <div class="d-flex align-center">
-            <v-icon color="blue-darken-3" size="28" class="mr-3">mdi-credit-card</v-icon>
-            <div>
-              <div class="text-body-2 font-weight-medium">{{ card.card_number }}</div>
-              <div class="text-caption text-grey">{{ card.card_name }}</div>
-            </div>
-          </div>
-          <div class="text-body-2 font-weight-bold">{{ card.price }}</div>
-        </v-card>
+<div v-if="cards.length" class="mb-4">
+  <div
+    v-for="card in cards"
+    :key="card.id"
+    class="pa-3 border mb-2 d-flex align-center justify-space-between"
+    style="position: relative;"            
+  >
+    <!-- Left -->
+    <div class="flex align-center">
+      <div class="flex justify-center items-center mr-3">
+        <v-icon size="28">mdi-qrcode</v-icon>
       </div>
+      <div>
+        <div class="text-sm font-weight-medium">{{ card.card_number }}</div>
+        <div class="text-caption text-grey">{{ card.card_name }}</div>
+      </div>
+    </div>
+
+    <!-- Price -->
+    <div class="text-body-2 font-weight-bold">{{ card.price }}</div>
+
+    <!-- close -->
+    <v-icon
+color="red-darken-4"
+      size="18"
+      @click="removeCard(card.id)"
+      style="position: absolute; top: 4px; right: 5px; cursor: pointer;"
+    >
+      mdi-close
+    </v-icon>
+  </div>
+</div>
+
+
       <div v-else class="text-center text-grey text-caption mb-4">
         No cards scanned yet
       </div>
@@ -67,14 +84,22 @@
      
         <v-text-field
         class="small-label"
-          v-model="cashAmount"
+          v-model="form.cash_amount"
           label="Cash Amount"
           type="number"
           variant="outlined"
           density="comfortable"
           prepend-inner-icon="mdi-cash"
         />
-    
+          <v-text-field
+        class="small-label"
+          v-model="form.customer"
+          label="Sold to"
+         
+          variant="outlined"
+          density="comfortable"
+
+        />
       
       <!-- Actions -->
       <v-card-actions class="mt-2">
@@ -85,7 +110,7 @@
               color="blue-darken-4" 
               variant="flat"
               @click="submitPayment"
-              :disabled="!cashAmount && !cards.length"
+              :disabled="payDisabled"
             >
               Pay
             </v-btn>
@@ -139,13 +164,22 @@ const search = ref(''); // Keep this ref to bind with v-model:search
 
 const isScanQR = ref(false);
 const html5QrCode = ref(null);
-const cashAmount = ref(null);
+
 
 // const scannedCards = computed(() => props.scannedCards || []);
 
 
 
+const form = useForm({
+    customer: '',
+    cash_amount : null,
+    cards: []
+})
 
+const payDisabled = computed(() => {
+  // Disable Pay if there are NO cards or cash_amount is empty/0
+  return cards.value.length === 0 || !form.cash_amount || !form.customer
+})
 
 // Simple debounce function
 function debounce(func, delay = 300) {
@@ -275,11 +309,16 @@ const closeScanner = async () => {
 // ----------------------
 // Payment & Cancel
 // ----------------------
+
+const removeCard = (id) => {
+  cards.value = cards.value.filter(card => card.id !== id)
+}
+
+
+
 const submitPayment = () => {
-  const form = useForm({
-    cash_amount: cashAmount.value,
-    cards: cards.value.map(c => c.id),
-  });
+
+ form.cards = cards.value.map(c => c.id)
 
   form.post(route('sell-card.payment'), {
     onSuccess: () => {},

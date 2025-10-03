@@ -1,4 +1,5 @@
 import "./bootstrap";
+import "@fontsource/inter";
 import "../css/app.css";
 
 import { createApp, h } from "vue";
