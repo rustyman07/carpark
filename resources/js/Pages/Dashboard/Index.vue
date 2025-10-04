@@ -59,7 +59,7 @@ const chartOptions = ref({
   chart: {
     toolbar: { show: false },
   },
-  colors: ['#3B82F6'],
+  colors: ['#1A237E'],
   dataLabels: { enabled: false },
   xaxis: {
     categories: categories,

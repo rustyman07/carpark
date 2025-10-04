@@ -27,7 +27,7 @@
 
       <!-- Scan Button -->
    
-        <v-btn class="mb-2" color="blue-darken-4" block size="large" variant="flat" @click="scanQR">
+        <v-btn class="mb-2" color="indigo-darken-4" block size="large" variant="flat" @click="scanQR">
           <v-icon class="mr-2">mdi-qrcode-scan</v-icon>
           Scan QR
         </v-btn>
@@ -107,7 +107,7 @@ color="red-darken-4"
           <v-col cols="6">
             <v-btn 
               block 
-              color="blue-darken-4" 
+              color="indigo-darken-4" 
               variant="flat"
               @click="submitPayment"
               :disabled="payDisabled"

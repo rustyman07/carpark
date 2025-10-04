@@ -288,7 +288,7 @@ public function sell_card_payment(Request $request)
             }
         });
 
-        return redirect(route('sell-card.create'))->with('success', 'Payment recorded successfully!');
+        return redirect(route('card-inventory.index'))->with('success', 'Payment recorded successfully!');
     } catch (\Exception $e) {
         return back()->withErrors(['error' => 'Transaction failed: ' . $e->getMessage()]);
     }

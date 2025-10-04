@@ -8,7 +8,7 @@
     </div> -->
 
     <!-- Table -->
-    <v-card title="Ticket Payments" class="mt-4">
+    <v-card title="Transactions" class="mt-4">
       <v-data-table-server
         :headers="headers"
         :items="payments.data"
@@ -39,7 +39,7 @@
         </template>
 
         <template v-slot:item.status="{ item }">
-          <span :class="item.status === 'paid' ? 'bg-green-lighten-5 text-green-lighten-1 pa-1' : 'bg-red-lighten-5 text-red-lighten-1 pa-1'">
+          <span :class="item.status === 'Paid' ? 'bg-green-lighten-5 text-green-lighten-1 pa-1' : 'bg-red-lighten-5 text-red-lighten-1 pa-1'">
             {{ item.status }}
           </span>
         </template>

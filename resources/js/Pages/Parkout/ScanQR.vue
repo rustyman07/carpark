@@ -7,7 +7,7 @@
             style="width: 300px"
             variant="underlined"
           />
-          <!-- <v-btn     :disabled="!form.PLATENO" size="x-large" @click="submitPlate" block color="blue-darken-4">
+          <!-- <v-btn     :disabled="!form.PLATENO" size="x-large" @click="submitPlate" block color="indigo-darken-4">
             Submit QR
           </v-btn> -->
           <Link

@@ -1,6 +1,6 @@
 <template>
     <v-layout style="min-height: 100vh" >
-      <v-app-bar color="blue-darken-4">
+      <v-app-bar color="indigo-darken-4 ">
         <v-app-bar-nav-icon variant="text" @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
         <v-toolbar-title>Carpark</v-toolbar-title>
         <v-spacer></v-spacer>
@@ -39,7 +39,7 @@
           <template v-for="item in items" :key="item.title">
             <v-list-group v-if="item.children" :value="item.value">
               <template v-slot:activator="{ props }">
-                <v-list-item v-bind="props" :title="item.title" @click="navigate(item)" color="blue-darken-4">
+                <v-list-item v-bind="props" :title="item.title" @click="navigate(item)" color="indigo-darken-4">
                   <template v-slot:prepend>
                     <v-icon :icon="item.icon"></v-icon>
                   </template>
@@ -51,7 +51,7 @@
                 :title="child.title"
                 @click="navigate(child)"
                 :active="child.value === activeItem"
-                color="blue-darken-4"
+                color="indigo-darken-4"
               >
                 <template v-slot:prepend>
                   <v-icon :icon="child.icon"></v-icon>
@@ -63,7 +63,7 @@
               :title="item.title"
               @click="navigate(item)"
               :active="item.value === activeItem"
-              color="blue-darken-4"
+              color="indigo-darken-4"
             >
               <template v-slot:prepend>
                 <v-icon :icon="item.icon"></v-icon>
@@ -73,7 +73,7 @@
         </v-list>
       </v-navigation-drawer>
 
-        <v-main class = "bg-blue-lighten-5">
+        <v-main  class=" bg-slate-100">
         <slot />
       </v-main>
     </v-layout>
@@ -99,17 +99,19 @@ const items = [
   { title: 'Card Inventory', route: 'card-inventory.index', value: 'card_inventory', icon: 'mdi-list-box-outline' },
     { title: 'Sell Card', route: 'sell-card.create', value: 'sell_card', icon: 'mdi-list-box-outline' },
   { title: 'Logs', value: 'logs', route: 'logs', icon: 'mdi-history' },
-  { title: 'Sales Person', value: 'sales_person', route: 'sales-person.index', icon: 'mdi-account' },
-  {
-    title: 'Transaction',
-    value: 'park_out',
-    route: '',
-    icon: 'mdi-cash',
-    children: [
-      { title: 'Ticket Payments', value: 'ticket_payments', route: 'ticket.payments', icon: 'mdi-credit-card-settings' },
-      { title: 'Card Payments', route: 'card-payments', value: 'card_payments', icon: 'mdi-list-box-outline' },
-    ],
-  },
+//   { title: 'Sales Person', value: 'sales_person', route: 'sales-person.index', icon: 'mdi-account' },
+//   {
+//     title: 'Transaction',
+//     value: 'park_out',
+//     route: '',
+//     icon: 'mdi-cash',
+//     children: [
+//       { title: 'Ticket Payments', value: 'transactions', route: 'ticket.payments', icon: 'mdi-credit-card-settings' },
+//     //   { title: 'Card Payments', route: 'card-payments', value: 'card_payments', icon: 'mdi-list-box-outline' },
+//     ],
+//   },
+   { title: 'Transactions', value: 'transactions', route: 'ticket.payments', icon: 'mdi-credit-card-settings' },
+
       { title: 'Users', value: 'users', route: 'users.index', icon: 'mdi-account-group' },
   {
     title: 'Settings',

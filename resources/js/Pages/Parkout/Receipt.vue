@@ -1,8 +1,8 @@
 <template>
     <v-container class="d-flex justify-center align-center fill-height" >
-        <v-card ref="receiptContent" elevation="1" min-width="350" class="py-4">
+        <v-card ref="receiptContent" elevation="1" min-width="350" >
         <!-- Header -->
-		 <div class="flex flex-column   align-center justify-center text-caption ">
+		 <div class="flex flex-column bg-indigo-darken-4  py-2 align-center justify-center text-caption ">
 			<span  >{{ company.name }}</span>
 			<p>{{ company.address }}</p>
 			<p>{{ company.contact }}</p>
@@ -13,19 +13,11 @@
         </div> -->
             <!-- <v-icon icon="mdi-parking"></v-icon> -->
  
-        <div class="text-sm text-gray-500 px-4">
+        <div class="text-sm text-indigo-darken-4 px-4 py-4">
             
-            <div  class="flex justify-between  mt-4 py-1  ">
-                <span class=" ">Ticket No.</span>
-                <span class="font-medium ml-2  text-sm ">{{props.ticket.ticket_no }}</span>
-            </div>
-
-            <div class="flex justify-between   py-1 "  >
-                <span class="w-25">Plate No</span>
-                <span class=" font-medium ml-2  text-sm">{{props.ticket.plate_no }}</span>
-            </div>
+   
                  
-            <div class="d-flex justify-between  py-1 ">
+            <div class="d-flex justify-between mt-4 py-2 ">
                 <span class="w-25" >From </span>
                 <div class="flex text-sm">
                 <span class="ml-2 font-medium " >{{ parkinDate }}</span>
@@ -33,15 +25,24 @@
                 </div>        
             </div>     
              
-            <div class="flex justify-between py-1 ">
+            <div class="flex justify-between py-2 ">
                 <span  class=" w-25 ">To</span>
                 <div class="flex  text-sm">
                     <span class="ml-2 font-medium ">{{ parkoutDate }}</span>
                     <span  class="ml-4 font-medium " >{{ parkoutTime }}</span>
                 </div>
             </div>
+            <div  class="flex justify-between  py-2  ">
+                <span class=" ">Ticket No.</span>
+                <span class="font-medium ml-2  text-sm ">{{props.ticket.ticket_no }}</span>
+            </div>
 
-            <div class="flex  justify-between py-1">
+            <div class="flex justify-between   py-2 "  >
+                <span class="w-25">Plate No</span>
+                <span class=" font-medium ml-2  text-sm">{{props.ticket.plate_no }}</span>
+            </div>
+
+            <div class="flex  justify-between py-2">
                 <span  class=" w-25" >Duration</span>
                 <span class="ml-2  font-medium  text-sm ">{{ duration }}</span>
             </div>
@@ -49,7 +50,7 @@
             
             <!-- <v-divider></v-divider> -->
            
-                   <div class="flex justify-between py-1 ">
+                   <div class="flex justify-between py-2 ">
                 <span class=" w-25">Park Fee</span>
                 <span class="ml-2 font-medium  text-sm ">{{formatCurrency(props.ticket.park_fee) }}</span>
             </div>
@@ -65,7 +66,7 @@
 			</div> -->
 
                  
-        <v-data-table-server v-if = "filteredCard.length"
+        <!-- <v-data-table-server v-if = "filteredCard.length"
        class="border border-gray-300 rounded"
          density="compact"
           :headers="headers"
@@ -77,32 +78,65 @@
           hide-default-footer
         >
        
-        </v-data-table-server>
+        </v-data-table-server> -->
+
+        <div v-if="filteredCard.length" class="my-4">
+    <div
+        v-for="card in filteredCard"
+        :key="card.id"
+        class="pa-3 border mb-2 flex gap-3  flex-col"     
+    >
+    <!-- Left -->
+
+
+        <div class="flex justify-between w-full">
+            <span>Card Number </span>
+            <span class="text-sm font-weight-medium">{{ card.card_number }}</span>
+        </div>
+        <div class="flex justify-between w-full">
+            <span> Balance </span>
+            <span class="text-sm font-weight-medium">{{ card.balance }}</span>
+        </div>
+
+
+    <!-- Price -->
+    <!-- <div class="text-body-2 font-weight-bold">{{ card.price }}</div>
+       <div class="text-body-2 font-weight-bold">{{ card.balance }}</div> -->
+
+    <!-- close -->
+
+  </div>
+</div>
+
+
+
+
+
                 <div class="">
                 <ul>
-                    <div v-for = "item in filteredCash" class="flex justify-between py-1 ">
+                    <div v-for = "item in filteredCash" class="flex justify-between py-2 ">
                         <div> Paid in Cash</div>
                         <div class="font-medium"> {{  item.amount}}</div>
                     </div>
                 </ul>
             </div>
 
-            <div v-if="props.payment.amount !== 0" class="flex justify-between py-1">
+            <div v-if="props.payment.amount !== 0" class="flex justify-between py-2">
             <span class="w-25">Amount</span>
             <span class="ml-2 font-medium text-sm">
                 {{ formatCurrency(props.payment.amount) }}
             </span>
             </div>
 
-              <div class="flex justify-between py-1">
+              <div class="flex justify-between py-2">
                 <span class="font-semibold" >Total Amount</span>
                 <span class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.total_amount) }}</span>
             </div>
           <v-divider></v-divider>
-            <div class="flex justify-between py-1">
-                <span  >Change</span>
+            <div class="flex justify-between py-2">
+                <span   class="font-semibold">Change</span>
              
-                <span class="ml-2 font-medium  text-sm">{{formatCurrency(props.payment.change) }}</span>
+                <span class="ml-2 font-medium text-sm">{{formatCurrency(props.payment.change) }}</span>
             </div>
         </div>
               
@@ -246,17 +280,17 @@ const end = dayjs(props.ticket.park_out_datetime).startOf('minute')
 
 const receiptContent = ref(null)
 
-const downloadPdf = () => {
-  const element = receiptContent.value?.$el ?? receiptContent.value
-  html2pdf()
-    .set({
-      margin: 10,
-      filename: `receipt-${ticket.PLATENO}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-    })
-    .from(element)
-    .save()
-}
+// const downloadPdf = () => {
+//   const element = receiptContent.value?.$el ?? receiptContent.value
+//   html2pdf()
+//     .set({
+//       margin: 10,
+//       filename: `receipt-${ticket.PLATENO}.pdf`,
+//       image: { type: "jpeg", quality: 0.98 },
+//       html2canvas: { scale: 2 },
+//       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+//     })
+//     .from(element)
+//     .save()
+// }
 </script>

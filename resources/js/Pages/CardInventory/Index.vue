@@ -34,57 +34,62 @@
         class="elevation-1"
         @update:page="goToPage"
       >
-        <template v-slot:top>
-          <v-row class="pa-2" justify="between">
-            <v-col cols="6" sm="3" md="3">
-              <v-text-field   
-              v-model="filters.cardNumber"
-               prepend-inner-icon="mdi-magnify"
-                label="Search card number"
-                density="compact"
-                hideDetails="auto"
-                variant="outlined"
-              >
-              </v-text-field>
-            </v-col>
-            <v-col cols="6">
-                <v-row>
-                    <v-col cols="4" sm="4" md="4">
-                    <v-date-input
-                        v-model="filters.startDate"
-                            prepend-icon=""
-                        prepend-inner-icon="$calendar"
-                        label="Start Date"
-                        density="compact"
-                        hideDetails="auto"
-                        variant="underlined"
-                    />
-                    </v-col>
-                    <v-col cols="4" sm="4" md="4">
-                    <v-date-input
-                        v-model="filters.endDate"
-                        prepend-icon=""
-                        prepend-inner-icon="$calendar"
-                        label="End Date"
-                        density="compact"
-                        hideDetails="auto"
-                        variant="underlined"
-                    />
-                    </v-col>
+<template v-slot:top>
+  <v-row class="pa-2" justify="between">
+    <!-- 🔍 Search field -->
+    <v-col cols="12" sm="3" md="3">
+      <v-text-field
+        v-model="filters.cardNumber"
+        prepend-inner-icon="mdi-magnify"
+        label="Search card number"
+        density="compact"
+        hide-details="auto"
+        variant="outlined"
+      />
+    </v-col>
 
-                    <v-col cols="4" sm="4" md="4">
-                    <v-btn
-                        color="primary"
-                        @click="applyDateFilter"
-                        prepend-icon="mdi-magnify"
-                    >
-                        Filter
-                    </v-btn>
-                    </v-col>
-                </v-row>
-            </v-col>
-          </v-row>
-        </template>
+    <!-- 📅 Date range + filter button -->
+    <v-col cols="12" sm="9" md="9">
+      <v-row>
+        <v-col cols="12" sm="4">
+          <v-date-input
+            v-model="filters.startDate"
+            prepend-icon=""
+            prepend-inner-icon="$calendar"
+            label="Start Date"
+            density="compact"
+            hide-details="auto"
+            variant="underlined"
+          />
+        </v-col>
+
+        <v-col cols="12" sm="4">
+          <v-date-input
+            v-model="filters.endDate"
+            prepend-icon=""
+            prepend-inner-icon="$calendar"
+            label="End Date"
+            density="compact"
+            hide-details="auto"
+            variant="underlined"
+          />
+        </v-col>
+
+        <v-col cols="12" sm="4" class="d-flex align-center">
+          <v-btn
+            color="indigo-darken-4"
+            @click="applyDateFilter"
+            prepend-icon="mdi-magnify"
+            block
+          >
+            Search
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-col>
+  </v-row>
+</template>
+
 
         <template v-slot:item.price="{ item }">
           {{ formatCurrency(item.price) }}
@@ -128,6 +133,7 @@
            <template v-slot:item.transactions="{ item }">
           <v-btn
             size="small"
+                 color="indigo-darken-4"
               icon="mdi-eye-outline"
                variant="text"
             @click="viewTransactions(item)"
@@ -136,6 +142,7 @@
 
         <template v-slot:item.download="{ item }">
           <v-btn
+          color="indigo-darken-4"
             icon="mdi-download"
             variant="text"
             size="small"

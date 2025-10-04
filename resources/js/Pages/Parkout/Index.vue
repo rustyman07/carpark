@@ -32,14 +32,14 @@
             size="x-large"
             @click="submitPlate"
             block
-            color="blue-darken-4"
+            color="indigo-darken-4"
         >
             Submit
         </v-btn>
                   <v-layout class="d-flex ga-2 align-center">
                     <v-divider thickness="2"></v-divider>   <span>OR</span><v-divider thickness="2"></v-divider>
                 </v-layout>     
-                <v-btn size="x-large" @click="scanQR" block color="blue-darken-4">
+                <v-btn size="x-large" @click="scanQR" block color="indigo-darken-4">
                     Scan 
                 </v-btn>
        </v-container>

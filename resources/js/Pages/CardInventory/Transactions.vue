@@ -6,7 +6,7 @@
     
   >
     <v-card class="rounded">
-<v-toolbar flat density="compact" class="bg-blue-darken-4">
+<v-toolbar flat density="compact" class="bg-indigo-darken-4">
   <v-toolbar-title  >
     <span class="text-base text-white"> Card: {{ props.selectedCard.card_number }}</span>
   </v-toolbar-title>
@@ -35,7 +35,7 @@
             <div class="flex justify-center ">
               <div class="flex flex-col text-center mb-4 ">
                   <span class="text-xs md:text-sm ">Currrent Balance</span>
-                  <span class="text-base md:text-3xl font-bold text-gray-500">{{ props.selectedCard.balance }}</span>
+                  <span class="text-base md:text-3xl font-bold text-indigo-darken-4">{{ props.selectedCard.balance }}</span>
               </div>
             </div>
           <div v-for="(dayTransactions, date) in groupedTransactions" :key="date">
@@ -46,12 +46,12 @@
             <div class =" mb-2  bg-white flex justify-between text-xs md:text-sm  shadow-md rounded-md p-2" v-for="t in dayTransactions" >
                <div class="flex p-1  gap-2">
                             <v-avatar color="grey-lighten-4" size="40">
-                                <v-icon color="grey-darken-1" size="24">mdi-car</v-icon>
+                                <v-icon color="indigo-darken-4" size="24">mdi-car</v-icon>
                             </v-avatar>
                         <div class="flex flex-col flex-1">
                             <div>
                                 <span class="text-gray-500">Plate No: </span>
-                                <span class=" text-blue-400 font-bold">{{t.payment?.ticket?.plate_no  }}</span>
+                                <span class="text-indigo-darken-4 font-bold">{{t.payment?.ticket?.plate_no  }}</span>
                             </div>
                         <div>
                             <span class="text-gray-500">Ticket No:</span>
