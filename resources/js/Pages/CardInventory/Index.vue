@@ -1,232 +1,365 @@
 <template>
-  <v-container>
-    <div class="d-flex justify-end mb-4">
-      <v-btn color="success"  @click="addCard">
-        Generate Card
-      </v-btn>
-    </div>
+  <div class="inventory-wrapper">
+    <v-container  class="py-8 px-6">
+      <!-- Page Header -->
+      <div class="page-header mb-8">
+        <div>
+          <h1 class="text-h4 font-weight-bold text-indigo-darken-4 mb-2">
+            <v-icon size="32" class="mr-2">mdi-card-account-details</v-icon>
+            Card Inventory
+          </h1>
+          <p class="text-body-1 text-medium-emphasis">
+            Manage and track all parking cards
+          </p>
+        </div>
+        <v-btn
+          color="indigo-darken-4"
+          size="large"
+          @click="addCard"
+          prepend-icon="mdi-plus-circle"
+          class="generate-btn elevation-4"
+        >
+          Generate Card
+        </v-btn>
+      </div>
 
-    <Create v-model="showDialog" :cardTemplate="cardTemplate" v-model:loading="showLoadingDialog" v-model:progress="progress" />
-    <Transactions  v-if = "showTransactionsDialog"  v-model="showTransactionsDialog"  :selectedCard = "selectedCard" />
-
-     <v-dialog   v-model="showLoadingDialog" max-width="320" persistent>
-      <v-list class="bg-grey-darken-4" elevation="12" rounded="lg">
-        <v-list-item  title="Generating Cards...">
-     <template v-slot:append>
-            <v-progress-circular
-              color="primary"
-              indeterminate="disable-shrink"
-              size="16"
-              width="2"
-            ></v-progress-circular>
-          </template>
-          </v-list-item>
-      </v-list>
-    </v-dialog>
-
-    <v-card title="Card Inventory" class="mt-4">
-      <v-data-table-server
-        :headers="headers"
-        :items="cardDetail.data"
-        v-model:items-per-page="itemsPerPage"
-        :page="pageNumber"
-        :items-length="cardDetail.total"
-        class="elevation-1"
-        @update:page="goToPage"
-      >
-<template v-slot:top>
-  <v-row class="pa-2" justify="between">
-    <!-- 🔍 Search field -->
-    <v-col cols="12" sm="3" md="3">
-      <v-text-field
-        v-model="filters.cardNumber"
-        prepend-inner-icon="mdi-magnify"
-        label="Search card number"
-        density="compact"
-        hide-details="auto"
-        variant="outlined"
-      />
-    </v-col>
-
-    <!-- 📅 Date range + filter button -->
-    <v-col cols="12" sm="9" md="9">
-      <v-row>
-        <v-col cols="12" sm="4">
-          <v-date-input
-            v-model="filters.startDate"
-            prepend-icon=""
-            prepend-inner-icon="$calendar"
-            label="Start Date"
-            density="compact"
-            hide-details="auto"
-            variant="underlined"
-          />
+      <!-- Stats Summary Cards -->
+      <v-row class="mb-6">
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="stat-card elevation-4" rounded="lg">
+            <div class="pa-4">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <v-icon size="32" color="success">mdi-check-circle</v-icon>
+                <v-chip size="small" color="success" variant="flat">Active</v-chip>
+              </div>
+              <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
+                {{ cardDetail.data?.filter(c => c.status === 'Available').length || 0 }}
+              </h3>
+              <p class="text-caption text-medium-emphasis">Available Cards</p>
+            </div>
+          </v-card>
         </v-col>
 
-        <v-col cols="12" sm="4">
-          <v-date-input
-            v-model="filters.endDate"
-            prepend-icon=""
-            prepend-inner-icon="$calendar"
-            label="End Date"
-            density="compact"
-            hide-details="auto"
-            variant="underlined"
-          />
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="stat-card elevation-4" rounded="lg">
+            <div class="pa-4">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <v-icon size="32" color="error">mdi-close-circle</v-icon>
+                <v-chip size="small" color="error" variant="flat">Used</v-chip>
+              </div>
+              <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
+                {{ cardDetail.data?.filter(c => c.status === 'Consumed').length || 0 }}
+              </h3>
+              <p class="text-caption text-medium-emphasis">Consumed Cards</p>
+            </div>
+          </v-card>
         </v-col>
 
-        <v-col cols="12" sm="4" class="d-flex align-center">
-          <v-btn
-            color="indigo-darken-4"
-            @click="applyDateFilter"
-            prepend-icon="mdi-magnify"
-            block
-          >
-            Search
-          </v-btn>
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="stat-card elevation-4" rounded="lg">
+            <div class="pa-4">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <v-icon size="32" color="primary">mdi-cash-multiple</v-icon>
+                <v-chip size="small" color="primary" variant="flat">Revenue</v-chip>
+              </div>
+              <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
+                {{ formatCurrency(totalAmount) }}
+              </h3>
+              <p class="text-caption text-medium-emphasis">Total Amount</p>
+            </div>
+          </v-card>
+        </v-col>
+
+        <v-col cols="12" sm="6" md="3">
+          <v-card class="stat-card elevation-4" rounded="lg">
+            <div class="pa-4">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <v-icon size="32" color="warning">mdi-wallet</v-icon>
+                <v-chip size="small" color="warning" variant="flat">Balance</v-chip>
+              </div>
+              <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
+                {{ formatCurrency(totalBalance) }}
+              </h3>
+              <p class="text-caption text-medium-emphasis">Total Balance</p>
+            </div>
+          </v-card>
         </v-col>
       </v-row>
-    </v-col>
-  </v-row>
-</template>
 
+      <!-- Dialogs -->
+      <Create 
+        v-model="showDialog" 
+        :cardTemplate="cardTemplate" 
+        v-model:loading="showLoadingDialog" 
+        v-model:progress="progress" 
+      />
+      
+      <Transactions  
+        v-if="showTransactionsDialog"  
+        v-model="showTransactionsDialog"  
+        :selectedCard="selectedCard" 
+      />
 
-        <template v-slot:item.price="{ item }">
-          {{ formatCurrency(item.price) }}
-        </template>
+      <v-dialog v-model="showLoadingDialog" max-width="400" persistent>
+        <v-card rounded="lg" class="loading-card">
+          <v-card-text class="pa-6">
+            <div class="text-center">
+              <v-progress-circular
+                :size="80"
+                :width="8"
+                color="indigo-darken-4"
+                indeterminate
+              ></v-progress-circular>
+              <h3 class="text-h6 font-weight-bold mt-4 mb-2">Generating Cards...</h3>
+              <p class="text-caption text-medium-emphasis">Please wait while we create your cards</p>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
 
-        <template v-slot:item.discount="{ item }">
-          {{ formatCurrency(item.discount) }}
-        </template>
+      <!-- Main Data Table Card -->
+      <v-card class="data-table-card elevation-4" rounded="lg">
+        <!-- Filters Section -->
+        <div class="filters-section pa-6 pb-4">
+          <v-row align="center">
+            <v-col cols="12" md="3">
+              <v-text-field
+                v-model="filters.cardNumber"
+                prepend-inner-icon="mdi-magnify"
+                label="Search card number"
+                density="comfortable"
+                hide-details="auto"
+                variant="outlined"
+                bg-color="white"
+                clearable
+              />
+            </v-col>
 
-        <template v-slot:item.amount="{ item }">
-          {{ formatCurrency(item.amount) }}
-        </template>
+            <v-col cols="12" md="7">
+              <v-row>
+                <v-col cols="12" sm="5">
+                  <v-date-input
+                    v-model="filters.startDate"
+                    prepend-icon=""
+                    prepend-inner-icon="$calendar"
+                    label="Start Date"
+                    density="comfortable"
+                    hide-details="auto"
+                    variant="outlined"
+                    bg-color="white"
+                  />
+                </v-col>
 
-            <template v-slot:item.balance="{ item }">
-          {{ formatCurrency(item.balance) }}
-        </template>
+                <v-col cols="12" sm="5">
+                  <v-date-input
+                    v-model="filters.endDate"
+                    prepend-icon=""
+                    prepend-inner-icon="$calendar"
+                    label="End Date"
+                    density="comfortable"
+                    hide-details="auto"
+                    variant="outlined"
+                    bg-color="white"
+                  />
+                </v-col>
 
-        <template v-slot:item.status="{ item }">
-        <span
-            :class="
-            item.status === 'Available'
-                ? 'bg-green-lighten-5 text-green-darken-1 pa-1'
-                : item.status === 'Consumed'
-                ? 'bg-red-lighten-5 text-red-darken-1 pa-1'
-                : 'bg-yellow-lighten-5 text-yellow-darken-4 pa-1'
-            "
+                <v-col cols="12" sm="2" class="d-flex align-center">
+                  <v-btn
+                    color="indigo-darken-4"
+                    @click="applyDateFilter"
+                    icon="mdi-magnify"
+                    size="large"
+                    class="elevation-2"
+                  ></v-btn>
+                </v-col>
+              </v-row>
+            </v-col>
+
+            <v-col cols="12" md="2" class="text-right">
+              <v-menu>
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    color="indigo-darken-4"
+                    variant="outlined"
+                    prepend-icon="mdi-download"
+                  >
+                    Export
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item @click="exportData('excel')">
+                    <template v-slot:prepend>
+                      <v-icon>mdi-file-excel</v-icon>
+                    </template>
+                    <v-list-item-title>Export to Excel</v-list-item-title>
+                  </v-list-item>
+                  <v-list-item @click="exportData('pdf')">
+                    <template v-slot:prepend>
+                      <v-icon>mdi-file-pdf-box</v-icon>
+                    </template>
+                    <v-list-item-title>Export to PDF</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </v-col>
+          </v-row>
+        </div>
+
+        <v-divider></v-divider>
+
+        <!-- Data Table -->
+        <v-data-table-server
+          :headers="headers"
+          :items="cardDetail.data"
+          v-model:items-per-page="itemsPerPage"
+          :page="pageNumber"
+          :items-length="cardDetail.total"
+          class="custom-data-table"
+          @update:page="goToPage"
         >
-            {{ item.status }}
-        </span>
-        </template>
+          <template v-slot:item.price="{ item }">
+            <span class="font-weight-medium">{{ formatCurrency(item.price) }}</span>
+          </template>
 
+          <template v-slot:item.discount="{ item }">
+            <span class="text-success font-weight-medium">{{ formatCurrency(item.discount) }}</span>
+          </template>
 
-        <template v-slot:item.created_at="{ item }">
-          {{ formatDate(item.created_at) }}
-        </template>
+          <template v-slot:item.amount="{ item }">
+            <span class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(item.amount) }}</span>
+          </template>
 
-        <template v-slot:item.qr_code_hash="{ item }">
-          <img :src="qrCodeMap[item.id]" alt="QR Code" width="80" />
-        </template>
+          <template v-slot:item.balance="{ item }">
+            <span class="font-weight-medium">{{ formatCurrency(item.balance) }}</span>
+          </template>
 
-           <template v-slot:item.transactions="{ item }">
-          <v-btn
-            size="small"
-                 color="indigo-darken-4"
+          <template v-slot:item.status="{ item }">
+            <v-chip
+              :color="
+                item.status === 'Available'
+                  ? 'success'
+                  : item.status === 'Consumed'
+                  ? 'error'
+                  : 'warning'
+              "
+              variant="flat"
+              size="small"
+              class="font-weight-medium"
+            >
+              <v-icon start size="12">
+                {{ 
+                  item.status === 'Available' 
+                    ? 'mdi-check-circle' 
+                    : item.status === 'Consumed' 
+                    ? 'mdi-close-circle' 
+                    : 'mdi-clock-outline' 
+                }}
+              </v-icon>
+              {{ item.status }}
+            </v-chip>
+          </template>
+
+          <template v-slot:item.created_at="{ item }">
+            <div class="d-flex align-center">
+              <v-icon size="16" class="mr-1 text-medium-emphasis">mdi-calendar</v-icon>
+              <span class="text-body-2">{{ formatDate(item.created_at) }}</span>
+            </div>
+          </template>
+
+          <template v-slot:item.transactions="{ item }">
+            <v-btn
+              size="small"
+              color="indigo-darken-4"
               icon="mdi-eye-outline"
-               variant="text"
-            @click="viewTransactions(item)"
-          ></v-btn>
-        </template>
+              variant="tonal"
+              @click="viewTransactions(item)"
+            ></v-btn>
+          </template>
 
-        <template v-slot:item.download="{ item }">
-          <v-btn
-          color="indigo-darken-4"
-            icon="mdi-download"
-            variant="text"
-            size="small"
-            @click="downloadQRCode(item)"
-          ></v-btn>
-        </template> 
+          <template v-slot:item.download="{ item }">
+            <v-btn
+              color="success"
+              icon="mdi-download"
+              variant="tonal"
+              size="small"
+              @click="downloadQRCode(item)"
+            ></v-btn>
+          </template>
 
-        <!-- Hidden download card template -->
-<!-- 
-  <template v-slot:bottom>
-    <v-divider></v-divider>
-    <v-row class="px-4 py-2" justify="end">
-      <v-col cols="auto" class="text-right font-weight-bold">
-        Total Amount: {{ formatCurrency(totalAmount) }}
-      </v-col>
-    </v-row>
-  </template> -->
-<template v-slot:body.append>
-  <tr class=" bg-gray-200">
-    <td  class="text-left font-weight-bold">Total:</td>
-    <td  ></td>
-    <td class="font-semibold">{{ formatCurrency(totalPrice) }}</td>
-     <td class="font-semibold" >{{ formatCurrency(totalDiscount) }}</td>
-    <td class="font-semibold">{{ formatCurrency(totalAmount) }}</td>
-    <td class="font-semibold">{{ formatCurrency(totalBalance) }}</td>
-    <td  ></td>
-     <td  ></td>
-    <td  ></td>
-     <td  ></td>
-  </tr>
-</template>
+          <!-- Summary Footer -->
+          <template v-slot:body.append>
+            <tr class="summary-row">
+              <td class="text-left font-weight-bold text-indigo-darken-4">
+                <v-icon class="mr-2">mdi-calculator</v-icon>
+                Total Summary:
+              </td>
+              <td></td>
+              <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalPrice) }}</td>
+              <td class="font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td>
+              <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalAmount) }}</td>
+              <td class="font-weight-bold text-warning">{{ formatCurrency(totalBalance) }}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </template>
+        </v-data-table-server>
+      </v-card>
 
+      <!-- Hidden Download Card Template -->
+      <div
+        v-if="cardToDownload"
+        id="download-card"
+        class="download-card-template"
+      >
+        <div class="card-template-inner">
+          <div class="card-header-section">
+            <h3 class="card-number">{{ cardToDownload.card_number }}</h3>
+            <v-chip
+              :color="
+                cardToDownload.status === 'Available'
+                  ? 'success'
+                  : cardToDownload.status === 'Consumed'
+                  ? 'error'
+                  : 'warning'
+              "
+              size="small"
+            >
+              {{ cardToDownload.status }}
+            </v-chip>
+          </div>
 
-      </v-data-table-server>
-    </v-card>
+          <div class="qr-section">
+            <img :src="qrCodeMap[cardToDownload.id]" alt="QR" class="qr-image" />
+          </div>
 
-    <div
-  v-if="cardToDownload"
-  id="download-card"
-  class="absolute -top-[9999px] -left-[9999px] w-[300px] bg-white text-center rounded-xl shadow-lg p-6 flex flex-col items-center space-y-3 border border-gray-200"
->
-  <h3 class="text-xl font-semibold text-gray-800">
-    {{ cardToDownload.card_number }}
-  </h3>
+          <div class="card-details">
+            <div class="detail-row">
+              <span class="label">Amount:</span>
+              <span class="value">{{ formatCurrency(cardToDownload.amount) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Balance:</span>
+              <span class="value">{{ formatCurrency(cardToDownload.balance) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Days:</span>
+              <span class="value">{{ cardToDownload.no_of_days }}</span>
+            </div>
+          </div>
 
-  <img
-    :src="qrCodeMap[cardToDownload.id]"
-    alt="QR"
-    class="w-36 h-36 my-2"
-  />
-
-  <div class="text-left w-full space-y-1">
-    <p class="text-gray-700 text-sm">
-      <span class="font-bold">Amount:</span> {{ formatCurrency(cardToDownload.amount) }}
-    </p>
-    <p class="text-gray-700 text-sm">
-      <span class="font-bold">Balance:</span> {{ formatCurrency(cardToDownload.balance) }}
-    </p>
-    <p
-      class="text-sm font-bold"
-      :class="{
-        'text-green-600': cardToDownload.status === 'Available',
-        'text-red-600': cardToDownload.status === 'Consumed',
-        'text-yellow-600': cardToDownload.status === 'Pending'
-      }"
-    >
-      Status: {{ cardToDownload.status }}
-    </p>
+          <div class="card-footer-section">
+            <p class="generated-date">Generated: {{ formatDate(cardToDownload.created_at) }}</p>
+          </div>
+        </div>
+      </div>
+    </v-container>
   </div>
-
-  <p class="text-xs text-gray-400 mt-4">
-    Generated: {{ formatDate(cardToDownload.created_at) }}
-  </p>
-</div>
-
-  </v-container>
-
-  
-
-   
 </template>
 
 <script setup>
-import { ref, computed, watch ,reactive,nextTick} from 'vue';
+import { ref, computed, watch, reactive, nextTick } from 'vue';
 import dayjs from 'dayjs';
 import Create from './Create.vue';
 import { usePage, router } from '@inertiajs/vue3';
@@ -235,33 +368,27 @@ import { formatCurrency } from '../../utils/utility';
 import Transactions from './Transactions.vue';
 import html2canvas from 'html2canvas';
 
-
-
 // Dialog state
 const showDialog = ref(false);
-const showLoadingDialog = ref(false); 
+const showLoadingDialog = ref(false);
 const showTransactionsDialog = ref(false);
 const sellCardPassinfo = reactive({});
 const selectedCard = ref({});
 const cardToDownload = ref(null);
-
 const progress = ref(0);
 
 // Table headers
 const headers = [
-  // { key: 'id', title: 'ID' },
-  // { key: 'qr_code_hash', title: 'QR Code' },
-  { key: 'card_number', title: 'Card Number' },
-  { key: 'no_of_days', title: 'No. of Days' },
-  { key: 'price', title: 'Price' },
-  { key: 'discount', title: 'Discount' },
-  { key: 'amount', title: 'Amount' },
-  { key: 'balance', title: 'Balance' },
-  { key: 'status', title: 'Status' },
+  { key: 'card_number', title: 'Card Number', sortable: true },
+  { key: 'no_of_days', title: 'No. of Days', align: 'center' },
+  { key: 'price', title: 'Price', align: 'end' },
+  { key: 'discount', title: 'Discount', align: 'end' },
+  { key: 'amount', title: 'Amount', align: 'end' },
+  { key: 'balance', title: 'Balance', align: 'end' },
+  { key: 'status', title: 'Status', align: 'center' },
   { key: 'created_at', title: 'Date Created' },
-  { key: 'transactions', title: 'Transactions', align: 'center' },
-  // Align the 'Download' column to the center
-  { key: 'download', title: 'Download', align: 'center' },
+  { key: 'transactions', title: 'Transactions', align: 'center', sortable: false },
+  { key: 'download', title: 'Download', align: 'center', sortable: false },
 ];
 
 // Inertia props
@@ -269,45 +396,36 @@ const page = usePage();
 const cardTemplate = computed(() => page.props.cardTemplate);
 const cardDetail = computed(() => page.props.cardDetail);
 
-
 // Date filters
 const filters = ref({
-
-  cardNumber : '',
+  cardNumber: '',
   startDate: new Date(),
- endDate: new Date(),
+  endDate: new Date(),
 });
 
-const sell_card_info = ()=>{
-
-
-}
-
 const pageNumber = ref(cardDetail.value.current_page);
-
 const itemsPerPage = ref(cardDetail.value.per_page);
 
+// Computed totals
 const totalAmount = computed(() => {
-  if (!cardDetail.value?.data) return 0
-  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.amount || 0), 0)
-})
+  if (!cardDetail.value?.data) return 0;
+  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+});
 
 const totalBalance = computed(() => {
-  if (!cardDetail.value?.data) return 0
-  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.balance || 0), 0)
-})
+  if (!cardDetail.value?.data) return 0;
+  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.balance || 0), 0);
+});
 
 const totalPrice = computed(() => {
-  if (!cardDetail.value?.data) return 0
-  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.price || 0), 0)
-})
+  if (!cardDetail.value?.data) return 0;
+  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.price || 0), 0);
+});
 
 const totalDiscount = computed(() => {
-  if (!cardDetail.value?.data) return 0
-  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.discount || 0), 0)
-})
-
-
+  if (!cardDetail.value?.data) return 0;
+  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.discount || 0), 0);
+});
 
 watch(cardDetail, (newVal) => {
   if (newVal) {
@@ -318,7 +436,6 @@ watch(cardDetail, (newVal) => {
 // QR code map
 const qrCodeMap = ref({});
 
-
 watch(
   cardDetail,
   async (newCards) => {
@@ -326,9 +443,7 @@ watch(
 
     for (const detail of newCards.data) {
       if (detail.qr_code_hash && !qrCodeMap.value[detail.id]) {
-        qrCodeMap.value[detail.id] = await QRCode.toDataURL(
-          detail.qr_code_hash
-        );
+        qrCodeMap.value[detail.id] = await QRCode.toDataURL(detail.qr_code_hash);
       }
     }
   },
@@ -336,7 +451,6 @@ watch(
 );
 
 const applyDateFilter = () => {
-
   const formattedStartDate = filters.value.startDate
     ? dayjs(filters.value.startDate).format('YYYY-MM-DD')
     : null;
@@ -347,20 +461,17 @@ const applyDateFilter = () => {
   router.get(
     route('card-inventory.index'),
     {
-        card_number: filters.value.cardNumber,
+      card_number: filters.value.cardNumber,
       dateFrom: formattedStartDate,
       dateTo: formattedEndDate,
-      page: 1, // reset to first page when filtering
+      page: 1,
     },
     { preserveState: true, replace: true }
   );
 };
 
-// Date formatting
-const formatDate = (date) =>
-  date ? dayjs(date).format('MM/DD/YYYY') : '';
+const formatDate = (date) => (date ? dayjs(date).format('MM/DD/YYYY') : '');
 
-// Handlers
 const addCard = () => {
   showDialog.value = true;
 };
@@ -368,32 +479,13 @@ const addCard = () => {
 const goToPage = (pageNumber) => {
   router.get(
     route('card-inventory.index'),
-    { 
-      page: pageNumber,
-    //   card_number: filters.value.cardNumber,
-    //   dateFrom: dayjs(filters.value.startDate).format('YYYY-MM-DD'),
-    //   dateTo: dayjs(filters.value.endDate).format('YYYY-MM-DD'),
-    },
+    { page: pageNumber },
     { preserveState: true, replace: true }
   );
 };
-// const downloadQRCode = (item) => {
-//   const qrDataUrl = qrCodeMap.value[item.id];
-//   if (!qrDataUrl) return;
-
-//   const link = document.createElement('a');
-//   link.href = qrDataUrl;
-//   link.download = `${item.card_name || 'qrcode'}-${item.id}.png`;
-//   document.body.appendChild(link);
-//   link.click();
-//   document.body.removeChild(link);
-// };
-
 
 const downloadQRCode = async (item) => {
   cardToDownload.value = item;
-
-  // wait for the hidden card to render
   await nextTick();
 
   const cardElement = document.getElementById('download-card');
@@ -406,11 +498,10 @@ const downloadQRCode = async (item) => {
     const canvas = await html2canvas(cardElement, {
       backgroundColor: '#ffffff',
       scale: 2,
-      useCORS: true, // very important if QR image is a DataURL or external
+      useCORS: true,
     });
 
     const imageURL = canvas.toDataURL('image/png');
-
     const link = document.createElement('a');
     link.href = imageURL;
     link.download = `${item.card_number || 'card'}-${item.id}.png`;
@@ -424,32 +515,241 @@ const downloadQRCode = async (item) => {
   }
 };
 
-const viewTransactions = (item)=>{
+const viewTransactions = (item) => {
+  showTransactionsDialog.value = true;
+  selectedCard.value = item;
+};
 
-    showTransactionsDialog.value = true;
-    // sellCardPassinfo = {
-    //     card_name : item.card_name,
-    //     id : item.id,
-    //     card_number : item.card_number
-
-
-    // }
-
-    selectedCard.value = item;
-
-}
+const exportData = (format) => {
+  console.log(`Exporting data as ${format}`);
+  // Add export functionality here
+};
 </script>
 
-<!-- <style scoped>
-:deep(.v-data-table table) {
-  border-collapse: separate !important;
-  border-spacing: 0 12px; /* horizontal vertical */
+<style scoped>
+.inventory-wrapper {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
 }
 
-:deep(.v-data-table tbody tr) {
-    margin-bottom: 5px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 10px 10px rgba(0,0,0,0.06);
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
-</style> -->
+
+.generate-btn {
+  transition: all 0.3s ease;
+}
+
+.generate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(26, 35, 126, 0.3) !important;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: white;
+  border-left: 4px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+.stat-card:nth-child(1) {
+  border-left-color: #4caf50;
+}
+
+.stat-card:nth-child(2) {
+  border-left-color: #f44336;
+}
+
+.stat-card:nth-child(3) {
+  border-left-color: #1a237e;
+}
+
+.stat-card:nth-child(4) {
+  border-left-color: #ffa000;
+}
+
+/* Loading Card */
+.loading-card {
+  background: white;
+}
+
+/* Data Table Card */
+.data-table-card {
+  background: white;
+  overflow: hidden;
+}
+
+.filters-section {
+  background: linear-gradient(135deg, rgba(26, 35, 126, 0.03) 0%, rgba(26, 35, 126, 0.01) 100%);
+}
+
+/* Custom Data Table Styles */
+:deep(.custom-data-table) {
+  background: transparent;
+}
+
+:deep(.custom-data-table .v-table__wrapper) {
+  background: white;
+}
+
+:deep(.custom-data-table thead) {
+  background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+}
+
+:deep(.custom-data-table thead th) {
+  color: white !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+:deep(.custom-data-table tbody tr) {
+  transition: background-color 0.2s ease;
+}
+
+:deep(.custom-data-table tbody tr:hover) {
+  background: rgba(26, 35, 126, 0.04) !important;
+}
+
+/* Summary Row */
+.summary-row {
+  background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%) !important;
+  font-size: 0.95rem;
+  border-top: 2px solid #1a237e;
+}
+
+.summary-row td {
+  padding: 16px !important;
+}
+
+/* Download Card Template */
+.download-card-template {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  width: 350px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.card-template-inner {
+  padding: 24px;
+}
+
+.card-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.card-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a237e;
+  margin: 0;
+}
+
+.qr-section {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.qr-image {
+  width: 180px;
+  height: 180px;
+  border: 4px solid #1a237e;
+  border-radius: 12px;
+  padding: 8px;
+  background: white;
+}
+
+.card-details {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row .label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.detail-row .value {
+  font-weight: 700;
+  color: #1a237e;
+  font-size: 1rem;
+}
+
+.card-footer-section {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.generated-date {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 960px) {
+  .page-header {
+    text-align: center;
+  }
+
+  .page-header > div {
+    width: 100%;
+  }
+
+  .generate-btn {
+    width: 100%;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.v-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+</style>

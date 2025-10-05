@@ -12,12 +12,12 @@ class Company extends Model
 
      protected $fillable = [
     'name',
-
     'address',
     'contact',
     'rate',
     'rate_perhour',
     'rate_perday',
-    'post_paid_rate',
+    'hourly_billing_limit',
+    'grace_minutes'
     ];
 }

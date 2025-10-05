@@ -7,11 +7,12 @@ use App\Models\CardInventoryDetail;
 use App\Models\Payment;
 use App\Models\PaymentDetail;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CardInventoryController extends Controller
 {
@@ -109,6 +110,8 @@ public function index(Request $request)
 
             DB::commit();
 
+             Cache::forget('dashboard.totalCards');
+      
             return redirect()->route('card-inventory.index')->with([
                 'success' => 'Card Inventory with details created successfully!',
             ]);
@@ -286,7 +289,12 @@ public function sell_card_payment(Request $request)
                     'no_of_days'  => $cardInventory->no_of_days ?? 0,
                 ]);
             }
+
         });
+
+         Cache::forget('dashboard.revenueData');
+         Cache::forget('dashboard.totalRevenue');
+
 
         return redirect(route('card-inventory.index'))->with('success', 'Payment recorded successfully!');
     } catch (\Exception $e) {

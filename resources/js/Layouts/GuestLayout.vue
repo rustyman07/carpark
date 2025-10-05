@@ -5,7 +5,7 @@ import { Link } from '@inertiajs/vue3';
 
 <template>
 <div
-  class="relative p-4 bg-indigo-darken-4 bg-center bg-cover flex flex-col min-h-screen items-center pt-6 sm:justify-center sm:pt-0"
+  class="relative bg-center bg-cover flex flex-col min-h-screen items-center pt-6 sm:justify-center sm:pt-0"
 >
   <!-- ✅ White overlay -->
   <!-- <div class="absolute inset-0 bg-white/90"></div> -->

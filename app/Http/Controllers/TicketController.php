@@ -12,7 +12,8 @@ use App\Models\CardsTransaction;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;  
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -76,55 +77,60 @@ public function store(Request $request)
     return back()->withErrors([
         'plate_no' => "This plate number already has an active ticket with a ticket no of {$ticket->ticket_no}.",
     ])->withInput();
-}
+    }
 
-    // Build park_datetime from inputs (fallback: now)
-    $park_datetime = isset($data['park_year'], $data['park_month'], $data['park_day'])
-        ? Carbon::create(
-            $data['park_year'],
-            $data['park_month'],
-            $data['park_day'],
-            $data['park_hour']   ?? 0,
-            $data['park_minute'] ?? 0,
-            $data['park_second'] ?? 0
-        )
-        : now();
+        // Build park_datetime from inputs (fallback: now)
+        $park_datetime = isset($data['park_year'], $data['park_month'], $data['park_day'])
+            ? Carbon::create(
+                $data['park_year'],
+                $data['park_month'],
+                $data['park_day'],
+                $data['park_hour']   ?? 0,
+                $data['park_minute'] ?? 0,
+                $data['park_second'] ?? 0
+            )
+            : now();
 
-    $uuid = (string) Str::uuid();
-    // Always sync fields
-    $data['park_year']   = $park_datetime->year;
-    $data['park_month']  = $park_datetime->month;
-    $data['park_day']    = $park_datetime->day;
-    $data['park_hour']   = $park_datetime->hour;
-    $data['park_minute'] = $park_datetime->minute;
-    $data['park_second'] = $park_datetime->second;
-    $data['park_datetime'] = $park_datetime;
-    $data['uuid'] = $uuid;
+        $uuid = (string) Str::uuid();
+        // Always sync fields
+        $data['park_year']   = $park_datetime->year;
+        $data['park_month']  = $park_datetime->month;
+        $data['park_day']    = $park_datetime->day;
+        $data['park_hour']   = $park_datetime->hour;
+        $data['park_minute'] = $park_datetime->minute;
+        $data['park_second'] = $park_datetime->second;
+        $data['park_datetime'] = $park_datetime;
+        $data['uuid'] = $uuid;
 
-    // Defaults
-    $data['cancelled'] = 0;
-    $data['ticket_no'] = 0;
-    $data['create_by'] =  Auth::id();
-    $data['park_in_by'] =  Auth::id();
-   
+        // Defaults
+        $data['cancelled'] = 0;
+        $data['ticket_no'] = 0;
+        $data['create_by'] =  Auth::id();
+        $data['park_in_by'] =  Auth::id();
+    
 
-    DB::transaction(function () use ($data) {
-        $ticket = Ticket::create($data);
-     
-        $ticket_no = '1' . sprintf('%06d', $ticket->id);
-        $hash_ticket_no = Hash::make($ticket_no);
+        DB::transaction(function () use ($data) {
+            $ticket = Ticket::create($data);
+        
+            $ticket_no = '1' . sprintf('%06d', $ticket->id);
+            $hash_ticket_no = Hash::make($ticket_no);
 
-        $ticket->update([
-            'ticket_no' =>      $ticket_no,     
-            'qr_code'   => $hash_ticket_no,
-            'remarks'  => 'Unpaid'
-        ]);
-    });
+            $ticket->update([
+                'ticket_no' =>      $ticket_no,     
+                'qr_code'   => $hash_ticket_no,
+                'remarks'  => 'Unpaid'
+            ]);
 
 
-    // return back()->with('success', 'Ticket created successfully!');
-    return redirect()->route('parkin.show',['uuid' => $uuid])->with('success', 'Ticket created successfully!');
-}
+            Cache::forget('dashboard.activeParkings');
+            Cache::forget('dashboard.latestParkin');
+        });
+
+
+
+        // return back()->with('success', 'Ticket created successfully!');
+        return redirect()->route('parkin.show',['uuid' => $uuid])->with('success', 'Ticket created successfully!');
+    }
 
 
 public function show(string $uuid)
@@ -329,14 +335,8 @@ public function submit_park_out(Request $request)
     $end =     Carbon::parse( $data['park_out_datetime'])->timezone(config('app.timezone'));
 
 
-//  $start =     Carbon::parse('2025-09-18 11:11:31'); 
-//  $end  =     Carbon::parse('2025-09-19 11:37:17');
-// $hoursParked = max(1,(int) $start->diffInHours($end)) ;
-// $daysParked = max(1,(int) $start->diffInDays($end));
- $minutesDiff =  $start->diffInMinutes($end);
 
-// $ratePerhour = $hoursParked * (float) $company->rate_perhour;
-// $ratePerDay = $daysParked * (float) $company->rate_perday;
+    $minutesDiff =  $start->diffInMinutes($end);
 
 
 // $rate = null;
@@ -369,43 +369,105 @@ public function submit_park_out(Request $request)
 //   $end  =     Carbon::parse('2025-09-19 10:42:10');
 // Use Carbon's diffInMinutes for the most precise duration
 // $minutesParked = $start->diffInMinutes($end);
-$minutesParked = floor($start->diffInSeconds($end) / 60);
+// $minutesParked = floor($start->diffInSeconds($end) / 60);
+
+// $rate = 0;
+// $daysParked = 0;
+// $remainingMinutes = 0;
+// $hoursParked = 0;
+
+// if ($company->rate == 'perhour') {
+
+//     // Per-hour billing (still rounds up to minimum 1 hour)
+//     $hoursParked = max(1, ceil($minutesParked / 60));
+//     $rate = $hoursParked * (float) $company->rate_perhour;
+
+// } elseif ($company->rate == 'perday') {
+
+//     // ✅ Always charge at least 1 day even if less than 24h
+//     $daysParked = max(1, ceil($minutesParked / 1440));
+//     $rate = $daysParked * (float) $company->rate_perday;
+
+// } else { // ✅ combination logic
+
+//     if ($minutesParked <= 1440) {
+//         // ✅ Less than or equal to 1 day → charge full 1 day rate
+//         $rate = (float) $company->rate_perday;
+//     } else {
+//         // ✅ More than 1 day → count full days + hourly for remainder
+//         $daysParked = floor($minutesParked / 1440);
+//         $remainingMinutes = $minutesParked % 1440;
+
+//         $rate = $daysParked * (float) $company->rate_perday;
+
+//         if ($remainingMinutes > 0) {
+//             $hoursParked = ceil($remainingMinutes / 60);
+//             $rate += $hoursParked * (float) $company->rate_perhour;
+//         }
+//     }
+// }
+
+
+$company = Company::find(1); 
+
+$start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone')); 
+$end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
+
+
+$minutesDiff = $start->diffInMinutes($end);
+
+$ratePerHour = (float) $company->rate_perhour;
+$ratePerDay  = (float) $company->rate_perday;
+
+
+$hourly_limit   = (int) $company->hourly_billing_limit * 60;
+$freeMinutes    = (int) $company->grace_minutes;
+
 
 $rate = 0;
 $daysParked = 0;
-$remainingMinutes = 0;
 $hoursParked = 0;
+$remainingMinutes = 0;
 
 if ($company->rate == 'perhour') {
-
-    // Per-hour billing (still rounds up to minimum 1 hour)
-    $hoursParked = max(1, ceil($minutesParked / 60));
-    $rate = $hoursParked * (float) $company->rate_perhour;
+   
+    $hoursParked = max(1, ceil($minutesDiff / 60));
+    $rate = $hoursParked * $ratePerHour;
 
 } elseif ($company->rate == 'perday') {
 
-    // ✅ Always charge at least 1 day even if less than 24h
-    $daysParked = max(1, ceil($minutesParked / 1440));
-    $rate = $daysParked * (float) $company->rate_perday;
+    $daysParked = max(1, ceil($minutesDiff / 1440));
+    $rate = $daysParked * $ratePerDay;
 
-} else { // ✅ combination logic
+} else {
+   
 
-    if ($minutesParked <= 1440) {
-        // ✅ Less than or equal to 1 day → charge full 1 day rate
-        $rate = (float) $company->rate_perday;
+    if ($minutesDiff <= $hourly_limit + $freeMinutes) {
+
+        $hoursParked = max(1, ceil($minutesDiff / 60));
+        $hoursParked = min($hoursParked, $hourly_limit);
+        $rate = $hoursParked * $ratePerHour;
+
+    } elseif ($minutesDiff <= 1440) {
+
+        $rate = $ratePerDay;
+        $hoursParked = ceil($minutesDiff / 60); 
     } else {
-        // ✅ More than 1 day → count full days + hourly for remainder
-        $daysParked = floor($minutesParked / 1440);
-        $remainingMinutes = $minutesParked % 1440;
 
-        $rate = $daysParked * (float) $company->rate_perday;
+        $daysParked = floor($minutesDiff / 1440);
+        $remainingMinutes = $minutesDiff % 1440;
+
+        $rate = $daysParked * $ratePerDay;
 
         if ($remainingMinutes > 0) {
             $hoursParked = ceil($remainingMinutes / 60);
-            $rate += $hoursParked * (float) $company->rate_perhour;
+            $rate += $ratePerDay;
         }
+
+         $rate = $daysParked * $ratePerDay + ($remainingMinutes > 0 ? $ratePerDay : 0);
     }
 }
+
 
 
     $ticket->park_fee =  $rate;
@@ -426,6 +488,7 @@ if ($company->rate == 'perhour') {
      ])->save();
 
    
+    Cache::forget('dashboard.latestParkout');
     return redirect()->route('show.payment', [
         'uuid' => $ticket->uuid
     ]);
@@ -594,6 +657,9 @@ public function submit_payment(Request $request)
 
         // Clear scanned cards from session
         session()->forget('scanned_cards');
+     
+         Cache::forget('dashboard.revenueData');
+         Cache::forget('dashboard.totalRevenue');
 
         // Redirect with success
         return redirect()->route('parkout.receipt', ['id' => $ticket->uuid])
