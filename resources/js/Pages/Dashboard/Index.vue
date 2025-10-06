@@ -260,7 +260,7 @@
                   <div class="flex-grow-1">
                     <p class="text-body-2 font-weight-medium mb-0">Vehicle checked in</p>
 <p class="text-caption text-medium-emphasis">
-  {{ props.latestParkin.plate_no     }} • {{ timeAgo(props.latestParkin.park_datetime) }}
+  {{ props.latestParkin?.plate_no     }} • {{ timeAgo(props.latestParkin?.park_datetime) }}
 </p>
                   </div>
                 </div>
@@ -271,7 +271,7 @@
                   </v-avatar>
                   <div class="flex-grow-1">
                     <p class="text-body-2 font-weight-medium mb-0">Vehicle checked out</p>
-                    <p class="text-caption text-medium-emphasis">{{ props.latestParkout.plate_no     }} • {{ timeAgo(props.latestParkout.park_out_datetime) }}</p>
+                    <p class="text-caption text-medium-emphasis">{{ props.latestParkout?.plate_no     }} • {{ timeAgo(props.latestParkout?.park_out_datetime) }}</p>
                   </div>
                 </div>
 

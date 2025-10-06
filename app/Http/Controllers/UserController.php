@@ -89,7 +89,6 @@ public function update(User $user, Request $request)
         'username' => $request->username,
         'role' => $request->role,
         'contact' => $request->contact,
-        'password' => Hash::make($request->password),
     ]);
 
     return redirect()->route('users.index')->with('success', 'User updated successfully.');
