@@ -157,7 +157,16 @@ public function scan_qr_cards(Request $request)
             ->where('status', 'Available')
             ->first();
     } else {
-        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->where('status', 'Sold')->first();
+        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->where('status', 'Confirmed')->first();
+
+            if (!$card) {
+        return redirect()->back()->with(
+            'error' , 'Card needs to be confirmed'
+        );
+    }
+
+
+
     }
 
     // ❌ Invalid QR
@@ -319,6 +328,30 @@ public function transactions($card_id)
         'transactions' => $transactions,
     ]);
 }
+
+public function updateStatus(Request $request, $id)
+{
+    $card = CardInventoryDetail::findOrFail($id);
+
+    if ($card->status === 'Confirmed') {
+        return back()->with('error', 'This card is already confirmed.');
+    }
+
+    if ($card->status !== 'Sold') {
+        return back()->with('error', 'Card status must be Sold before confirming.');
+    }
+
+    $card->update(['status' => 'Confirmed']);
+
+    $cardDetail = CardInventoryDetail::latest()->paginate(10);
+
+    return back()->with([
+        'cardDetail' => $cardDetail,
+        'success' => 'Card status updated successfully!',
+    ]);
+}
+
+
 
 
 

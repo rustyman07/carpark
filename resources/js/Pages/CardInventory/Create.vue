@@ -129,7 +129,7 @@ const create = () =>
   })
 
 const update = () =>
-  form.put(route('card-inventory.update', props.selectedTemplate.id), {
+  form.put(route('card-inventory.update-status', props.selectedTemplate.id), {
     onSuccess: () => {
       form.reset()
       dialog.value = false

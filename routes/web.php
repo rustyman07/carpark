@@ -45,12 +45,12 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('parkout/payment', [TicketController::class, 'submit_payment'])->name('store.payment');
     Route::get('parkout/receipt', [TicketController::class, 'parkout_receipt'])->name('parkout.receipt');
 
-    Route::prefix('sales-person')->name('sales-person.')->group(function () {
-        Route::get('/', [SalesPersonController::class, 'index'])->name('index');
-        Route::post('/', [SalesPersonController::class, 'store'])->name('store');
-        Route::put('/{id}', [SalesPersonController::class, 'update'])->name('update');
-        Route::delete('/{id}', [SalesPersonController::class, 'destroy'])->name('destroy');
-    });
+    // Route::prefix('sales-person')->name('sales-person.')->group(function () {
+    //     Route::get('/', [SalesPersonController::class, 'index'])->name('index');
+    //     Route::post('/', [SalesPersonController::class, 'store'])->name('store');
+    //     Route::put('/{id}', [SalesPersonController::class, 'update'])->name('update');
+    //     Route::delete('/{id}', [SalesPersonController::class, 'destroy'])->name('destroy');
+    // });
 
     Route::get('company', [CompanyController::class, 'index'])->name('company.index');
      Route::put('company/{id}', [CompanyController::class, 'update'])->name('company.update');
@@ -63,6 +63,9 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('scan-qr-cards', [CardInventoryController::class, 'scan_qr_cards'])->name('scan.qr.cards');
     Route::get('sell-card', [CardInventoryController::class, 'sell_card'])->name('sell-card.create');
     Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment');
+    Route::put('/card-inventory/{id}/status', [CardInventoryController::class, 'updateStatus'])
+    ->name('card-inventory.update-status');
+
 
 
     Route::get('transaction/ticket-payments', [PaymentController::class, 'index'])->name('ticket.payments');

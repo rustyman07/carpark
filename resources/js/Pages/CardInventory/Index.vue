@@ -1,6 +1,6 @@
 <template>
   <div class="inventory-wrapper">
-    <v-container  class="py-8 px-6">
+    <v-container class="py-8 px-6">
       <!-- Page Header -->
       <div class="page-header mb-8">
         <div>
@@ -100,20 +100,78 @@
         :selectedCard="selectedCard" 
       />
 
-      <v-dialog v-model="showLoadingDialog" max-width="400" persistent>
-        <v-card rounded="lg" class="loading-card">
-          <v-card-text class="pa-6">
-            <div class="text-center">
-              <v-progress-circular
-                :size="80"
-                :width="8"
-                color="indigo-darken-4"
-                indeterminate
-              ></v-progress-circular>
-              <h3 class="text-h6 font-weight-bold mt-4 mb-2">Generating Cards...</h3>
-              <p class="text-caption text-medium-emphasis">Please wait while we create your cards</p>
+      <!-- Confirmation Dialog - Redesigned with Indigo Theme -->
+      <v-dialog v-model="showConfirmDialog" max-width="500" persistent>
+        <v-card rounded="lg" class="confirm-card">
+          <!-- Header -->
+          <div class="form-header pa-6 pb-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <v-avatar color="indigo-darken-4" size="48" class="mr-3">
+                  <v-icon size="28" color="white">mdi-check-decagram</v-icon>
+                </v-avatar>
+                <div>
+                  <h2 class="text-h6 font-weight-bold text-indigo-darken-4">
+                    Confirm Sale
+                  </h2>
+                  <p class="text-caption text-medium-emphasis mb-0">
+                    Mark card as sold in the system
+                  </p>
+                </div>
+              </div>
+              <v-btn
+                icon="mdi-close"
+                variant="text"
+                @click="cancelConfirm"
+              ></v-btn>
             </div>
+          </div>
+
+          <v-divider></v-divider>
+
+          <!-- Content -->
+          <v-card-text class="pa-6">
+            <v-alert
+              type="info"
+              variant="tonal"
+              density="comfortable"
+              class="sale-alert mb-0"
+            >
+              <div class="text-body-2">
+                You are about to mark card 
+                <span class="font-weight-bold text-indigo-darken-4">{{ selectedCardToConfirm?.card_number }}</span> 
+                as <span class="font-weight-bold">CONFIRMED</span>.
+              </div>
+              <div class="text-caption text-medium-emphasis mt-2">
+                <v-icon size="16" class="mr-1">mdi-information-outline</v-icon>
+                This action will update the card's status permanently.
+              </div>
+            </v-alert>
           </v-card-text>
+
+          <v-divider></v-divider>
+
+          <!-- Actions -->
+          <v-card-actions class="pa-6">
+            <v-spacer />
+            <v-btn
+              variant="outlined"
+              size="large"
+              @click="cancelConfirm"
+              prepend-icon="mdi-close"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="indigo-darken-4"
+              variant="flat"
+              size="large"
+              @click="confirmStatusChange"
+              prepend-icon="mdi-check-circle"
+            >
+              Confirm Sale
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-dialog>
 
@@ -234,31 +292,36 @@
             <span class="font-weight-medium">{{ formatCurrency(item.balance) }}</span>
           </template>
 
-          <template v-slot:item.status="{ item }">
-            <v-chip
-              :color="
-                item.status === 'Available'
-                  ? 'success'
-                  : item.status === 'Consumed'
-                  ? 'error'
-                  : 'warning'
-              "
-              variant="flat"
-              size="small"
-              class="font-weight-medium"
-            >
-              <v-icon start size="12">
-                {{ 
-                  item.status === 'Available' 
-                    ? 'mdi-check-circle' 
-                    : item.status === 'Consumed' 
-                    ? 'mdi-close-circle' 
-                    : 'mdi-clock-outline' 
-                }}
-              </v-icon>
-              {{ item.status }}
-            </v-chip>
-          </template>
+    <template v-slot:item.status="{ item }">
+  <v-chip
+    :color="
+      item.status === 'Available'
+        ? 'success'
+        : item.status === 'Consumed'
+        ? 'error'
+        : item.status === 'Confirmed'
+        ? 'primary'  // 🌤️ sky blue hex
+        : 'warning'
+    "
+    variant="flat"
+    size="small"
+    class="font-weight-medium w-100 d-flex justify-center"
+  >
+    <v-icon start size="12">
+      {{
+        item.status === 'Available'
+          ? 'mdi-check-circle'
+          : item.status === 'Consumed'
+          ? 'mdi-close-circle'
+          : item.status === 'Confirmed'
+          ? 'mdi-thumb-up'
+          : 'mdi-clock-outline'
+      }}
+    </v-icon>
+    {{ item.status }}
+  </v-chip>
+</template>
+
 
           <template v-slot:item.created_at="{ item }">
             <div class="d-flex align-center">
@@ -287,6 +350,16 @@
             ></v-btn>
           </template>
 
+          <template v-slot:item.confirmation="{ item }">
+            <v-checkbox
+              :model-value="item.status === 'Confirmed'"
+              :disabled="item.status !== 'Sold'"
+              @update:model-value="(value) => handleCheckboxChange(item, value)"
+              color="indigo-darken-4"
+              hide-details
+            ></v-checkbox>
+          </template>
+
           <!-- Summary Footer -->
           <template v-slot:body.append>
             <tr class="summary-row">
@@ -299,6 +372,7 @@
               <td class="font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td>
               <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalAmount) }}</td>
               <td class="font-weight-bold text-warning">{{ formatCurrency(totalBalance) }}</td>
+              <td></td>
               <td></td>
               <td></td>
               <td></td>
@@ -377,6 +451,9 @@ const selectedCard = ref({});
 const cardToDownload = ref(null);
 const progress = ref(0);
 
+const showConfirmDialog = ref(false);
+const selectedCardToConfirm = ref(null);
+
 // Table headers
 const headers = [
   { key: 'card_number', title: 'Card Number', sortable: true },
@@ -387,8 +464,9 @@ const headers = [
   { key: 'balance', title: 'Balance', align: 'end' },
   { key: 'status', title: 'Status', align: 'center' },
   { key: 'created_at', title: 'Date Created' },
-  { key: 'transactions', title: 'Transactions', align: 'center', sortable: false },
+  { key: 'transactions', title: 'View', align: 'center', sortable: false },
   { key: 'download', title: 'Download', align: 'center', sortable: false },
+  { key: 'confirmation', title: 'Confirm', align: 'center' },
 ];
 
 // Inertia props
@@ -481,6 +559,42 @@ const goToPage = (pageNumber) => {
     route('card-inventory.index'),
     { page: pageNumber },
     { preserveState: true, replace: true }
+  );
+};
+
+// Handle checkbox change
+const handleCheckboxChange = (item, value) => {
+  if (value && item.status !== 'Confirmed') {
+    selectedCardToConfirm.value = item;
+    showConfirmDialog.value = true;
+  }
+};
+
+const cancelConfirm = () => {
+  // Reset without confirming - checkbox will automatically uncheck
+  selectedCardToConfirm.value = null;
+  showConfirmDialog.value = false;
+};
+
+const confirmStatusChange = () => {
+  if (!selectedCardToConfirm.value) return;
+
+  router.put(
+    route('card-inventory.update-status', selectedCardToConfirm.value.id),
+    { status: 'Confirmed' },
+    {
+      onSuccess: () => {
+        // Update local UI
+        selectedCardToConfirm.value.status = 'Confirmed';
+        showConfirmDialog.value = false;
+        selectedCardToConfirm.value = null;
+      },
+      onError: (err) => {
+        console.error('Failed to update status:', err);
+        showConfirmDialog.value = false;
+        selectedCardToConfirm.value = null;
+      },
+    }
   );
 };
 
@@ -577,11 +691,6 @@ const exportData = (format) => {
   border-left-color: #ffa000;
 }
 
-/* Loading Card */
-.loading-card {
-  background: white;
-}
-
 /* Data Table Card */
 .data-table-card {
   background: white;
@@ -630,6 +739,35 @@ const exportData = (format) => {
 
 .summary-row td {
   padding: 16px !important;
+}
+
+/* Confirmation Dialog - Indigo Theme */
+.confirm-card {
+  overflow: hidden;
+}
+
+.form-header {
+  background: linear-gradient(135deg, rgba(26, 35, 126, 0.05) 0%, rgba(26, 35, 126, 0.02) 100%);
+}
+
+.sale-alert {
+  border-left: 4px solid #1a237e;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.confirm-card {
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* Download Card Template */
@@ -752,4 +890,5 @@ const exportData = (format) => {
 .v-card {
   animation: fadeInUp 0.5s ease-out;
 }
+
 </style>

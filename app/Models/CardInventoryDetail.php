@@ -21,6 +21,7 @@ class CardInventoryDetail extends Model
     'discount',
     'balance',
     'price',
+    'status',
     'amount',
     'cancelled',
     'cancelled_by',
