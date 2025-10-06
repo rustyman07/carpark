@@ -126,7 +126,7 @@ const submit = () => {
 
           <!-- Footer -->
           <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-            <p class="text-xs text-gray-400">Powered by CarPark Management v1.0</p>
+            <p class="text-xs text-gray-400">Powered by Cerebro Diagnostic System</p>
           </div>
         </div>
       </div>

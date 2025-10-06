@@ -236,11 +236,8 @@ const items = [
   {
     title: 'Settings',
     value: 'settings',
-    route: 'settings.index',
+    route: 'company.index',
     icon: 'mdi-cog',
-    children: [
-      { title: 'Company', value: 'company_card_template', route: 'company.index', icon: 'mdi-office-building' }
-    ],
   },
   { title: 'Log out', value: 'log_out', route: 'logout', icon: 'mdi-logout' },
 ];

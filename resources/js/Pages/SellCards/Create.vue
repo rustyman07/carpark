@@ -489,7 +489,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .payment-wrapper {
-  background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+
   min-height: 100vh;
 }
 

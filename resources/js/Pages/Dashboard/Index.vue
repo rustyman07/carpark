@@ -23,8 +23,8 @@
         <!-- Active Parkings -->
         <v-col cols="12" md="4">
           <v-card 
-            class="kpi-card elevation-8" 
-            rounded="xl"
+            class="kpi-card elevation-2" 
+            rounded="sm"
             :ripple="false"
           >
             <div class="kpi-card-content pa-6">
@@ -65,8 +65,8 @@
         <!-- Total Cards -->
         <v-col cols="12" md="4">
           <v-card 
-            class="kpi-card elevation-8" 
-            rounded="xl"
+            class="kpi-card elevation-2" 
+            rounded="sm"
             :ripple="false"
           >
             <div class="kpi-card-content pa-6">
@@ -107,8 +107,8 @@
         <!-- Total Revenue -->
         <v-col cols="12" md="4">
           <v-card 
-            class="kpi-card elevation-8" 
-            rounded="xl"
+            class="kpi-card elevation-2" 
+            rounded="sm"
             :ripple="false"
           >
             <div class="kpi-card-content pa-6">
@@ -151,7 +151,7 @@
       <v-row>
         <!-- Revenue Chart -->
         <v-col cols="12" lg="8">
-          <v-card class="chart-card elevation-8" rounded="xl">
+          <v-card class="chart-card elevation-2" rounded="sm">
             <div class="chart-header pa-6 pb-4">
               <div class="d-flex justify-space-between align-center">
                 <div>
@@ -196,7 +196,7 @@
 
         <!-- Statistics Summary -->
         <v-col cols="12" lg="4">
-          <v-card class="stats-card elevation-8" rounded="xl">
+          <v-card class="stats-card elevation-2" rounded="sm">
             <div class="pa-6">
               <h3 class="text-h6 font-weight-bold text-indigo-darken-4 mb-1">
                 Quick Statistics

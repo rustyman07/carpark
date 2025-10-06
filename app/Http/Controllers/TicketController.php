@@ -414,7 +414,7 @@ $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'))
 $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
 
 
-$minutesDiff = $start->diffInMinutes($end);
+$minutesDiff = (int) $start->diffInMinutes($end);
 
 $ratePerHour = (float) $company->rate_perhour;
 $ratePerDay  = (float) $company->rate_perday;
@@ -438,20 +438,35 @@ if ($company->rate == 'perhour') {
 
     $daysParked = max(1, ceil($minutesDiff / 1440));
     $rate = $daysParked * $ratePerDay;
+ 
 
 } else {
    
 
     if ($minutesDiff <= $hourly_limit + $freeMinutes) {
 
-        $hoursParked = max(1, ceil($minutesDiff / 60));
-        $hoursParked = min($hoursParked, $hourly_limit);
+        $hoursParked = max(1, floor($minutesDiff / 60));
+
+        if ($minutesDiff > 60){
+
+            if ($minutesDiff >  ($hoursParked * 60) + $freeMinutes )
+                  $hoursParked = max(1, ceil($minutesDiff / 60));
+
+         }
+
+        // $hoursParked = min($hoursParked, $hourly_limit);
+       // $totalmin = ($hoursParked * 60) + $freeMinutes;
+
         $rate = $hoursParked * $ratePerHour;
+      //  $hoursParkedciel = max(1, ceil($minutesDiff / 60));
+
+      //dd(['dif' =>$minutesDiff, 'total' => $hourly_limit + $freeMinutes]);
 
     } elseif ($minutesDiff <= 1440) {
 
         $rate = $ratePerDay;
         $hoursParked = ceil($minutesDiff / 60); 
+              dd(['second' =>$hoursParked]);
     } else {
 
         $daysParked = floor($minutesDiff / 1440);
@@ -462,6 +477,7 @@ if ($company->rate == 'perhour') {
         if ($remainingMinutes > 0) {
             $hoursParked = ceil($remainingMinutes / 60);
             $rate += $ratePerDay;
+                  dd(['third' =>$hoursParked]);
         }
 
          $rate = $daysParked * $ratePerDay + ($remainingMinutes > 0 ? $ratePerDay : 0);

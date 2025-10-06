@@ -1,6 +1,6 @@
 <template>
   <div class="template-wrapper">
-    <v-container fluid class="py-8 px-6">
+    <v-container  class="py-8 px-6">
       <!-- Page Header -->
       <div class="page-header mb-8">
         <div>
