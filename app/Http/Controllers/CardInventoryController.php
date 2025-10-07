@@ -19,8 +19,9 @@ class CardInventoryController extends Controller
     //
 public function index(Request $request)
 {
-    $dateFrom    = $request->input('dateFrom');
-    $dateTo      = $request->input('dateTo');
+
+    $dateFrom = $request->input('dateFrom', now()->toDateString());
+    $dateTo   = $request->input('dateTo', now()->toDateString());;
     $cardNumber  = $request->input('card_number');
 
     $cardTemplate = CardTemplate::where('cancelled', 0)->get();
@@ -33,7 +34,6 @@ public function index(Request $request)
         $cardDetailQuery->where('card_number', 'like', '%' . $cardNumber . '%');
     }
 
-    // ✅ Date range filter
     if ($dateFrom && $dateTo) {
         $cardDetailQuery->whereDate('created_at', '>=', $dateFrom)
                         ->whereDate('created_at', '<=', $dateTo);

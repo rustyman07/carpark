@@ -565,12 +565,25 @@ const addCard = () => {
 };
 
 const goToPage = (pageNumber) => {
+  const formattedStartDate = filters.value.startDate
+    ? dayjs(filters.value.startDate).format('YYYY-MM-DD')
+    : null;
+  const formattedEndDate = filters.value.endDate
+    ? dayjs(filters.value.endDate).format('YYYY-MM-DD')
+    : null;
+
   router.get(
     route('card-inventory.index'),
-    { page: pageNumber },
+    {
+      page: pageNumber,
+      card_number: filters.value.cardNumber,
+      dateFrom: formattedStartDate,
+      dateTo: formattedEndDate,
+    },
     { preserveState: true, replace: true }
   );
 };
+
 
 // Handle checkbox change
 const handleCheckboxChange = (item, value) => {
