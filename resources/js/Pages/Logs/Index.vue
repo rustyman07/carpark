@@ -77,6 +77,25 @@
         </v-col>
       </v-row>
 
+
+      <v-col cols="12" sm="6" md="3">
+  <v-card class="stat-card elevation-4" rounded="lg">
+    <div class="pa-4">
+      <div class="d-flex align-center justify-space-between mb-2">
+        <v-icon size="32" color="indigo">mdi-cash</v-icon>
+        <v-chip size="small" color="indigo" variant="flat">
+          {{ currentShift }}
+        </v-chip>
+      </div>
+      <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
+        ₱ {{ totalParkFee.toLocaleString() }}
+      </h3>
+      <p class="text-caption text-medium-emphasis">Total Park Fee (per shift)</p>
+    </div>
+  </v-card>
+</v-col>
+
+
       <!-- Main Data Table Card -->
       <v-card class="data-table-card elevation-8" rounded="lg">
         <!-- Filters Section -->
@@ -95,7 +114,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="2">
               <v-date-input
                 v-model="dateTo"
                 prepend-icon=""
@@ -106,6 +125,16 @@
                 variant="outlined"
                 bg-color="white"
               />
+            </v-col>
+            <v-col cols="12" md="2">
+                <v-select
+                label="Shift"
+                :items="['MORNING', 'AFTERNOON', 'NIGHT']"
+                v-model="selectedShift"
+                density="comfortable"
+                      hide-details="auto"
+                variant="outlined"
+                />
             </v-col>
 
             <v-col cols="12" md="3">
@@ -123,7 +152,7 @@
               />
             </v-col>
 
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="2">
               <v-btn
                 color="indigo-darken-4"
                 size="large"
@@ -259,14 +288,23 @@ import { router } from '@inertiajs/vue3'
 import { formatDate } from '../../utils/utility'
 
 const props = defineProps({
-  Tickets: Object,
-  filters: Object,
+  Tickets: { type: Array, default: () => [] },
+  filters: { type: Object, default: () => ({}) },
+ totalParkFee: { type: Number, default: 0 },
 })
 
-const items = ref(formatTickets(props.Tickets.data))
+
+
+const totalParkFee = ref(props.totalParkFee)
+const currentShift = ref(props.filters.shift || 'MORNING')
+
+
+
+const items = ref(formatTickets(props.Tickets))
 const nextPageUrl = ref(props.Tickets.next_page_url)
 const showVoidDialog = ref(false)
 const ticketToVoid = ref(null)
+const selectedShift = ref('')
 
 const today = new Date().toISOString().split("T")[0]
 const dateFrom = ref(today)
@@ -278,6 +316,7 @@ const headers = [
   { key: 'plate_no', title: 'Plate No' },
   { key: 'park_datetime', title: 'Park In', sortable: true },
   { key: 'park_out_datetime', title: 'Park Out', sortable: true },
+    { key: 'park_fee', title: 'Park Fee', align: 'center' },
   { key: 'remarks', title: 'Remarks', align: 'center' },
   { key: 'action', title: 'Action', align: 'center', sortable: false }
 ]
@@ -288,7 +327,8 @@ const types = [
 ]
 
 function formatTickets(tickets) {
-  return tickets.map((ticket) => ({
+    console.log(tickets)
+  return (tickets || []).map((ticket) => ({
     ...ticket,
     park_datetime: formatDate(ticket.park_datetime),
     park_out_datetime: formatDate(ticket.park_out_datetime)
@@ -300,21 +340,24 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
     dateFrom: dateFrom.value,
     dateTo: dateTo.value,
     type: selectedType.value,
+     shift: selectedShift.value,
   }
 
   router.get(url, params, {
     preserveState: true,
     preserveScroll: true,
     replace: !append,
-    only: ["Tickets"],
+   only: ["Tickets", "totalParkFee", "filters"],
     onSuccess: (page) => {
-      const formatted = formatTickets(page.props.Tickets.data)
+      const formatted = formatTickets(page.props.Tickets)
       if (append) {
         items.value = [...items.value, ...formatted]
       } else {
         items.value = formatted
       }
       nextPageUrl.value = page.props.Tickets.next_page_url
+        totalParkFee.value = page.props.totalParkFee
+  currentShift.value = page.props.filters.shift
     },
   })
 }
@@ -323,11 +366,11 @@ function applyFilter() {
   fetchLogs({ append: false })
 }
 
-function loadMore() {
-  if (nextPageUrl.value) {
-    fetchLogs({ url: nextPageUrl.value, append: true })
-  }
-}
+// function loadMore() {
+//   if (nextPageUrl.value) {
+//     fetchLogs({ url: nextPageUrl.value, append: true })
+//   }
+// }
 
 const deleteTicket = (id) => {
   ticketToVoid.value = id

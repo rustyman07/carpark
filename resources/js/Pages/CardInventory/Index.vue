@@ -12,7 +12,10 @@
             Manage and track all parking cards
           </p>
         </div>
+
+
         <v-btn
+          v-if="user.role === 1"
           color="indigo-darken-4"
           size="large"
           @click="addCard"
@@ -454,6 +457,25 @@ const progress = ref(0);
 const showConfirmDialog = ref(false);
 const selectedCardToConfirm = ref(null);
 
+
+// Inertia props
+const page = usePage();
+const cardTemplate = computed(() => page.props.cardTemplate);
+const cardDetail = computed(() => page.props.cardDetail);
+const user = computed(() => page.props.auth?.user || {});
+
+// Date filters
+const filters = ref({
+  cardNumber: '',
+  startDate: new Date(),
+  endDate: new Date(),
+});
+const pageNumber = ref(cardDetail.value.current_page);
+const itemsPerPage = ref(cardDetail.value.per_page);
+
+
+
+console.log(user.value.role)
 // Table headers
 const headers = [
   { key: 'card_number', title: 'Card Number', sortable: true },
@@ -466,24 +488,12 @@ const headers = [
   { key: 'created_at', title: 'Date Created' },
   { key: 'transactions', title: 'View', align: 'center', sortable: false },
   { key: 'download', title: 'Download', align: 'center', sortable: false },
-  { key: 'confirmation', title: 'Confirm', align: 'center' },
+
 ];
 
-// Inertia props
-const page = usePage();
-const cardTemplate = computed(() => page.props.cardTemplate);
-const cardDetail = computed(() => page.props.cardDetail);
-
-// Date filters
-const filters = ref({
-  cardNumber: '',
-  startDate: new Date(),
-  endDate: new Date(),
-});
-
-const pageNumber = ref(cardDetail.value.current_page);
-const itemsPerPage = ref(cardDetail.value.per_page);
-
+if (user.value.role == 1) { // admin
+  headers.push({ key: 'confirmation', title: 'Confirm', align: 'center' });
+}
 // Computed totals
 const totalAmount = computed(() => {
   if (!cardDetail.value?.data) return 0;

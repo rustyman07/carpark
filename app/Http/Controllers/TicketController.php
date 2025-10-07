@@ -176,33 +176,154 @@ public function show(string $uuid)
     return redirect()->back()->with('success', 'Ticket deleted successfully.');
     }
 
-    public function showLogs(Request $request)
-    {
+    // public function showLogs(Request $request)
+    // {
 
-        $type     = $request->input('type', 'PARK-IN'); // default
-        $dateFrom = $request->input('dateFrom', now()->toDateString()); // default = today
-       $dateTo   = $request->input('dateTo', now()->toDateString());   // default = today
-
-
-        $query = Ticket::whereNull('deleted_at')
-            ->where('is_park_out',$type ==='PARK-IN'? 0 : 1)
-            ->select('id','ticket_no', 'plate_no', 'park_datetime', 'park_out_datetime','remarks')
-            ->orderByDesc('created_at');
-
-        $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
+    //     $type     = $request->input('type', 'PARK-IN'); // default
+    //     $dateFrom = $request->input('dateFrom', now()->toDateString()); // default = today
+    //    $dateTo   = $request->input('dateTo', now()->toDateString());   // default = today
 
 
-        if ($dateFrom && $dateTo) {
-            $query->whereDate($dateColumn, '>=', $dateFrom)
-                ->whereDate($dateColumn, '<=', $dateTo);
+    //     $query = Ticket::whereNull('deleted_at')
+    //         ->where('is_park_out',$type ==='PARK-IN'? 0 : 1)
+    //         ->select('id','ticket_no', 'plate_no', 'park_datetime', 'park_out_datetime','remarks','park_fee')
+    //         ->orderByDesc('created_at');
+
+    //     $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
+
+
+    //     if ($dateFrom && $dateTo) {
+    //         $query->whereDate($dateColumn, '>=', $dateFrom)
+    //             ->whereDate($dateColumn, '<=', $dateTo);
+    //     }
+
+    //     return inertia('Logs/Index', [ 
+    //    'Tickets' => $query->paginate(5)->withQueryString(), 
+
+    //     ]);
+
+    // }
+
+
+
+//     public function showLogs(Request $request)
+// {
+//     $type     = $request->input('type', 'PARK-IN'); // default type
+//     $dateFrom = $request->input('dateFrom', now()->toDateString()); // default = today
+//     $dateTo   = $request->input('dateTo', now()->toDateString());   // default = today
+
+//     $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
+
+//     $tickets = Ticket::whereNull('deleted_at')
+//         ->where('is_park_out', $type === 'PARK-IN' ? 0 : 1)
+//         ->select('id', 'ticket_no', 'plate_no', 'park_datetime', 'park_out_datetime', 'remarks', 'park_fee')
+//         ->whereBetween(DB::raw("DATE($dateColumn)"), [$dateFrom, $dateTo])
+//         ->orderByDesc('created_at')
+//         ->get(); // ✅ No pagination — load all records
+
+//     return inertia('Logs/Index', [
+//         'Tickets' => $tickets,
+//         'filters' => [
+//             'type' => $type,
+//             'dateFrom' => $dateFrom,
+//             'dateTo' => $dateTo,
+//         ],
+//     ]);
+// }
+
+public function showLogs(Request $request)
+{
+
+    // dd('dateFr' $request->$dateFrom  )
+    $type     = $request->input('type', 'PARK-IN');
+    $dateFrom = $request->input('dateFrom', now()->toDateString());
+    $dateTo   = $request->input('dateTo', now()->toDateString());
+
+    // ✅ Detect current shift automatically
+    $now = now()->format('H:i:s');
+    $shifts = [
+        'MORNING' => ['06:00:00', '14:00:00'],
+        'AFTERNOON' => ['14:00:01', '22:00:00'],
+        'NIGHT' => ['22:00:01', '05:59:59'],
+    ];
+
+    $userShift = 'MORNING';
+    $shiftStart = '06:00:00';
+    $shiftEnd = '14:00:00';
+
+    foreach ($shifts as $name => [$start, $end]) {
+        if ($now >= $start && $now <= $end) {
+            $userShift = $name;
+            $shiftStart = $start;
+            $shiftEnd = $end;
+            break;
         }
-
-        return inertia('Logs/Index', [ 
-       'Tickets' => $query->paginate(5)->withQueryString(), 
-
-        ]);
-
     }
+
+    $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
+
+    $query = Ticket::whereNull('deleted_at')
+        ->where('is_park_out', $type === 'PARK-IN' ? 0 : 1)
+        ->whereDate($dateColumn, '>=', $dateFrom)
+        ->whereDate($dateColumn, '<=', $dateTo);
+
+    // ✅ Filter logic based on type
+    if ($type === 'PARK-IN') {
+        // Show active + park-ins during this shift
+        $query->where(function ($q) use ($dateColumn, $shiftStart, $shiftEnd) {
+            $q->whereTime($dateColumn, '>=', $shiftStart)
+              ->whereTime($dateColumn, '<=', $shiftEnd)
+              ->orWhereNull('park_out_datetime');
+        });
+    } else {
+        // PARK-OUT view: Only show completed transactions within this shift
+        $query->whereNotNull('park_out_datetime')
+              ->whereTime($dateColumn, '>=', $shiftStart)
+              ->whereTime($dateColumn, '<=', $shiftEnd);
+    }
+
+    $tickets = $query->select(
+        'id',
+        'ticket_no',
+        'plate_no',
+        'park_datetime',
+        'park_out_datetime',
+        'remarks',
+        'park_fee'
+    )->orderByDesc('created_at')->get();
+
+    // ✅ Total only from completed park-outs within shift
+    $totalParkFee = Ticket::whereNull('deleted_at')
+        ->where('remarks','Paid')
+        ->whereNotNull('park_out_datetime') // only completed transactions
+        ->whereBetween('park_out_datetime', [
+            now()->toDateString() . ' ' . $shiftStart,
+            now()->toDateString() . ' ' . $shiftEnd,
+        ])
+        ->sum('park_fee');
+
+    return inertia('Logs/Index', [
+        'Tickets' => $tickets,
+        'totalParkFee' => $totalParkFee,
+        'filters' => [
+            'type' => $type,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'shift' => $userShift,
+            'shiftStart' => $shiftStart,
+            'shiftEnd' => $shiftEnd
+        ]
+    ]);
+}
+
+
+
+
+
+
+
+
+
 
         public function park_out()
         {
@@ -466,7 +587,7 @@ if ($company->rate == 'perhour') {
 
         $rate = $ratePerDay;
         $hoursParked = ceil($minutesDiff / 60); 
-              dd(['second' =>$hoursParked]);
+              //dd(['second' =>$hoursParked]);
     } else {
 
         $daysParked = floor($minutesDiff / 1440);
@@ -477,7 +598,7 @@ if ($company->rate == 'perhour') {
         if ($remainingMinutes > 0) {
             $hoursParked = ceil($remainingMinutes / 60);
             $rate += $ratePerDay;
-                  dd(['third' =>$hoursParked]);
+                 // dd(['third' =>$hoursParked]);
         }
 
          $rate = $daysParked * $ratePerDay + ($remainingMinutes > 0 ? $ratePerDay : 0);

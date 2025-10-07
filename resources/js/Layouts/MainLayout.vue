@@ -223,7 +223,7 @@ const props = defineProps({
   auth: Object,
 });
 
-const items = [
+const allItems = [
   { title: 'Dashboard', value: 'dashboard', route: 'dashboard', icon: 'mdi-view-dashboard' },
   { title: 'Park In', value: 'park_in', route: 'parkin.index', icon: 'mdi-car-arrow-right' },
   { title: 'Park Out', value: 'park_out', route: 'parkout', icon: 'mdi-car-arrow-left' },
@@ -233,18 +233,29 @@ const items = [
   { title: 'Logs', value: 'logs', route: 'logs', icon: 'mdi-history' },
   { title: 'Transactions', value: 'transactions', route: 'ticket.payments', icon: 'mdi-receipt-text' },
   { title: 'Users', value: 'users', route: 'users.index', icon: 'mdi-account-group' },
-  {
-    title: 'Settings',
-    value: 'settings',
-    route: 'company.index',
-    icon: 'mdi-cog',
-  },
+  { title: 'Settings', value: 'settings', route: 'company.index', icon: 'mdi-cog' },
   { title: 'Log out', value: 'log_out', route: 'logout', icon: 'mdi-logout' },
-];
+]
+
+const limitedItems = [
+  { title: 'Dashboard', value: 'dashboard', route: 'dashboard', icon: 'mdi-view-dashboard' },
+  { title: 'Park In', value: 'park_in', route: 'parkin.index', icon: 'mdi-car-arrow-right' },
+  { title: 'Park Out', value: 'park_out', route: 'parkout', icon: 'mdi-car-arrow-left' },
+  { title: 'Card Inventory', route: 'card-inventory.index', value: 'card_inventory', icon: 'mdi-card-account-details' },
+  { title: 'Sell Card', route: 'sell-card.create', value: 'sell_card', icon: 'mdi-cash-register' },
+  { title: 'Logs', value: 'logs', route: 'logs', icon: 'mdi-history' },
+  { title: 'Log out', value: 'log_out', route: 'logout', icon: 'mdi-logout' },
+]
+
+// ✅ Use computed to decide which one to render based on user role
+const items = computed(() => {
+  const role = props?.auth?.user?.role ?? 2
+  return role === 1 ? allItems : limitedItems
+})
 
 const activeItem = computed(() => {
   const currentRouteName = page.props.ziggy.currentRouteName;
-  for (const item of items) {
+  for (const item of items.value) {
     if (item.route === currentRouteName) {
       return item.value;
     }

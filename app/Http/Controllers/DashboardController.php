@@ -47,6 +47,10 @@ class DashboardController extends Controller
                     ->select('park_datetime', 'plate_no')
                     ->first();
             });
+            
+
+
+
 
             // 🏁 Latest park-out — refresh every 30 sec
             $latestParkout = Cache::remember('dashboard.latestParkout', now()->addSeconds(30), function () {
