@@ -33,7 +33,7 @@ return new class extends Migration
             $table->decimal('total_amount', 8, 2)->default(0.00);
             $table->decimal('change', 8, 2)->default(0.00);
             $table->enum('payment_type', ['Card', 'Ticket']);
-            $table->enum('payment_method', ['Cash', 'Card']);
+            $table->enum('payment_method', ['Cash', 'Card', 'Gcash']);
             $table->integer('days_deducted')->nullable();
             $table->enum('status', ['Pending', 'Paid', 'Failed', 'Refunded'])->default('Pending');
             $table->timestamp('paid_at')->nullable();

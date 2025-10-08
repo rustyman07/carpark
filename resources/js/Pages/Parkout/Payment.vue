@@ -219,66 +219,216 @@
                     </div>
                   </v-card>
 
-                  <!-- Cash Payment -->
-                  <div class="cash-section">
+                  <!-- Payment Method Selection -->
+                  <div class="payment-method-section mb-6">
                     <h4 class="text-subtitle-1 font-weight-bold text-indigo-darken-4 mb-3">
-                      <v-icon class="mr-2">mdi-cash</v-icon>
-                      Cash Payment
+                      <v-icon class="mr-2">mdi-wallet</v-icon>
+                      Select Payment Method
                     </h4>
 
-                    <v-text-field
-                      v-model="cashAmount"
-                      label="Cash Amount"
-                      variant="outlined"
-                      type="number"
-                      :disabled="disAbledPayment"
-                      prefix="₱"
-                      density="comfortable"
-                      hide-details="auto"
-                      :hint="disAbledPayment ? 'Payment fully covered by cards' : ''"
-                      persistent-hint
-                    >
-                      <template v-slot:prepend-inner>
-                        <v-icon color="indigo-darken-4">mdi-cash</v-icon>
-                      </template>
-                    </v-text-field>
-
-                    <!-- Change Display -->
-                    <v-expand-transition>
-                      <v-alert
-                        v-if="cashAmount && cashAmount >= cashNeeded"
-                        type="success"
-                        variant="tonal"
-                        class="mt-4"
-                        density="compact"
-                      >
-                        <div class="d-flex align-center justify-space-between">
-                          <span class="font-weight-medium">Change:</span>
-                          <span class="text-h6 font-weight-bold">
-                            {{ formatCurrency(Number(cashAmount) - cashNeeded) }}
-                          </span>
-                        </div>
-                      </v-alert>
-                    </v-expand-transition>
-
-                    <!-- Insufficient Amount Warning -->
-                    <v-expand-transition>
-                      <v-alert
-                        v-if="cashAmount && cashAmount < cashNeeded"
-                        type="warning"
-                        variant="tonal"
-                        class="mt-4"
-                        density="compact"
-                      >
-                        <div class="d-flex align-center justify-space-between">
-                          <span class="font-weight-medium">Insufficient Amount:</span>
-                          <span class="text-subtitle-2 font-weight-bold">
-                            Need {{ formatCurrency(cashNeeded - Number(cashAmount)) }} more
-                          </span>
-                        </div>
-                      </v-alert>
-                    </v-expand-transition>
+                    <v-card class="payment-options elevation-0" rounded="lg" variant="outlined">
+                      <v-radio-group v-model="paymentMethod" :disabled="disAbledPayment" hide-details>
+                        <v-radio value="cash" class="payment-option-radio">
+                          <template v-slot:label>
+                            <div class="d-flex align-center pa-3 w-100">
+                              <v-avatar color="green-lighten-4" size="48" class="mr-4">
+                                <v-icon color="green-darken-2" size="28">mdi-cash</v-icon>
+                              </v-avatar>
+                              <div>
+                                <p class="text-subtitle-1 font-weight-bold mb-0">Cash Payment</p>
+                                <p class="text-caption text-medium-emphasis mb-0">Pay with physical cash</p>
+                              </div>
+                            </div>
+                          </template>
+                        </v-radio>
+                        
+                        <v-divider></v-divider>
+                        
+                        <v-radio value="gcash" class="payment-option-radio">
+                          <template v-slot:label>
+                            <div class="d-flex align-center pa-3 w-100">
+                              <v-avatar color="blue-lighten-4" size="48" class="mr-4">
+                                <v-icon color="blue-darken-2" size="28">mdi-cellphone</v-icon>
+                              </v-avatar>
+                              <div>
+                                <p class="text-subtitle-1 font-weight-bold mb-0">GCash</p>
+                                <p class="text-caption text-medium-emphasis mb-0">Pay via GCash mobile wallet</p>
+                              </div>
+                            </div>
+                          </template>
+                        </v-radio>
+                      </v-radio-group>
+                    </v-card>
                   </div>
+
+                  <!-- Cash Payment Section -->
+                  <v-expand-transition>
+                    <div v-if="paymentMethod === 'cash'" class="cash-section">
+                      <h4 class="text-subtitle-1 font-weight-bold text-indigo-darken-4 mb-3">
+                        <v-icon class="mr-2">mdi-cash</v-icon>
+                        Cash Amount
+                      </h4>
+
+                      <v-text-field
+                        v-model="cashAmount"
+                        label="Enter Cash Amount"
+                        variant="outlined"
+                        type="number"
+                        :disabled="disAbledPayment"
+                        prefix="₱"
+                        density="comfortable"
+                        hide-details="auto"
+                        :hint="disAbledPayment ? 'Payment fully covered by cards' : ''"
+                        persistent-hint
+                      >
+                        <template v-slot:prepend-inner>
+                          <v-icon color="green-darken-2">mdi-cash</v-icon>
+                        </template>
+                      </v-text-field>
+
+                      <!-- Change Display -->
+                      <v-expand-transition>
+                        <v-alert
+                          v-if="cashAmount && cashAmount >= cashNeeded"
+                          type="success"
+                          variant="tonal"
+                          class="mt-4"
+                          density="compact"
+                        >
+                          <div class="d-flex align-center justify-space-between">
+                            <span class="font-weight-medium">Change:</span>
+                            <span class="text-h6 font-weight-bold">
+                              {{ formatCurrency(Number(cashAmount) - cashNeeded) }}
+                            </span>
+                          </div>
+                        </v-alert>
+                      </v-expand-transition>
+
+                      <!-- Insufficient Amount Warning -->
+                      <v-expand-transition>
+                        <v-alert
+                          v-if="cashAmount && cashAmount < cashNeeded"
+                          type="warning"
+                          variant="tonal"
+                          class="mt-4"
+                          density="compact"
+                        >
+                          <div class="d-flex align-center justify-space-between">
+                            <span class="font-weight-medium">Insufficient Amount:</span>
+                            <span class="text-subtitle-2 font-weight-bold">
+                              Need {{ formatCurrency(cashNeeded - Number(cashAmount)) }} more
+                            </span>
+                          </div>
+                        </v-alert>
+                      </v-expand-transition>
+                    </div>
+                  </v-expand-transition>
+
+                  <!-- GCash Payment Section -->
+                  <v-expand-transition>
+                    <div v-if="paymentMethod === 'gcash'" class="gcash-section">
+                      <h4 class="text-subtitle-1 font-weight-bold text-indigo-darken-4 mb-3">
+                        <v-icon class="mr-2">mdi-cellphone</v-icon>
+                        GCash Details
+                      </h4>
+
+                      <v-text-field
+                        v-model="cashAmount"
+                        label="GCash Amount Paid"
+                        variant="outlined"
+                        type="number"
+                        :disabled="disAbledPayment"
+                        prefix="₱"
+                        density="comfortable"
+                        hide-details="auto"
+                        placeholder="0.00"
+                      >
+                        <template v-slot:prepend-inner>
+                          <v-icon color="blue-darken-2">mdi-cash</v-icon>
+                        </template>
+                      </v-text-field>
+
+                      <v-text-field
+                        v-model="gcashNumber"
+                        label="GCash Mobile Number"
+                        variant="outlined"
+                        type="tel"
+                        :disabled="disAbledPayment"
+                        prefix="+63"
+                        density="comfortable"
+                        hide-details="auto"
+                        placeholder="9XX XXX XXXX"
+                        class="mt-4"
+                      >
+                        <template v-slot:prepend-inner>
+                          <v-icon color="blue-darken-2">mdi-cellphone</v-icon>
+                        </template>
+                      </v-text-field>
+
+                      <v-text-field
+                        v-model="gcashReferenceNumber"
+                        label="Reference Number"
+                        variant="outlined"
+                        type="text"
+                        :disabled="disAbledPayment"
+                        density="comfortable"
+                        hide-details="auto"
+                        class="mt-4"
+                        placeholder="Enter GCash reference number"
+                      >
+                        <template v-slot:prepend-inner>
+                          <v-icon color="blue-darken-2">mdi-pound</v-icon>
+                        </template>
+                      </v-text-field>
+
+                      <!-- Change Display for GCash -->
+                      <v-expand-transition>
+                        <v-alert
+                          v-if="gcashAmount && gcashAmount >= cashNeeded"
+                          type="success"
+                          variant="tonal"
+                          class="mt-4"
+                          density="compact"
+                        >
+                          <div class="d-flex align-center justify-space-between">
+                            <span class="font-weight-medium">Change:</span>
+                            <span class="text-h6 font-weight-bold">
+                              {{ formatCurrency(Number(gcashAmount) - cashNeeded) }}
+                            </span>
+                          </div>
+                        </v-alert>
+                      </v-expand-transition>
+
+                      <!-- Insufficient Amount Warning for GCash -->
+                      <v-expand-transition>
+                        <v-alert
+                          v-if="gcashAmount && gcashAmount < cashNeeded"
+                          type="warning"
+                          variant="tonal"
+                          class="mt-4"
+                          density="compact"
+                        >
+                          <div class="d-flex align-center justify-space-between">
+                            <span class="font-weight-medium">Insufficient Amount:</span>
+                            <span class="text-subtitle-2 font-weight-bold">
+                              Need {{ formatCurrency(cashNeeded - Number(gcashAmount)) }} more
+                            </span>
+                          </div>
+                        </v-alert>
+                      </v-expand-transition>
+
+                      <v-alert
+                        type="info"
+                        variant="tonal"
+                        class="mt-4"
+                        density="compact"
+                      >
+                        <div class="text-body-2">
+                          <strong>Amount to pay:</strong> {{ formatCurrency(cashNeeded) }}
+                        </div>
+                      </v-alert>
+                    </div>
+                  </v-expand-transition>
                 </div>
 
                 <v-divider></v-divider>
@@ -286,7 +436,7 @@
                 <!-- Action Button -->
                 <div class="pa-6">
                   <v-btn
-                    :disabled="scannedCards.length === 0 && !cashAmount"
+                    :disabled="!isPaymentValid"
                     block
                     size="x-large"
                     @click="submitPayment"
@@ -323,7 +473,10 @@ const props = defineProps({
 
 const isScanQR = ref(false)
 const html5QrCode = ref(null)
+const paymentMethod = ref('cash')
 const cashAmount = ref(null)
+const gcashNumber = ref('')
+const gcashReferenceNumber = ref('')
 const scannedCards = computed(() => props.scannedCards || [])
 const totalCovered = computed(() => props.totalCovered || 0)
 const cashNeeded = computed(() => props.cashNeeded || 0)
@@ -351,6 +504,28 @@ const disAbledPayment = computed(() => {
   else return false
 })
 
+const isPaymentValid = computed(() => {
+  // If payment is fully covered by cards
+  if (disAbledPayment.value) {
+    return scannedCards.value.length > 0
+  }
+
+  // If using cash
+  if (paymentMethod.value === 'cash') {
+    return (scannedCards.value.length > 0 || cashAmount.value) && 
+           (!cashAmount.value || Number(cashAmount.value) >= cashNeeded.value)
+  }
+
+  // If using GCash
+  if (paymentMethod.value === 'gcash') {
+    return (scannedCards.value.length > 0 || (gcashNumber.value && gcashReferenceNumber.value)) &&
+        //    gcashNumber.value.length >= 10 && 
+           gcashReferenceNumber.value.trim() !== ''
+  }
+
+  return false
+})
+
 const headers = [
   { key: 'card_number', title: 'Card Number' },
   { key: 'price', title: 'Price' },
@@ -375,7 +550,10 @@ const submitPayment = () => {
     ticket_id: props.ticket.data.id,
     hours_parked: props.ticket.data.hours_parked,
     days_parked: props.ticket.data.days_parked,
-    cash_amount: cashAmount.value,
+    payment_method: paymentMethod.value,
+    cash_amount: paymentMethod.value === 'cash' ? cashAmount.value : null,
+    gcash_number: paymentMethod.value === 'gcash' ? gcashNumber.value : null,
+    gcash_reference: paymentMethod.value === 'gcash' ? gcashReferenceNumber.value : null,
     cards: scannedCards.value.map(c => c.id),
   })
 
@@ -515,12 +693,28 @@ onBeforeUnmount(() => {
   border-left: 4px solid #1a237e;
 }
 
-.cash-section :deep(.v-field) {
+.payment-options {
   border: 2px solid #e0e0e0;
   transition: all 0.3s ease;
 }
 
-.cash-section :deep(.v-field--focused) {
+.payment-option-radio :deep(.v-label) {
+  width: 100%;
+  opacity: 1 !important;
+}
+
+.payment-option-radio :deep(.v-selection-control__wrapper) {
+  margin-right: 12px;
+}
+
+.cash-section :deep(.v-field),
+.gcash-section :deep(.v-field) {
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.cash-section :deep(.v-field--focused),
+.gcash-section :deep(.v-field--focused) {
   border-color: #1a237e;
   box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.1);
 }

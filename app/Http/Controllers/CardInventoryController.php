@@ -237,6 +237,8 @@ public function sell_card_payment(Request $request)
         'customer'      => 'required|string',
         'cash_amount' => 'required|numeric',
         'cards'       => 'nullable|array',
+        'Gcash_reference' => 'nullable|string',
+        'payment_method'      => 'required|string',
         'cards.*'     => 'integer|exists:card_inventory_details,id',
     ]);
 
@@ -277,7 +279,7 @@ public function sell_card_payment(Request $request)
                 'change'        => $change,
                 'status'        => 'Paid',
                 'payment_type'  => 'Card',
-
+                'payment_method' => $data['payment_method'],
                 'paid_at'       => now(),
             ]);
 

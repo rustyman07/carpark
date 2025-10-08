@@ -212,13 +212,39 @@
                 Payment Details
               </h4>
 
+              <!-- Payment Method Selection -->
+              <div class="input-group mb-4">
+                <label class="input-label">
+                  <v-icon size="18" class="mr-1">mdi-wallet</v-icon>
+                  Payment Method
+                </label>
+                <v-btn-toggle
+                  v-model="form.payment_method"
+                  color="indigo-darken-4"
+                  variant="outlined"
+                  divided
+                  mandatory
+                  class="payment-method-toggle"
+                >
+                  <v-btn value="cash" class="payment-method-btn">
+                    <v-icon start>mdi-cash</v-icon>
+                    Cash
+                  </v-btn>
+                  <v-btn value="Gcash" class="payment-method-btn">
+                    <v-icon start>mdi-cellphone</v-icon>
+                    GCash
+                  </v-btn>
+                </v-btn-toggle>
+              </div>
+
+              <!-- Cash Amount Input -->
               <v-text-field
                 v-model="form.cash_amount"
-                label="Cash Amount"
+                :label="form.payment_method === 'Gcash' ? 'GCash Amount' : 'Cash Amount'"
                 type="number"
                 variant="outlined"
                 density="comfortable"
-                prepend-inner-icon="mdi-cash"
+                :prepend-inner-icon="form.payment_method === 'Gcash' ? 'mdi-cellphone' : 'mdi-cash'"
                 prefix="₱"
                 hide-details="auto"
                 :error-messages="form.errors.cash_amount"
@@ -236,6 +262,23 @@
                 </template>
               </v-text-field>
 
+              <!-- GCash Reference Number (only for GCash) -->
+              <v-expand-transition>
+                <v-text-field
+                  v-if="form.payment_method === 'Gcash'"
+                  v-model="form.Gcash_reference"
+                  label="GCash Reference Number"
+                  variant="outlined"
+                  density="comfortable"
+                  prepend-inner-icon="mdi-pound"
+                  hide-details="auto"
+                  :error-messages="form.errors.Gcash_reference"
+                  class="mb-4"
+                  placeholder="Enter reference number"
+                />
+              </v-expand-transition>
+
+              <!-- Customer Name -->
               <v-text-field
                 v-model="form.customer"
                 label="Sold To (Customer Name)"
@@ -246,10 +289,10 @@
                 :error-messages="form.errors.customer"
               />
 
-              <!-- Change Display -->
+              <!-- Change Display (only for Cash) -->
               <v-expand-transition>
                 <v-alert
-                  v-if="form.cash_amount && form.cash_amount >= total && cards.length > 0"
+                  v-if="form.payment_method === 'cash' && form.cash_amount && form.cash_amount >= total && cards.length > 0"
                   type="success"
                   variant="tonal"
                   class="mt-4"
@@ -260,6 +303,22 @@
                     <span class="text-h6 font-weight-bold">
                       ₱{{ (Number(form.cash_amount) - total).toLocaleString() }}
                     </span>
+                  </div>
+                </v-alert>
+              </v-expand-transition>
+
+              <!-- Payment Confirmation (for GCash) -->
+              <v-expand-transition>
+                <v-alert
+                  v-if="form.payment_method === 'Gcash' && form.cash_amount && form.cash_amount >= total && cards.length > 0"
+                  type="success"
+                  variant="tonal"
+                  class="mt-4"
+                  density="compact"
+                >
+                  <div class="d-flex align-center">
+                    <v-icon start color="success">mdi-check-circle</v-icon>
+                    <span class="font-weight-medium">GCash payment amount is correct</span>
                   </div>
                 </v-alert>
               </v-expand-transition>
@@ -352,11 +411,20 @@ const html5QrCode = ref(null);
 const form = useForm({
   customer: '',
   cash_amount: null,
+  payment_method: 'Cash',
+  Gcash_reference: '',
   cards: []
 });
 
 const payDisabled = computed(() => {
-  return cards.value.length === 0 || !form.cash_amount || !form.customer || form.cash_amount < total.value;
+  const baseConditions = cards.value.length === 0 || !form.cash_amount || !form.customer || form.cash_amount < total.value;
+  
+  // For GCash, also require reference number
+  if (form.payment_method === 'Gcash') {
+    return baseConditions || !form.Gcash_reference;
+  }
+  
+  return baseConditions;
 });
 
 // Debounce function
@@ -489,7 +557,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .payment-wrapper {
-
+  background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
   min-height: 100vh;
 }
 
@@ -666,6 +734,40 @@ onBeforeUnmount(() => {
   transform: translateY(-2px);
   background: #616161;
   color: white;
+}
+
+/* Payment Method Toggle */
+.input-label {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.payment-method-toggle {
+  width: 100%;
+  border: 2px solid #e0e0e0 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.payment-method-btn {
+  flex: 1;
+  height: 56px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+:deep(.v-btn-group--divided .v-btn:not(:last-child)) {
+  border-right: 2px solid #e0e0e0 !important;
+}
+
+:deep(.v-btn--active) {
+  background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
+  color: white !important;
 }
 
 /* Responsive */

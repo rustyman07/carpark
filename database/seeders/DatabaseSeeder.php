@@ -19,9 +19,11 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin',
             'username' => 'admin',
             'password' =>'123',
+            'role' => 1,
         ]);
 
              $this->call(CompanySeeder::class);
              $this->call(SalesPersonSeeder::class);
+             $this->call(ShiftSeeder::class);
     }
 }

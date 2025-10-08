@@ -3,6 +3,8 @@
 use App\Http\Controllers\CardTemplateController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CardInventoryController;
+use App\Http\Controllers\ShiftLogController;
+use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SalesPersonController;
@@ -67,6 +69,18 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     ->name('card-inventory.update-status');
 
 
+    Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
+    Route::post('/shifts', [ShiftController::class, 'store'])->name('shifts.store');
+    Route::put('/shifts/{shift}', [ShiftController::class, 'update'])->name('shifts.update');
+    Route::delete('/shifts/{shift}', [ShiftController::class, 'destroy'])->name('shifts.destroy');
+
+
+    Route::post('/shiftlogs/start', [ShiftLogController::class, 'startShift'])->name('shiftlogs.start');
+    Route::post('/shiftlogs/end', [ShiftLogController::class, 'endShift'])->name('shiftlogs.end');
+
+
+
+    Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment');
 
     Route::get('transaction/ticket-payments', [PaymentController::class, 'index'])->name('ticket.payments');
 });

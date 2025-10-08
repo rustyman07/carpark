@@ -1,105 +1,115 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Validation\Rules;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\Rule;
 
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\Shift;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
 
 class UserController extends Controller
 {
-        public function store(Request $request): RedirectResponse
+    /**
+     * 📌 Show all users
+     */
+    public function index()
+    {
+        $users = User::with('shift')->whereNull('deleted_at')->get();
+        $shifts = Shift::select('id', 'name')->where('is_active', true)->get();
+
+        return Inertia::render('Users/Index', [
+            'users' => $users,
+            'shifts' => $shifts, // ✅ so the frontend can show a dropdown
+        ]);
+    }
+
+    /**
+     * ➕ Store new user (with optional shift assignment)
+     */
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string|min:3|max:255|unique:'.User::class,
-            'password' => 'required |min:3',
-            'role'    =>  'required|integer',
-          'contact'  => 'nullable|string',
-           //'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'username' => 'required|string|min:3|max:255|unique:users,username',
+            'password' => 'required|min:3',
+            'role' => 'required|integer',
+            'contact' => 'nullable|string',
+            'shift_id' => 'nullable|exists:shifts,id', // ✅ allow assigning shift on creation
         ]);
 
-        $user = User::create([
+        User::create([
             'name' => $request->name,
             'username' => $request->username,
-            'role'     => $request->role,
+            'role' => $request->role,
             'password' => Hash::make($request->password),
-            'contact'  => $request->contact,
-
+            'contact' => $request->contact,
+            'shift_id' => $request->shift_id, // ✅ assign shift if provided
         ]);
 
-        //  Auth::login($user);
-return redirect()->route('users.index')->with('success', 'User has been created successfully.');
-
-
+        return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
 
-    public function index(){
-
-        $users = User::whereNull('deleted_at')->get();
-
-        return Inertia('Users/Index',[
-            'users' => $users,
-          
+    /**
+     * 🔁 Update user (and re-assign shift if needed)
+     */
+    public function update(User $user, Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => [
+                'required',
+                'string',
+                'min:3',
+                'max:255',
+                Rule::unique(User::class)->ignore($user->id),
+            ],
+            'role' => 'required|integer',
+            'contact' => 'nullable|string',
+            'shift_id' => 'nullable|exists:shifts,id', // ✅ shift reassignment
         ]);
 
+        $user->update([
+            'name' => $request->name,
+            'username' => $request->username,
+            'role' => $request->role,
+            'contact' => $request->contact,
+            'shift_id' => $request->shift_id, // ✅ update shift
+        ]);
 
+        return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
-    
 
-public function resetPassword(Request $request, User $user)
-{
-    $request->validate([
-        'password' => 'required|string|min:3|confirmed',
-    ]);
+    /**
+     * 🔁 Reset password
+     */
+    public function resetPassword(Request $request, User $user)
+    {
+        $request->validate([
+            'password' => 'required|string|min:3|confirmed',
+        ]);
 
-    $user->password = Hash::make($request->password);
-    $user->save();
+        $user->password = Hash::make($request->password);
+        $user->save();
 
-    return redirect()->route('users.index')->with('success', "Password for {$user->username} has been updated.");
-}
+        return redirect()->route('users.index')->with('success', "Password for {$user->username} has been updated.");
+    }
 
-public function showResetForm(User $user)
-{
-    return inertia('Users/ResetPassword', [
-        'user' => $user,
-    ]);
-}
-public function update(User $user, Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'username' => [
-            'required',
-            'string',
-            'min:3',
-            'max:255',
-            Rule::unique(User::class)->ignore($user->id), // important for updates
-        ],
-        'role' => 'required|integer',
-        'contact' => 'nullable|integer',
-    ]);
+    public function showResetForm(User $user)
+    {
+        return inertia('Users/ResetPassword', [
+            'user' => $user,
+        ]);
+    }
 
-    $user->update([
-        'name' => $request->name,
-        'username' => $request->username,
-        'role' => $request->role,
-        'contact' => $request->contact,
-    ]);
-
-    return redirect()->route('users.index')->with('success', 'User updated successfully.');
-}
-
-
-public function destroy(User $user): RedirectResponse
-{
-    $user->delete();
-    return redirect()->route('users.index')->with('success', 'User deleted successfully.');
-}
-
-
+    /**
+     * 🗑️ Soft delete a user
+     */
+    public function destroy(User $user): RedirectResponse
+    {
+        $user->delete();
+        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
+    }
 }

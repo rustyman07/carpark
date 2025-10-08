@@ -26,6 +26,22 @@
         </v-btn>
       </div>
 
+
+           <v-dialog   v-model="showLoadingDialog" max-width="320" persistent>
+      <v-list class="bg-grey-darken-4" elevation="12" rounded="lg">
+        <v-list-item  title="Generating Cards...">
+     <template v-slot:append>
+            <v-progress-circular
+              color="primary"
+              indeterminate="disable-shrink"
+              size="16"
+              width="2"
+            ></v-progress-circular>
+          </template>
+          </v-list-item>
+      </v-list>
+    </v-dialog>
+
       <!-- Stats Summary Cards -->
       <v-row class="mb-6">
         <v-col cols="12" sm="6" md="3">

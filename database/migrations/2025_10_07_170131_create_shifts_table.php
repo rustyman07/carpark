@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,16 +9,19 @@ return new class extends Migration
     {
         Schema::create('shifts', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // e.g. Morning, Afternoon, Night
+            $table->string('name')->unique();
+            $table->string('description')->nullable();
             $table->time('start_time');
             $table->time('end_time');
-            $table->boolean('is_active')->default(true); // optional: to enable/disable shifts
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
 
-        // Optional: Add shift_id column to users table
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('shift_id')->nullable()->constrained('shifts')->nullOnDelete();
+            $table->foreignId('shift_id')
+                  ->nullable()
+                  ->constrained('shifts')
+                  ->nullOnDelete();
         });
     }
 
