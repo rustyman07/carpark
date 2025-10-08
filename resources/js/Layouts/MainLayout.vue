@@ -34,7 +34,7 @@
         </v-chip>
 
         <!-- ✅ Show only for staff (role 2) -->
-        <template v-if="props.auth.user.role === 2">
+        <!-- <template v-if="props.auth.user.role === 2">
           <v-btn
             v-if="!shiftStarted"
             color="yellow"
@@ -56,7 +56,7 @@
           >
             End Shift
           </v-btn>
-        </template>
+        </template> -->
       </div>
     </v-app-bar>
 
@@ -242,45 +242,45 @@ const page = usePage();
 const props = defineProps({ auth: Object });
 
 // ✅ Shift state
-const shiftStarted = ref(false);
+// const shiftStarted = ref(false);
 
-const startShift = () => {
-  router.post(route('shiftlogs.start'), {}, {
-    onSuccess: (page) => {
-      if (page.props.flash?.error) {
-        showErrorCard.value = true;
-        errorCardMsg.value = page.props.flash.error;
-      } else {
-        shiftStarted.value = true;
-        showSuccess.value = true;
-        successMessage.value = page.props.flash?.success || 'Shift started successfully!';
-      }
-    },
-    onError: () => {
-      showErrorCard.value = true;
-      errorCardMsg.value = 'Failed to start shift.';
-    }
-  });
-};
+// const startShift = () => {
+//   router.post(route('shiftlogs.start'), {}, {
+//     onSuccess: (page) => {
+//       if (page.props.flash?.error) {
+//         showErrorCard.value = true;
+//         errorCardMsg.value = page.props.flash.error;
+//       } else {
+//         shiftStarted.value = true;
+//         showSuccess.value = true;
+//         successMessage.value = page.props.flash?.success || 'Shift started successfully!';
+//       }
+//     },
+//     onError: () => {
+//       showErrorCard.value = true;
+//       errorCardMsg.value = 'Failed to start shift.';
+//     }
+//   });
+// };
 
-const endShift = () => {
-  router.post(route('shiftlogs.end'), {}, {
-    onSuccess: (page) => {
-      if (page.props.flash?.error) {
-        showErrorCard.value = true;
-        errorCardMsg.value = page.props.flash.error;
-      } else {
-        shiftStarted.value = false;
-        showSuccess.value = true;
-        successMessage.value = page.props.flash?.success || 'Shift ended successfully!';
-      }
-    },
-    onError: () => {
-      showErrorCard.value = true;
-      errorCardMsg.value = 'Failed to end shift.';
-    }
-  });
-};
+// const endShift = () => {
+//   router.post(route('shiftlogs.end'), {}, {
+//     onSuccess: (page) => {
+//       if (page.props.flash?.error) {
+//         showErrorCard.value = true;
+//         errorCardMsg.value = page.props.flash.error;
+//       } else {
+//         shiftStarted.value = false;
+//         showSuccess.value = true;
+//         successMessage.value = page.props.flash?.success || 'Shift ended successfully!';
+//       }
+//     },
+//     onError: () => {
+//       showErrorCard.value = true;
+//       errorCardMsg.value = 'Failed to end shift.';
+//     }
+//   });
+// };
 
 
 const allItems = [
