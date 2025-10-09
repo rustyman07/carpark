@@ -139,7 +139,9 @@
                 color="indigo-darken-4" 
                 size="small"
                 append-icon="mdi-arrow-right"
+                 @click="downloadReport"
               >
+              
                 View Report
               </v-btn>
             </div>
@@ -436,6 +438,11 @@ const getCurrentDate = () => {
 const getCurrentTime = () => {
   const now = new Date();
   return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+};
+
+
+const downloadReport = () => {
+  window.open('/reports/today-parkout', '_blank');
 };
 
 // Update time every minute

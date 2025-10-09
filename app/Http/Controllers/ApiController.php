@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\CardInventoryDetail;
 
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ApiController extends Controller
 {
@@ -20,5 +21,16 @@ class ApiController extends Controller
 
         return response()->json($cards);
 
+    }
+
+
+
+     public function todayTickets(Request $request)
+    {
+        $date = $request->query('date', Carbon::today()->toDateString());
+
+        return Ticket::whereDate('park_out_datetime', $date)
+            ->where('is_park_out', 1)
+            ->get();
     }
 }

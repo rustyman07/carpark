@@ -84,7 +84,7 @@
       <div class="d-flex align-center justify-space-between mb-2">
         <v-icon size="32" color="indigo">mdi-cash</v-icon>
         <v-chip size="small" color="indigo" variant="flat">
-          {{ currentShift }}
+          <!-- {{ currentShift }} -->
         </v-chip>
       </div>
       <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
@@ -283,19 +283,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref,computed } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { formatDate } from '../../utils/utility'
 
 const props = defineProps({
   Tickets: { type: Array, default: () => [] },
   filters: { type: Object, default: () => ({}) },
- totalParkFee: { type: Number, default: 0 },
+//  totalParkFee: { type: Number, default: 0 },
 })
 
 
 
-const totalParkFee = ref(props.totalParkFee)
+//const totalParkFee = ref(props.totalParkFee)
 const currentShift = ref(props.filters.shift || 'MORNING')
 
 
@@ -356,7 +356,7 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
         items.value = formatted
       }
       nextPageUrl.value = page.props.Tickets.next_page_url
-        totalParkFee.value = page.props.totalParkFee
+        // totalParkFee.value = page.props.totalParkFee
   currentShift.value = page.props.filters.shift
     },
   })
@@ -366,11 +366,19 @@ function applyFilter() {
   fetchLogs({ append: false })
 }
 
+
+const totalParkFee = computed(() => {
+  if (!items.value.length) return 0;
+  return items.value.reduce((sum, ticket) => sum + Number(ticket.park_fee || 0), 0);
+});
+
+
 // function loadMore() {
 //   if (nextPageUrl.value) {
 //     fetchLogs({ url: nextPageUrl.value, append: true })
 //   }
 // }
+
 
 const deleteTicket = (id) => {
   ticketToVoid.value = id

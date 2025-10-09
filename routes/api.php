@@ -11,4 +11,8 @@ Route::post('scan-qr-cards', [CardInventoryController::class, 'scan_qr_cards'])-
 Route::get('/card-inventory-search', [ApiController::class, 'search_card_number'])->name('card.inventory.search');
 Route::get('/scanned-cards', [CardInventoryController::class, 'getScannedCards'])->name('get.scan.qr.cards');
 
+
+
+Route::get('/tickets/today', [TicketController::class, 'todayTickets']);
+
 ?>

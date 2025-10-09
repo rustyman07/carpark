@@ -29,6 +29,7 @@
         "html5-qrcode": "^2.3.8",
         "lodash": "^4.17.21",
         "material-symbols": "^0.34.1",
+        "puppeteer": "^24.23.0",
         "qrcode": "^1.5.4",
         "qrcode.vue": "^3.6.0",
         "sass": "^1.90.0",

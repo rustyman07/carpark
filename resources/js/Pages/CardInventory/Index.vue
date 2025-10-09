@@ -89,7 +89,7 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" sm="6" md="3">
+        <!-- <v-col cols="12" sm="6" md="3">
           <v-card class="stat-card elevation-4" rounded="lg">
             <div class="pa-4">
               <div class="d-flex align-center justify-space-between mb-2">
@@ -102,8 +102,27 @@
               <p class="text-caption text-medium-emphasis">Total Balance</p>
             </div>
           </v-card>
-        </v-col>
-      </v-row>
+        </v-col> -->
+
+        <v-col cols="12" sm="6" md="3">
+  <v-card class="stat-card elevation-4" rounded="lg">
+    <div class="pa-4">
+      <div class="d-flex align-center justify-space-between mb-2">
+        <v-icon size="32" color="orange">mdi-cash-register</v-icon>
+        <v-chip size="small" color="orange" variant="flat">Sold</v-chip>
+      </div>
+      <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
+        {{ formatCurrency(totalSold) }}
+      </h3>
+      <p class="text-caption text-medium-emphasis">Total Sold</p>
+    </div>
+  </v-card>
+</v-col>
+
+      </v-row> 
+
+
+
 
       <!-- Dialogs -->
       <Create 
@@ -401,52 +420,66 @@
       </v-card>
 
       <!-- Hidden Download Card Template -->
-      <div
-        v-if="cardToDownload"
-        id="download-card"
-        class="download-card-template"
+<div
+  v-if="cardToDownload"
+  id="download-card"
+  class="download-card-template"
+>
+  <div class="card-template-inner">
+    <!-- 🔹 Company Logo -->
+    <div class="card-logo-section" style="text-align: center; margin-bottom: 10px;">
+      <img
+        src="/images/comlogo.png"
+        alt="Company Logo"
+        class="company-logo"
+        style="width: 100px; height: auto;"
+      />
+    </div>
+
+    <div class="card-header-section">
+      <h3 class="card-number">{{ cardToDownload.card_number }}</h3>
+      <v-chip
+        :color="
+          cardToDownload.status === 'Available'
+            ? 'success'
+            : cardToDownload.status === 'Consumed'
+            ? 'error'
+            : 'warning'
+        "
+        size="small"
       >
-        <div class="card-template-inner">
-          <div class="card-header-section">
-            <h3 class="card-number">{{ cardToDownload.card_number }}</h3>
-            <v-chip
-              :color="
-                cardToDownload.status === 'Available'
-                  ? 'success'
-                  : cardToDownload.status === 'Consumed'
-                  ? 'error'
-                  : 'warning'
-              "
-              size="small"
-            >
-              {{ cardToDownload.status }}
-            </v-chip>
-          </div>
+        {{ cardToDownload.status }}
+      </v-chip>
+    </div>
 
-          <div class="qr-section">
-            <img :src="qrCodeMap[cardToDownload.id]" alt="QR" class="qr-image" />
-          </div>
+    <div class="qr-section">
+      <img :src="qrCodeMap[cardToDownload.id]" alt="QR" class="qr-image" />
+    </div>
 
-          <div class="card-details">
-            <div class="detail-row">
-              <span class="label">Amount:</span>
-              <span class="value">{{ formatCurrency(cardToDownload.amount) }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Balance:</span>
-              <span class="value">{{ formatCurrency(cardToDownload.balance) }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Days:</span>
-              <span class="value">{{ cardToDownload.no_of_days }}</span>
-            </div>
-          </div>
-
-          <div class="card-footer-section">
-            <p class="generated-date">Generated: {{ formatDate(cardToDownload.created_at) }}</p>
-          </div>
-        </div>
+    <div class="card-details">
+      <div class="detail-row">
+        <span class="label">Amount:</span>
+        <span class="value">{{ formatCurrency(cardToDownload.amount) }}</span>
       </div>
+      <div class="detail-row">
+        <span class="label">Balance:</span>
+        <span class="value">{{ formatCurrency(cardToDownload.balance) }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Days:</span>
+        <span class="value">{{ cardToDownload.no_of_days }}</span>
+      </div>
+    </div>
+
+    <div class="card-footer-section">
+      <p class="generated-date">Generated: {{ formatDate(cardToDownload.created_at) }}</p>
+    </div>
+  </div>
+</div>
+
+
+
+
     </v-container>
   </div>
 </template>
@@ -516,10 +549,20 @@ const totalAmount = computed(() => {
   return cardDetail.value.data.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 });
 
-const totalBalance = computed(() => {
+// const totalBalance = computed(() => {
+//   if (!cardDetail.value?.data) return 0;
+//   return cardDetail.value.data.reduce((sum, row) => sum + Number(row.balance || 0), 0);
+// });
+
+const totalSold = computed(() => {
   if (!cardDetail.value?.data) return 0;
-  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.balance || 0), 0);
+  return cardDetail.value.data
+    .filter((row) => row.status === 'Sold')
+    .reduce((sum, row) => sum + Number(row.amount || 0), 0);
 });
+
+
+
 
 const totalPrice = computed(() => {
   if (!cardDetail.value?.data) return 0;

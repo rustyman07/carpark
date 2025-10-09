@@ -7,6 +7,7 @@ use App\Http\Controllers\ShiftLogController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReportController;                                        
 use App\Http\Controllers\SalesPersonController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
@@ -83,6 +84,19 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment');
 
     Route::get('transaction/ticket-payments', [PaymentController::class, 'index'])->name('ticket.payments');
+
+
+
+Route::get('/reports/parkout', [ReportController::class, 'todayParkout'])
+    ->name('reports.parkout');
+    
+// Route::get('/reports/parkout/pdf', [ReportController::class, 'generatePDF'])
+//     ->name('reports.parkout.pdf');
+
+
+    Route::get('/reports/parkout/download', [ReportController::class, 'downloadPDF'])
+    ->name('reports.parkout.download');
+
 });
 
 
