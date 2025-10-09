@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 class ReportController extends Controller
 {
+
+
     public function todayParkout()
     {
         $today = Carbon::today();
@@ -42,6 +44,7 @@ public function downloadPDF()
     
     $tickets = Ticket::whereDate('park_out_datetime', $today)
         ->where('is_park_out', 1)
+        ->where('remarks','Paid')
         ->whereNull('deleted_at')
         ->orderBy('park_out_datetime', 'desc')
         ->get();
@@ -55,13 +58,13 @@ public function downloadPDF()
     $filename = 'parkout-report-' . $today->format('Y-m-d') . '.pdf';
     
     $pdf = Pdf::loadHTML($html)
-        ->setPaper('a4', 'landscape')
+        ->setPaper('a4', 'portrait')
         ->setOption('margin-top', 10)
         ->setOption('margin-right', 10)
         ->setOption('margin-bottom', 10)
         ->setOption('margin-left', 10);
     
-    return $pdf->download($filename);
+     return $pdf->stream('parkout-report.pdf');
 }
 
 // Keep the same generateReportHTML method
@@ -214,18 +217,7 @@ private function generateReportHTML($tickets, $totalParkFee, $totalTickets, $rep
                         <p class='signature-role'>Cashier / Staff</p>
                     </div>
                 </div>
-                <div class='signature-item'>
-                    <div class='signature-line'>
-                        <p class='signature-label'>Verified By</p>
-                        <p class='signature-role'>Supervisor</p>
-                    </div>
-                </div>
-                <div class='signature-item'>
-                    <div class='signature-line'>
-                        <p class='signature-label'>Approved By</p>
-                        <p class='signature-role'>Manager</p>
-                    </div>
-                </div>
+    
             </div>
             <div class='footer-note'>
                 <p>This is a system-generated report</p>

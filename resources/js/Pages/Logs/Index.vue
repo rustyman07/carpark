@@ -12,6 +12,14 @@
             Track and manage all parking transactions
           </p>
         </div>
+             <v-btn
+          color="indigo-darken-4"
+          size="large"
+          @click="previeReport"
+          prepend-icon="mdi-file-document"
+        >
+          View Report
+        </v-btn>
       </div>
 
       <!-- Stats Summary Cards -->
@@ -286,6 +294,7 @@
 import { ref,computed } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { formatDate } from '../../utils/utility'
+import dayjs from 'dayjs'
 
 const props = defineProps({
   Tickets: { type: Array, default: () => [] },
@@ -306,7 +315,7 @@ const showVoidDialog = ref(false)
 const ticketToVoid = ref(null)
 const selectedShift = ref('')
 
-const today = new Date().toISOString().split("T")[0]
+const today = dayjs().format('YYYY-MM-DD')
 const dateFrom = ref(today)
 const dateTo = ref(today)
 const selectedType = ref('PARK-IN')
@@ -334,6 +343,13 @@ function formatTickets(tickets) {
     park_out_datetime: formatDate(ticket.park_out_datetime)
   }))
 }
+
+const previeReport = () => {
+
+  window.location.href = route('reports.parkout.download');
+};
+
+
 
 function fetchLogs({ url = "/logs", append = false } = {}) {
   const params = {
@@ -369,9 +385,10 @@ function applyFilter() {
 
 const totalParkFee = computed(() => {
   if (!items.value.length) return 0;
-  return items.value.reduce((sum, ticket) => sum + Number(ticket.park_fee || 0), 0);
+  return items.value
+    .filter(ticket => ticket.remarks === 'Paid')  // <-- Only Paid tickets
+    .reduce((sum, ticket) => sum + Number(ticket.park_fee || 0), 0);
 });
-
 
 // function loadMore() {
 //   if (nextPageUrl.value) {
