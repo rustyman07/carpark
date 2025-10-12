@@ -681,34 +681,37 @@ const confirmStatusChange = () => {
 };
 
 const downloadQRCode = async (item) => {
-  cardToDownload.value = item;
-  await nextTick();
 
-  const cardElement = document.getElementById('download-card');
-  if (!cardElement) {
-    console.error('❌ Card element not found');
-    return;
-  }
+   window.open(route('print.card', { card_number: item.card_number }), '_blank')
 
-  try {
-    const canvas = await html2canvas(cardElement, {
-      backgroundColor: '#ffffff',
-      scale: 2,
-      useCORS: true,
-    });
+//   cardToDownload.value = item;
+//   await nextTick();
 
-    const imageURL = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = imageURL;
-    link.download = `${item.card_number || 'card'}-${item.id}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+//   const cardElement = document.getElementById('download-card');
+//   if (!cardElement) {
+//     console.error('❌ Card element not found');
+//     return;
+//   }
 
-    cardToDownload.value = null;
-  } catch (err) {
-    console.error('⚠️ Failed to download card:', err);
-  }
+//   try {
+//     const canvas = await html2canvas(cardElement, {
+//       backgroundColor: '#ffffff',
+//       scale: 2,
+//       useCORS: true,
+//     });
+
+//     const imageURL = canvas.toDataURL('image/png');
+//     const link = document.createElement('a');
+//     link.href = imageURL;
+//     link.download = `${item.card_number || 'card'}-${item.id}.png`;
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+
+//     cardToDownload.value = null;
+//   } catch (err) {
+//     console.error('⚠️ Failed to download card:', err);
+//   }
 };
 
 const viewTransactions = (item) => {

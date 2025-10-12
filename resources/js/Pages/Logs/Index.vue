@@ -12,14 +12,6 @@
             Track and manage all parking transactions
           </p>
         </div>
-             <v-btn
-          color="indigo-darken-4"
-          size="large"
-          @click="previeReport"
-          prepend-icon="mdi-file-document"
-        >
-          View Report
-        </v-btn>
       </div>
 
       <!-- Stats Summary Cards -->
@@ -91,15 +83,25 @@
     <div class="pa-4">
       <div class="d-flex align-center justify-space-between mb-2">
         <v-icon size="32" color="indigo">mdi-cash</v-icon>
-        <v-chip size="small" color="indigo" variant="flat">
-          <!-- {{ currentShift }} -->
-        </v-chip>
+       
       </div>
       <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
         ₱ {{ totalParkFee.toLocaleString() }}
       </h3>
       <p class="text-caption text-medium-emphasis">Total Park Fee (per shift)</p>
     </div>
+    <div class="kpi-card-footer">
+              <v-btn 
+                variant="text" 
+                color="indigo-darken-4" 
+                size="small"
+                append-icon="mdi-arrow-right"
+                 @click="previeReport"
+              >
+              
+                View Report
+              </v-btn>
+            </div>
   </v-card>
 </v-col>
 
@@ -305,7 +307,6 @@ const props = defineProps({
 
 
 //const totalParkFee = ref(props.totalParkFee)
-const currentShift = ref(props.filters.shift || 'MORNING')
 
 
 
@@ -345,8 +346,13 @@ function formatTickets(tickets) {
 }
 
 const previeReport = () => {
+  const params = new URLSearchParams({
+    dateFrom: dayjs(dateFrom.value).format("YYYY-MM-DD"),
+    dateTo: dayjs(dateTo.value).format("YYYY-MM-DD"),
+    shift: selectedShift.value || "",
+  }).toString();
 
-  window.location.href = route('reports.parkout.download');
+  window.open(`${route("reports.parkout.preview")}?${params}`, "_blank");
 };
 
 
@@ -373,7 +379,7 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
       }
       nextPageUrl.value = page.props.Tickets.next_page_url
         // totalParkFee.value = page.props.totalParkFee
-  currentShift.value = page.props.filters.shift
+
     },
   })
 }

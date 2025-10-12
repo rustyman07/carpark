@@ -18,6 +18,7 @@ class Payment extends Model
         'payment_type',
         'payment_method',
         'status',
+        'processed_by',
         'paid_at',
     ];
 

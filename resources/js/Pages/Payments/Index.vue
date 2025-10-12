@@ -1,16 +1,74 @@
 <template>
   <div class="transactions-wrapper">
-    <v-container  class="py-8 px-6">
+    <v-container class="py-8 px-6">
       <!-- Page Header -->
-      <div class="page-header mb-8">
+      <div class="page-header mb-4">
         <div>
           <h1 class="text-h4 font-weight-bold text-indigo-darken-4 mb-2">
             <v-icon size="32" class="mr-2">mdi-receipt-text</v-icon>
             Transaction History
           </h1>
-          <p class="text-body-1 text-medium-emphasis">
+          <p class="text-body-1 text-medium-emphasis mb-4">
             View all payment transactions and records
           </p>
+
+          <!-- Filters Section -->
+          <v-row align="center">
+            <!-- Date From -->
+            <v-col cols="12" sm="6" md="3">
+              <v-date-input
+                v-model="dateFrom"
+                prepend-icon=""
+                label="Date From"
+                prepend-inner-icon="$calendar"
+                density="comfortable"
+                hide-details="auto"
+                variant="outlined"
+                bg-color="white"
+              />
+            </v-col>
+
+            <!-- Date To -->
+            <v-col cols="12" sm="6" md="3">
+              <v-date-input
+                v-model="dateTo"
+                prepend-icon=""
+                label="Date To"
+                prepend-inner-icon="$calendar"
+                density="comfortable"
+                hide-details="auto"
+                variant="outlined"
+                bg-color="white"
+              />
+            </v-col>
+
+            <!-- Payment Type Filter -->
+            <v-col cols="12" sm="6" md="3">
+              <v-select
+                v-model="filterType"
+                :items="['All', 'Ticket', 'Card']"
+                label="Payment Type"
+                density="comfortable"
+                variant="outlined"
+                bg-color="white"
+                hide-details
+              />
+            </v-col>
+
+            <!-- Search Button -->
+            <v-col cols="12" sm="6" md="3">
+              <v-btn
+                color="indigo-darken-4"
+                variant="flat"
+                size="large"
+                @click="handleSearch"
+                class="search-btn"
+              >
+                <v-icon>mdi-magnify</v-icon>
+                Search
+              </v-btn>
+            </v-col>
+          </v-row>
         </div>
       </div>
 
@@ -79,78 +137,24 @@
 
       <!-- Main Data Table Card -->
       <v-card class="data-table-card elevation-8" rounded="lg">
-        <!-- Filters Section -->
-        <div class="filters-section pa-6 pb-4">
-          <v-row align="center">
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="searchQuery"
-                prepend-inner-icon="mdi-magnify"
-                label="Search transactions"
-                density="comfortable"
-                hide-details="auto"
-                variant="outlined"
-                bg-color="white"
-                clearable
-              />
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <v-row>
-                <v-col cols="12" sm="6">
-                  <v-select
-                    v-model="filterStatus"
-                    :items="['All', 'Paid', 'Pending']"
-                    label="Filter by Status"
-                    density="comfortable"
-                    variant="outlined"
-                    bg-color="white"
-                    hide-details
-                  />
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <v-select
-                    v-model="filterType"
-                    :items="['All', 'Cash', 'Card', 'Combination']"
-                    label="Payment Type"
-                    density="comfortable"
-                    variant="outlined"
-                    bg-color="white"
-                    hide-details
-                  />
-                </v-col>
-              </v-row>
-            </v-col>
-
-            <v-col cols="12" md="2" class="text-right">
-              <v-menu>
-                <template v-slot:activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    color="indigo-darken-4"
-                    variant="outlined"
-                    prepend-icon="mdi-download"
-                  >
-                    Export
-                  </v-btn>
+        <!-- Export Button Section -->
+        <div class="export-section pa-4 text-right">
+          <v-menu>
+            <v-list>
+              <v-list-item @click="exportData('excel')">
+                <template v-slot:prepend>
+                  <v-icon>mdi-file-excel</v-icon>
                 </template>
-                <v-list>
-                  <v-list-item @click="exportData('excel')">
-                    <template v-slot:prepend>
-                      <v-icon>mdi-file-excel</v-icon>
-                    </template>
-                    <v-list-item-title>Export to Excel</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item @click="exportData('pdf')">
-                    <template v-slot:prepend>
-                      <v-icon>mdi-file-pdf-box</v-icon>
-                    </template>
-                    <v-list-item-title>Export to PDF</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </v-col>
-          </v-row>
+                <v-list-item-title>Export to Excel</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="exportData('pdf')">
+                <template v-slot:prepend>
+                  <v-icon>mdi-file-pdf-box</v-icon>
+                </template>
+                <v-list-item-title>Export to PDF</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </div>
 
         <v-divider></v-divider>
@@ -189,13 +193,23 @@
               :color="getPaymentTypeColor(item.payment_type)"
               variant="flat"
               size="small"
-              class="font-weight-medium"
+              class="font-weight-medium payment-type-chip"
             >
               <v-icon start size="12">
                 {{ getPaymentTypeIcon(item.payment_type) }}
               </v-icon>
               {{ item.payment_type }}
             </v-chip>
+          </template>
+
+          <template v-slot:item.payment_method="{ item }">
+            <div class="d-flex align-center justify-center payment-method-cell">
+              <span 
+                class="payment-method-dot mr-2" 
+                :style="{ backgroundColor: getPaymentMethodDotColor(item.payment_method) }"
+              ></span>
+              <span class="payment-method-text">{{ item.payment_method || 'N/A' }}</span>
+            </div>
           </template>
 
           <template v-slot:item.status="{ item }">
@@ -218,8 +232,196 @@
               <span class="text-body-2">{{ formatDate(item.paid_at) }}</span>
             </div>
           </template>
+
+          <template v-slot:item.actions="{ item }">
+            <v-btn
+              icon
+              variant="text"
+              color="indigo-darken-4"
+              size="small"
+              @click="viewDetails(item)"
+            >
+              <v-icon>mdi-eye</v-icon>
+              <v-tooltip activator="parent" location="top">View Details</v-tooltip>
+            </v-btn>
+          </template>
         </v-data-table-server>
       </v-card>
+
+      <!-- Payment Details Dialog -->
+      <v-dialog v-model="detailsDialog" max-width="800px" scrollable>
+        <v-card>
+          <v-card-title class="pa-4 bg-indigo-darken-4 text-white">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <v-icon class="mr-2">mdi-receipt-text</v-icon>
+                <span class="text-h6">Payment Details - #{{ selectedPayment?.id }}</span>
+              </div>
+              <v-btn
+                icon
+                variant="text"
+                @click="closeDetailsDialog"
+                color="white"
+              >
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </div>
+          </v-card-title>
+
+          <v-divider></v-divider>
+
+          <v-card-text class="pa-6" v-if="selectedPayment">
+            <!-- Payment Summary -->
+            <div class="mb-6">
+              <h3 class="text-h6 font-weight-bold mb-4 text-indigo-darken-4">
+                <v-icon class="mr-2">mdi-information</v-icon>
+                Payment Summary
+              </h3>
+              <v-row>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Customer:</span>
+                    <span class="detail-value">{{ selectedPayment.customer || 'N/A' }}</span>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Source:</span>
+                    <v-chip
+                      :color="getPaymentTypeColor(selectedPayment.payment_type)"
+                      variant="flat"
+                      size="small"
+                      class="ml-2"
+                    >
+                      {{ selectedPayment.payment_type }}
+                    </v-chip>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Amount Received:</span>
+                    <span class="detail-value font-weight-bold">{{ formatCurrency(selectedPayment.amount) }}</span>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Total Amount:</span>
+                    <span class="detail-value font-weight-bold text-indigo-darken-4">
+                      {{ formatCurrency(selectedPayment.total_amount) }}
+                    </span>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Change:</span>
+                    <span class="detail-value text-success font-weight-bold">
+                      {{ formatCurrency(selectedPayment.change) }}
+                    </span>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Payment Method:</span>
+                    <div class="d-flex align-center">
+                      <span 
+                        class="payment-method-dot mr-2" 
+                        :style="{ backgroundColor: getPaymentMethodDotColor(selectedPayment.payment_method) }"
+                      ></span>
+                      <span class="detail-value">{{ selectedPayment.payment_method || 'N/A' }}</span>
+                    </div>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Days Deducted:</span>
+                    <span class="detail-value">{{ selectedPayment.days_deducted || 0 }} days</span>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <v-chip
+                      :color="selectedPayment.status === 'Paid' ? 'success' : 'error'"
+                      variant="flat"
+                      size="small"
+                      class="ml-2"
+                    >
+                      {{ selectedPayment.status }}
+                    </v-chip>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Processed By:</span>
+                    <span class="detail-value">{{ selectedPayment.processed_by || 'N/A' }}</span>
+                  </div>
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Payment Date:</span>
+                    <span class="detail-value">{{ formatDate(selectedPayment.paid_at) }}</span>
+                  </div>
+                </v-col>
+              </v-row>
+            </div>
+
+            <v-divider class="my-6"></v-divider>
+
+            <!-- Payment Details (Card Information) -->
+            <div v-if="selectedPayment.details && selectedPayment.details.length > 0">
+              <h3 class="text-h6 font-weight-bold mb-4 text-indigo-darken-4">
+                <v-icon class="mr-2">mdi-credit-card-outline</v-icon>
+                Card Payment Details
+              </h3>
+              
+              <v-table class="details-table">
+                <thead>
+                  <tr>
+                    <th>Card Name</th>
+                    <th>Card Number</th>
+                    <th class="text-center">No. of Days</th>
+                    <th class="text-right">Discount</th>
+                    <th class="text-right">Balance</th>
+                    <th class="text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="detail in selectedPayment.details" :key="detail.id">
+                    <td>{{ detail.card_name || 'N/A' }}</td>
+                    <td>
+                      <span class="font-mono">{{ detail.card_number || 'N/A' }}</span>
+                    </td>
+                    <td class="text-center">{{ detail.no_of_days || 0 }}</td>
+                    <td class="text-right">{{ formatCurrency(detail.discount) }}</td>
+                    <td class="text-right">{{ formatCurrency(detail.balance) }}</td>
+                    <td class="text-right font-weight-bold">{{ formatCurrency(detail.amount) }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </div>
+
+            <div v-else>
+              <v-alert type="info" variant="tonal" class="mt-4">
+                <v-icon class="mr-2">mdi-information</v-icon>
+                No additional card payment details available for this transaction.
+              </v-alert>
+            </div>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions class="pa-4">
+            <v-spacer></v-spacer>
+            <v-btn
+              color="indigo-darken-4"
+              variant="flat"
+              @click="closeDetailsDialog"
+            >
+              Close
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-container>
   </div>
 </template>
@@ -231,23 +433,52 @@ import { usePage } from '@inertiajs/vue3'
 import { formatCurrency, formatDate } from '../../utils/utility'
 
 const headers = [
-  { key: 'id', title: 'ID', sortable: true },
-  { key: 'amount', title: 'Cash Amount', align: 'end' },
-  { key: 'total_amount', title: 'Total Amount', align: 'end' },
-  { key: 'change', title: 'Change', align: 'end' },
-  { key: 'payment_type', title: 'Payment Type', align: 'center' },
-  { key: 'status', title: 'Status', align: 'center' },
-  { key: 'paid_at', title: 'Date & Time' },
+  { key: 'id', title: 'ID', sortable: true, width: '80px' },
+  { key: 'amount', title: 'Amount Received', align: 'end', width: '140px' },
+  { key: 'total_amount', title: 'Total Amount', align: 'end', width: '140px' },
+  { key: 'change', title: 'Change', align: 'end', width: '120px' },
+  { key: 'payment_type', title: 'Source', align: 'center', width: '150px' },
+  { key: 'payment_method', title: 'Payment Method', align: 'center', width: '150px' },
+  { key: 'status', title: 'Status', align: 'center', width: '120px' },
+  { key: 'paid_at', title: 'Date & Time', width: '180px' },
+  { key: 'actions', title: 'Details', align: 'center', width: '100px', sortable: false },
 ]
 
 const page = usePage()
 const payments = computed(() => page.props.payments)
 
 const searchQuery = ref('')
+const dateFrom = ref('')
+const dateTo = ref('')
 const filterStatus = ref('All')
 const filterType = ref('All')
 const itemsPerPage = ref(10)
 const pageNumber = ref(1)
+
+// Dialog state
+const detailsDialog = ref(false)
+const selectedPayment = ref(null)
+
+const handleSearch = () => {
+  applyFilters()
+}
+
+const applyFilters = () => {
+  const params = {
+    dateFrom: dateFrom.value,
+    dateTo: dateTo.value,
+    type: filterType.value !== 'All' ? filterType.value : null,
+  }
+  
+  console.log('Filtering with:', params)
+  
+  // Use Inertia to navigate with filters
+  // Uncomment and adjust the route name as needed:
+  // router.get(route('payments.index'), params, {
+  //   preserveState: true,
+  //   preserveScroll: true,
+  // })
+}
 
 const getTodayCount = () => {
   const today = dayjs().format('YYYY-MM-DD')
@@ -258,19 +489,39 @@ const getTodayCount = () => {
 
 const getPaymentTypeColor = (type) => {
   switch(type) {
-    case 'Cash': return 'success'
     case 'Card': return 'primary'
-    case 'Combination': return 'warning'
+    case 'Ticket': return 'warning'
     default: return 'grey'
   }
 }
 
 const getPaymentTypeIcon = (type) => {
   switch(type) {
-    case 'Cash': return 'mdi-cash'
     case 'Card': return 'mdi-credit-card'
-    case 'Combination': return 'mdi-cash-multiple'
+    case 'Ticket': return 'mdi-ticket'
     default: return 'mdi-help'
+  }
+}
+
+const getPaymentMethodColor = (method) => {
+  switch(method) {
+    case 'Visa': return 'primary'
+    case 'Mastercard': return 'warning'
+    case 'GCash': return 'info'
+    case 'PayMaya': return 'success'
+    case 'Cash': return 'success'
+    default: return 'grey'
+  }
+}
+
+const getPaymentMethodDotColor = (method) => {
+  switch(method) {
+    case 'Cash': return '#4caf50'  // Green
+    case 'GCash': return '#2196f3' // Blue
+    case 'Visa': return '#3f51b5'  // Indigo
+    case 'Mastercard': return '#3f51b5' // Indigo
+    case 'PayMaya': return '#4caf50' // Green
+    default: return '#9e9e9e' // Grey
   }
 }
 
@@ -279,8 +530,14 @@ const exportData = (format) => {
   // Add export functionality here
 }
 
-const addPayment = () => {
-  console.log('Open add payment dialog')
+const viewDetails = (payment) => {
+  selectedPayment.value = payment
+  detailsDialog.value = true
+}
+
+const closeDetailsDialog = () => {
+  detailsDialog.value = false
+  selectedPayment.value = null
 }
 </script>
 
@@ -291,11 +548,14 @@ const addPayment = () => {
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+  width: 100%;
   gap: 1rem;
+}
+
+/* Filters Card */
+.filters-card {
+  background: white;
+  border-left: 4px solid #1a237e;
 }
 
 /* Stat Cards */
@@ -332,8 +592,14 @@ const addPayment = () => {
   overflow: hidden;
 }
 
-.filters-section {
+.export-section {
   background: linear-gradient(135deg, rgba(26, 35, 126, 0.03) 0%, rgba(26, 35, 126, 0.01) 100%);
+}
+
+/* Payment Type Chip - Full Width */
+.payment-type-chip {
+  width: 100%;
+  justify-content: center;
 }
 
 /* Custom Data Table Styles */
@@ -365,6 +631,76 @@ const addPayment = () => {
   background: rgba(26, 35, 126, 0.04) !important;
 }
 
+/* Details Dialog Styles */
+.detail-item {
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #616161;
+  min-width: 140px;
+}
+
+.detail-value {
+  color: #212121;
+}
+
+.details-table {
+  background: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.details-table thead {
+  background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+}
+
+.details-table thead th {
+  color: white !important;
+  font-weight: 600 !important;
+  padding: 12px !important;
+}
+
+.details-table tbody tr {
+  background: white;
+}
+
+.details-table tbody tr:hover {
+  background: rgba(26, 35, 126, 0.04);
+}
+
+.details-table tbody td {
+  padding: 12px !important;
+}
+
+.font-mono {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+/* Payment Method Dot */
+.payment-method-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.payment-method-cell {
+  min-width: 120px;
+}
+
+.payment-method-text {
+  font-weight: 500;
+  color: #212121;
+  white-space: nowrap;
+}
+
 /* Responsive Design */
 @media (max-width: 960px) {
   .page-header {
@@ -373,6 +709,11 @@ const addPayment = () => {
 
   .page-header > div {
     width: 100%;
+  }
+  
+  .search-btn {
+    width: 100%;
+    margin-top: 0.5rem;
   }
 }
 

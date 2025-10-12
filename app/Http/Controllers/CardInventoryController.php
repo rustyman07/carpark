@@ -5,6 +5,9 @@ use App\Models\CardInventory;
 use App\Models\CardTemplate;
 use App\Models\CardInventoryDetail;
 use App\Models\Payment;
+use App\Models\Company;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PaymentDetail;
 use Illuminate\Support\Facades\DB;
 
@@ -12,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class CardInventoryController extends Controller
@@ -280,6 +284,8 @@ public function sell_card_payment(Request $request)
                 'status'        => 'Paid',
                 'payment_type'  => 'Card',
                 'payment_method' => $data['payment_method'],
+                'Gcash_reference' => $data['Gcash_reference'] ?? null,
+                'processed_by'   => Auth::id(),
                 'paid_at'       => now(),
             ]);
 
@@ -340,7 +346,7 @@ public function updateStatus(Request $request, $id)
     }
 
     if ($card->status !== 'Sold') {
-        return back()->with('error', 'Card status must be Sold before confirming.');
+        return back()->with('error', 'Card status must be sold before confirming.');
     }
 
     $card->update(['status' => 'Confirmed']);
@@ -353,6 +359,43 @@ public function updateStatus(Request $request, $id)
     ]);
 }
 
+
+
+
+public function print_card($card_number)
+{
+    $card = CardInventoryDetail::where('card_number',$card_number)->firstOrFail();
+    $company = Company::first();
+
+    // Generate QR Code from card_number as SVG (no imagick needed)
+    $qrCodeSvg = QrCode::format('svg')
+        ->size(200)
+        ->errorCorrection('H')
+        ->generate($card->card_number);
+    
+    // Convert SVG to base64
+    $qrCode = base64_encode($qrCodeSvg);
+
+    // Get logo path
+    $logoPath = public_path('images/comlogo.png');
+
+    // Prepare data for the view
+    $data = [
+        'card' => $card,
+        'company' => $company,
+        'qrCode' => $qrCode,
+        'logoPath' => $logoPath
+    ];
+
+    // Generate and stream PDF for thermal printer
+    return Pdf::loadView('Printables.Card', $data)
+        ->setPaper([0, 0, 226.77, 566.93], 'portrait') // 80mm width, auto height
+        ->setOption('margin-top', 0)
+        ->setOption('margin-right', 0)
+        ->setOption('margin-bottom', 0)
+        ->setOption('margin-left', 0)
+        ->stream('card-' . $card->card_number . '.pdf');
+}
 
 
 

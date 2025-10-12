@@ -80,16 +80,44 @@
                 </v-chip>
               </div>
               
-              <div class="kpi-value-section">
-                <h2 class="kpi-value text-indigo-darken-4 mb-1">
-                  {{ totalCards.toLocaleString() }}
-                </h2>
-                <p class="kpi-label text-medium-emphasis mb-3">Cards Issued</p>
-                <div class="d-flex align-center">
-                  <v-icon size="16" color="info" class="mr-1">mdi-plus-circle</v-icon>
-                  <span class="text-caption text-info font-weight-medium">{{ newCardsToday }} new today</span>
-                </div>
-              </div>
+            <div class="kpi-container d-flex flex-wrap">
+  <!-- Cards Issued -->
+  <div class="kpi-value-section mr-6">
+    <h2 class="kpi-value text-indigo-darken-4 mb-1">
+      {{ totalCards.toLocaleString() }}
+    </h2>
+    <p class="kpi-label text-medium-emphasis mb-3">Cards Issued</p>
+    <div class="d-flex align-center">
+      <v-icon size="16" color="info" class="mr-1">mdi-plus-circle</v-icon>
+      <span class="text-caption text-info font-weight-medium">{{ newCardsToday }} new today</span>
+    </div>
+  </div>
+
+  <!-- Cards Sold -->
+  <div class="kpi-value-section mr-6">
+    <h2 class="kpi-value text-teal-darken-3 mb-1">
+      {{ 1280 }}
+    </h2>
+    <p class="kpi-label text-medium-emphasis mb-3">Cards Sold</p>
+    <div class="d-flex align-center">
+      <v-icon size="16" color="success" class="mr-1">mdi-cash-multiple</v-icon>
+      <span class="text-caption text-success font-weight-medium">+25 today</span>
+    </div>
+  </div>
+
+  <!-- Cards Confirmed -->
+  <div class="kpi-value-section">
+    <h2 class="kpi-value text-purple-darken-3 mb-1">
+      {{ 1125 }}
+    </h2>
+    <p class="kpi-label text-medium-emphasis mb-3">Cards Confirmed</p>
+    <div class="d-flex align-center">
+      <v-icon size="16" color="deep-purple-accent-2" class="mr-1">mdi-check-circle</v-icon>
+      <span class="text-caption text-deep-purple-accent-2 font-weight-medium">+10 today</span>
+    </div>
+  </div>
+</div>
+
             </div>
             <div class="kpi-card-footer">
               <v-btn 
@@ -442,8 +470,11 @@ const getCurrentTime = () => {
 
 
 const downloadReport = () => {
-  window.open('/reports/today-parkout', '_blank');
+  window.open(route('reports.revenue'), '_blank');
 };
+
+
+
 
 // Update time every minute
 let timeInterval;

@@ -11,6 +11,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesPersonController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReceiptController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -41,12 +42,14 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('parkin', [TicketController::class, 'index'])->name('parkin.index');
     Route::post('parkin', [TicketController::class, 'store'])->name('parkin.store');
     Route::get('parkin/{uuid}', [TicketController::class, 'show'])->name('parkin.show');
+    Route::get('parkin/print/{uuid}', [TicketController::class, 'print_ticket'])->name('print.ticket');
+
 
     Route::get('parkout', [TicketController::class, 'park_out'])->name('parkout');
     Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');
     Route::get('parkout/payment/{uuid}', [TicketController::class, 'show_payment'])->name('show.payment');
     Route::post('parkout/payment', [TicketController::class, 'submit_payment'])->name('store.payment');
-    Route::get('parkout/receipt', [TicketController::class, 'parkout_receipt'])->name('parkout.receipt');
+
 
     // Route::prefix('sales-person')->name('sales-person.')->group(function () {
     //     Route::get('/', [SalesPersonController::class, 'index'])->name('index');
@@ -56,18 +59,17 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     // });
 
     Route::get('company', [CompanyController::class, 'index'])->name('company.index');
-     Route::put('company/{id}', [CompanyController::class, 'update'])->name('company.update');
+    Route::put('company/{id}', [CompanyController::class, 'update'])->name('company.update');
 
-    Route::resource('card-template', CardTemplateController::class)
-        ->only(['index', 'store', 'update']);
+    Route::resource('card-template', CardTemplateController::class)->only(['index', 'store', 'update']);
 
     Route::get('card-inventory', [CardInventoryController::class, 'index'])->name('card-inventory.index');
     Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');
     Route::post('scan-qr-cards', [CardInventoryController::class, 'scan_qr_cards'])->name('scan.qr.cards');
+    Route::get('/card/print/{card_number}', [CardInventoryController::class, 'print_card'])->name('print.card');
     Route::get('sell-card', [CardInventoryController::class, 'sell_card'])->name('sell-card.create');
     Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment');
-    Route::put('/card-inventory/{id}/status', [CardInventoryController::class, 'updateStatus'])
-    ->name('card-inventory.update-status');
+    Route::put('/card-inventory/{id}/status', [CardInventoryController::class, 'updateStatus'])->name('card-inventory.update-status');
 
 
     Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
@@ -79,26 +81,26 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/shiftlogs/start', [ShiftLogController::class, 'startShift'])->name('shiftlogs.start');
     Route::post('/shiftlogs/end', [ShiftLogController::class, 'endShift'])->name('shiftlogs.end');
 
-
-
     Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment');
 
     Route::get('transaction/ticket-payments', [PaymentController::class, 'index'])->name('ticket.payments');
 
 
-
-Route::get('/reports/parkout', [ReportController::class, 'todayParkout'])
+    Route::get('/reports/parkout', [ReportController::class, 'todayParkout'])
     ->name('reports.parkout');
     
 // Route::get('/reports/parkout/pdf', [ReportController::class, 'generatePDF'])
 //     ->name('reports.parkout.pdf');
 
 
-    Route::get('/reports/parkout/download', [ReportController::class, 'downloadPDF'])
-    ->name('reports.parkout.download');
+    Route::get('/reports/parkout/preview', [ReportController::class, 'previewPDF'])
+    ->name('reports.parkout.preview');
+      Route::get('/reports/payments', [PaymentController::class, 'generatePaymentReport'])->name('reports.revenue');
+
+    // routes/web.php
+    Route::get('/receipt/print/{uuid}', [ReceiptController::class, 'printReceipt'])->name('receipt.print');
+    Route::get('parkout/receipt', [ReceiptController::class, 'index'])->name('receipt.index');
 
 });
 
-
-// 👇 Breeze authentication routes (login, register, etc)
 require __DIR__.'/auth.php';

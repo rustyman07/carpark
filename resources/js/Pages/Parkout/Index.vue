@@ -22,6 +22,82 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  
+
+      <v-dialog v-model="showConfirmDialog" max-width="500" persistent>
+        <v-card rounded="lg" class="confirm-card">
+          <!-- Header -->
+          <div class="form-header pa-6 pb-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <v-avatar color="indigo-darken-4" size="48" class="mr-3">
+                  <v-icon size="28" color="white">mdi-check-decagram</v-icon>
+                </v-avatar>
+                <div>
+                  <h2 class="text-h6 font-weight-bold text-indigo-darken-4">
+                    Confirm Sale
+                  </h2>
+                  <p class="text-caption text-medium-emphasis mb-0">
+                    Mark card as sold in the system
+                  </p>
+                </div>
+              </div>
+              <v-btn
+                icon="mdi-close"
+                variant="text"
+                @click="cancelConfirm"
+              ></v-btn>
+            </div>
+          </div>
+
+          <v-divider></v-divider>
+
+          <!-- Content -->
+          <v-card-text class="pa-6">
+            <v-alert
+              type="info"
+              variant="tonal"
+              density="comfortable"
+              class="sale-alert mb-0"
+            >
+              <div class="text-body-2">
+                You are about to mark card 
+                <span class="font-weight-bold text-indigo-darken-4">{{ selectedCardToConfirm?.card_number }}</span> 
+                as <span class="font-weight-bold">CONFIRMED</span>.
+              </div>
+              <div class="text-caption text-medium-emphasis mt-2">
+                <v-icon size="16" class="mr-1">mdi-information-outline</v-icon>
+                This action will update the card's status permanently.
+              </div>
+            </v-alert>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <!-- Actions -->
+          <v-card-actions class="pa-6">
+            <v-spacer />
+            <v-btn
+              variant="outlined"
+              size="large"
+              @click="cancelConfirm"
+              prepend-icon="mdi-close"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="indigo-darken-4"
+              variant="flat"
+              size="large"
+              @click="confirmStatusChange"
+              prepend-icon="mdi-check-circle"
+            >
+              Confirm Sale
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
 
   <!-- Main Layout -->
   <div class="parkout-wrapper">

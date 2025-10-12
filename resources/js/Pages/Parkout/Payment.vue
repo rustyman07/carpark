@@ -333,7 +333,7 @@
                       </h4>
 
                       <v-text-field
-                        v-model="cashAmount"
+                        v-model="gcash_amount"
                         label="GCash Amount Paid"
                         variant="outlined"
                         type="number"
@@ -348,7 +348,7 @@
                         </template>
                       </v-text-field>
 
-                      <v-text-field
+                      <!-- <v-text-field
                         v-model="gcashNumber"
                         label="GCash Mobile Number"
                         variant="outlined"
@@ -363,7 +363,7 @@
                         <template v-slot:prepend-inner>
                           <v-icon color="blue-darken-2">mdi-cellphone</v-icon>
                         </template>
-                      </v-text-field>
+                      </v-text-field> -->
 
                       <v-text-field
                         v-model="gcashReferenceNumber"
@@ -384,7 +384,7 @@
                       <!-- Change Display for GCash -->
                       <v-expand-transition>
                         <v-alert
-                          v-if="gcashAmount && gcashAmount >= cashNeeded"
+                          v-if="gcash_amount && gcash_amount >= cashNeeded"
                           type="success"
                           variant="tonal"
                           class="mt-4"
@@ -393,7 +393,7 @@
                           <div class="d-flex align-center justify-space-between">
                             <span class="font-weight-medium">Change:</span>
                             <span class="text-h6 font-weight-bold">
-                              {{ formatCurrency(Number(gcashAmount) - cashNeeded) }}
+                              {{ formatCurrency(Number(gcash_amount) - cashNeeded) }}
                             </span>
                           </div>
                         </v-alert>
@@ -402,7 +402,7 @@
                       <!-- Insufficient Amount Warning for GCash -->
                       <v-expand-transition>
                         <v-alert
-                          v-if="gcashAmount && gcashAmount < cashNeeded"
+                          v-if="gcash_amount && gcash_amount < cashNeeded"
                           type="warning"
                           variant="tonal"
                           class="mt-4"
@@ -411,7 +411,7 @@
                           <div class="d-flex align-center justify-space-between">
                             <span class="font-weight-medium">Insufficient Amount:</span>
                             <span class="text-subtitle-2 font-weight-bold">
-                              Need {{ formatCurrency(cashNeeded - Number(gcashAmount)) }} more
+                              Need {{ formatCurrency(cashNeeded - Number(gcash_amount)) }} more
                             </span>
                           </div>
                         </v-alert>
@@ -475,6 +475,8 @@ const isScanQR = ref(false)
 const html5QrCode = ref(null)
 const paymentMethod = ref('cash')
 const cashAmount = ref(null)
+
+const gcash_amount = ref(null)  
 const gcashNumber = ref('')
 const gcashReferenceNumber = ref('')
 const scannedCards = computed(() => props.scannedCards || [])
@@ -518,7 +520,8 @@ const isPaymentValid = computed(() => {
 
   // If using GCash
   if (paymentMethod.value === 'gcash') {
-    return (scannedCards.value.length > 0 || (gcashNumber.value && gcashReferenceNumber.value)) &&
+    console.log('gcash_amount', gcash_amount.value);
+    return (scannedCards.value.length > 0 ||  gcashReferenceNumber.value) &&
         //    gcashNumber.value.length >= 10 && 
            gcashReferenceNumber.value.trim() !== ''
   }
@@ -545,17 +548,22 @@ const formatDate = (date) => {
   return date ? dayjs(date).format('MM/DD/YYYY') : 'N/A'
 }
 
+
 const submitPayment = () => {
+    
+    
   const form = useForm({
     ticket_id: props.ticket.data.id,
     hours_parked: props.ticket.data.hours_parked,
     days_parked: props.ticket.data.days_parked,
     payment_method: paymentMethod.value,
     cash_amount: paymentMethod.value === 'cash' ? cashAmount.value : null,
-    gcash_number: paymentMethod.value === 'gcash' ? gcashNumber.value : null,
+    gcash_amount: paymentMethod.value === 'gcash' ? gcash_amount.value : null,
+    // gcash_number: paymentMethod.value === 'gcash' ? gcashNumber.value : null,
     gcash_reference: paymentMethod.value === 'gcash' ? gcashReferenceNumber.value : null,
     cards: scannedCards.value.map(c => c.id),
   })
+
 
   form.post(route('store.payment'), {
     onSuccess: () => {

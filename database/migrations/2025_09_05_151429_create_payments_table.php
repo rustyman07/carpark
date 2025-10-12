@@ -36,6 +36,7 @@ return new class extends Migration
             $table->enum('payment_method', ['Cash', 'Card', 'Gcash']);
             $table->integer('days_deducted')->nullable();
             $table->enum('status', ['Pending', 'Paid', 'Failed', 'Refunded'])->default('Pending');
+            $table->integer('processed_by')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->text('remarks')->nullable();    
             $table->timestamps();

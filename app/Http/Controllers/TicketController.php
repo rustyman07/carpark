@@ -6,10 +6,8 @@ use App\Http\Resources\TicketResource;
 use App\Models\Ticket;
 use App\Models\Company;
 use App\Models\CardInventoryDetail;
-use App\Models\PaymentDetail;
-use App\Models\ShiftLog;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Auth;
-use App\Models\CardsTransaction;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +15,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class TicketController extends Controller
 {
@@ -134,15 +134,55 @@ public function store(Request $request)
     }
 
 
-public function show(string $uuid)
-{
+    public function show(string $uuid)
+    {
 
+        
+        $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+        return inertia('Parkin/Show', [
+            'ticket' => $ticket
+        ]);
+    }
+
+
+    public function print_ticket($uuid)
+{
+     $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+    $company = Company::first();
+
+    // Generate QR Code as base64
+   $qrCodeSvg = QrCode::format('svg')
+        ->size(200)
+        ->errorCorrection('H')
+        ->generate($ticket->qr_code);
     
-    $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
-    return inertia('Parkin/Show', [
-        'ticket' => $ticket
-    ]);
+    // Convert SVG to base64
+    $qrCode = base64_encode($qrCodeSvg);
+
+    // Get logo path
+    $logoPath = public_path('images/comlogo.png');
+
+    // Prepare data for the view
+    $data = [
+        'ticket' => $ticket,
+        'company' => $company,
+        'qrCode' => $qrCode,
+        'logoPath' => $logoPath
+    ];
+
+    // Generate and stream PDF for thermal printer
+    return Pdf::loadView('Printables.Ticket', $data)
+        ->setPaper([0, 0, 226.77, 566.93], 'portrait') // 80mm width, auto height
+        ->setOption('margin-top', 0)
+        ->setOption('margin-right', 0)
+        ->setOption('margin-bottom', 0)
+        ->setOption('margin-left', 0)
+        ->stream('ticket-' . $ticket->ticket_no . '.pdf');
 }
+
+
+
+
 
     /**
      * Show the form for editing the specified resource.
@@ -179,7 +219,7 @@ public function show(string $uuid)
 
     public function showLogs(Request $request)
 {
-    $user = auth()->user();
+    $user = Auth::user();
 
     $type     = $request->input('type', 'PARK-IN');
     $dateFrom = $request->input('dateFrom', now()->toDateString());
@@ -430,24 +470,6 @@ public function submit_park_out(Request $request)
 
    session()->forget('scanned_cards');
 
-    // 1️⃣ Validate input
-    // $data = $request->validate([
-    //     if($request->input('ISSCANQR' == true)){
-    //         'qr_code' => 'required|string|exists:tickets,qr_code',
-    //     } else {     
-    //             'plate_no'       => 'required|string|exists:tickets,plate_no',       
-    //     }
-    
-    //     'park_out_year'   => 'nullable|integer',
-    //     'park_out_month'  => 'nullable|integer',
-    //     'park_out_day'    => 'nullable|integer',
-    //     'park_out_hour'   => 'nullable|integer',
-    //     'park_out_minute' => 'nullable|integer',
-    //     'park_out_second' => 'nullable|integer',
-    // ], [
-    //     'plate_no.required' => 'Plate number is required',
-    //     'plate_no.exists'   => 'Plate number not found',
-    // ]);
 
       $rules = [
         'park_out_year'   => 'nullable|integer',
@@ -518,6 +540,24 @@ public function submit_park_out(Request $request)
 
         } else {
 
+             $existingUnpaid = Ticket::where('plate_no', $data['plate_no'])
+        ->where('remarks', 'unpaid')
+        ->whereNotNull('park_out_datetime')
+        ->whereNull('deleted_at')
+        ->latest('park_out_datetime')
+        ->first();
+
+            if ($existingUnpaid) {
+                // ⚠️ Already has unpaid record — skip updating, use current record instead
+                return redirect()->route('show.payment', [
+                    'uuid' => $existingUnpaid->uuid
+                ])->with([
+                    'info' => 'Existing unpaid record found. Using that record instead.',
+                    'success' => true
+                ]);
+            }
+
+
                 $ticket = Ticket::where('plate_no', $data['plate_no'])
                 ->where(function ($q) {
                     $q->whereIn('remarks', ['UNPAID'])
@@ -540,83 +580,6 @@ public function submit_park_out(Request $request)
 
 
 
-// $company = Company::find(1); 
-
-// $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone')); 
-// $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
-
-
-// $minutesDiff = (int) $start->diffInMinutes($end);
-
-// $ratePerHour = (float) $company->rate_perhour;
-// $ratePerDay  = (float) $company->rate_perday;
-
-
-// $hourly_limit   = (int) $company->hourly_billing_limit * 60;
-// $freeMinutes    = (int) $company->grace_minutes;
-
-
-// $rate = 0;
-// $daysParked = 0;
-// $hoursParked = 0;
-// $remainingMinutes = 0;
-
-// if ($company->rate == 'perhour') {
-   
-//     $hoursParked = max(1, ceil($minutesDiff / 60));
-//     $rate = $hoursParked * $ratePerHour;
-
-// } elseif ($company->rate == 'perday') {
-
-//     $daysParked = max(1, ceil($minutesDiff / 1440));
-//     $rate = $daysParked * $ratePerDay;
- 
-
-// } else {
-   
-
-//     if ($minutesDiff <= $hourly_limit + $freeMinutes) {
-
-//         $hoursParked = max(1, floor($minutesDiff / 60));
-
-    //         if ($minutesDiff > 60){
-
-    //             if ($minutesDiff >  ($hoursParked * 60) + $freeMinutes )
-    //                   $hoursParked = max(1, ceil($minutesDiff / 60));
-
-    //          }
-
-//         // $hoursParked = min($hoursParked, $hourly_limit);
-//        // $totalmin = ($hoursParked * 60) + $freeMinutes;
-
-//         $rate = $hoursParked * $ratePerHour;
-//       //  $hoursParkedciel = max(1, ceil($minutesDiff / 60));
-
-
-//     } elseif ($minutesDiff <= 1440) {
-
-//         $rate = $ratePerDay;
-//         $hoursParked = ceil($minutesDiff / 60); 
-//               //dd(['second' =>$hoursParked]);
-//     } else {
-
-//         $daysParked = floor($minutesDiff / 1440);
-//         $remainingMinutes = $minutesDiff % 1440;
-
-//         $rate = $daysParked * $ratePerDay;
-
-//         if ($remainingMinutes > 0) {
-//             $hoursParked = ceil($remainingMinutes / 60);
-//             $rate += $ratePerDay;
-//                  // dd(['third' =>$hoursParked]);
-//         }
-
-//          $rate = $daysParked * $ratePerDay + ($remainingMinutes > 0 ? $ratePerDay : 0);
-//     }
-// }
-
-
-
 
 
 $company = Company::find(1);
@@ -624,13 +587,14 @@ $company = Company::find(1);
 $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
 $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
 
-$minutesDiff = (int) $start->diffInMinutes($end);
+// ✅ Use seconds for precise calculation, then round up to the next full minute
+$minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
 
 $ratePerHour = (float) $company->rate_perhour;
 $ratePerDay  = (float) $company->rate_perday;
 
 $hourly_limit = (int) $company->hourly_billing_limit * 60; // e.g., 10 hours * 60
-$freeMinutes  = (int) $company->grace_minutes;            // e.g., 20
+$freeMinutes  = (int) $company->grace_minutes;             // e.g., 20
 
 $rate = 0;
 $daysParked = 0;
@@ -644,22 +608,18 @@ if ($company->rate == 'perhour') {
 
 } elseif ($company->rate == 'perday') {
 
-    // $daysParked = max(1, ceil($minutesDiff / 1440));
-    // $rate = $daysParked * $ratePerDay;
+    $fullDays = floor($minutesDiff / 1440);        // full 24-hour days
+    $remainingMinutes = $minutesDiff % 1440;       // leftover minutes
 
-$fullDays = floor($minutesDiff / 1440);        // full 24-hour days
-$remainingMinutes = $minutesDiff % 1440;      // leftover minutes
+    // Apply grace period
+    if ($remainingMinutes > $freeMinutes) {
+        $daysParked = $fullDays + 1;               // extra day
+    } else {
+        $daysParked = max(1, $fullDays);           // at least 1 day
+    }
 
-// Apply grace period
-if ($remainingMinutes > $freeMinutes) {
-    $daysParked = $fullDays + 1;             // extra day
-} else {
-    $daysParked = max(1, $fullDays);         // at least 1 day
-}
-
-$hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60); // display only
-$rate = $daysParked * $ratePerDay;
-
+    $hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60); // display only
+    $rate = $daysParked * $ratePerDay;
 
 } else {
     // Combined rate logic
@@ -669,7 +629,7 @@ $rate = $daysParked * $ratePerDay;
         $rate = $hoursParked * $ratePerHour;
 
     } elseif ($minutesDiff <= 1440) {
-  
+
         $daysParked = 1;
         $hoursParked = 0;
         $rate = $ratePerDay;
@@ -681,24 +641,19 @@ $rate = $daysParked * $ratePerDay;
         $rate = $daysParked * $ratePerDay;
 
         if ($remainingMinutes > $freeMinutes) {
-               
             // Remaining minutes exceed grace period → add 1 full day
             $daysParked += 1;
             $rate += $ratePerDay;
-             $hoursParked = ceil($remainingMinutes / 60);
-        }
-        else
-        {
+            $hoursParked = ceil($remainingMinutes / 60);
+        } else {
             $hoursParked = 0;
         }
-
-        // For display purposes, calculate hours parked from remaining minutes
-       
     }
 }
 
+$ticket->park_fee = $rate;
 
-    $ticket->park_fee =  $rate;
+
 
     $ticket->fill([
         'is_park_out'     => 1,
@@ -726,14 +681,14 @@ $rate = $daysParked * $ratePerDay;
 public function show_payment(string $uuid)
 {
     $ticket   = Ticket::where('uuid', $uuid)->firstOrFail();
-    $ticketId = $ticket->id;
+    $uuid = $ticket->id;
 
 
         if ($ticket->remarks === 'PAID') {
         return redirect()->route('parkout');
     }
 
-    $scannedCards = session()->get("scanned_cards.$ticketId", []);
+    $scannedCards = session()->get("scanned_cards.$uuid", []);
 
     $remainingFee = $ticket->park_fee;
     $totalCovered = 0;
@@ -786,9 +741,13 @@ public function submit_payment(Request $request)
 {
     $data = $request->validate([
         'ticket_id'   => 'required|exists:tickets,id',
-        'cash_amount' => 'nullable|numeric|min:0', // optional, only needed if cards don't cover
-        'cards'       => 'nullable|array',         // optional array of card IDs
+        'cash_amount' => 'nullable|numeric|min:0', 
+        'gcash_amount' => 'nullable|numeric|min:0',
+        'cards'       => 'nullable|array',         
     ]);
+
+
+   
 
     $ticket  = Ticket::findOrFail($request->ticket_id);
     $company = Company::find(1);
@@ -806,12 +765,25 @@ public function submit_payment(Request $request)
     try {
         DB::transaction(function () use ($ticket, $cards, $data, &$payment, &$totalPaid, &$amountToPay, $request) {
 
-            // Determine payment method
-            $ticket->remarks = 'Paid';
-            $ticket->mode_of_payment = count($cards) ? 'card' : 'cash';
-            $ticket->save();
+      
+             $ticket->remarks = 'Paid';
 
-            // Create payment header
+            // Updated mode_of_payment logic
+            $cashAmount  = $data['cash_amount'] ?? 0;
+            $gcashAmount = $data['gcash_amount'] ?? 0;
+
+            if (!empty($cards) && ($cashAmount + $gcashAmount) > 0) {
+                $ticket->mode_of_payment = 'mixed';
+            } elseif (!empty($cards)) {
+                $ticket->mode_of_payment = 'card';
+            } elseif (!empty($gcashAmount)) {
+                $ticket->mode_of_payment = 'gcash';
+            } else {
+                $ticket->mode_of_payment = 'cash';
+            }
+
+            $ticket->save();
+          
             $payment = Payment::create([
                 'ticket_id'      => $ticket->id,
                 'ticket_no'      => $ticket->ticket_no,
@@ -819,6 +791,7 @@ public function submit_payment(Request $request)
                 'payment_type'   => 'ticket',
                 'payment_method' => $ticket->mode_of_payment,
                 'status'         => 'paid',
+                'processed_by'    => Auth::id(),
                 'paid_at'        => now(),
             ]);
 
@@ -850,37 +823,30 @@ public function submit_payment(Request $request)
                 $totalPaid += $deduct;
             }
 
-            // Remaining fee is cash
-            if ($amountToPay > 0) {
-                $cashProvided = $data['cash_amount'] ?? 0;
 
-                if ($cashProvided < $amountToPay) {
+           
+                // Check if total non-card payment covers remaining fee
+                if (($cashAmount + $gcashAmount) < $amountToPay) {
                     throw new \Exception('Insufficient Amount.');
                 }
 
-                if ($cards){
-                            $payment->details()->create([
-                    'card_id'     => null,
-                    'card_number' => null,
-                    'qr_code'     => null,
-                    'amount'      => $amountToPay,
-                    'balance'     => null,
-                    'card_name'   => 'Cash',
-                    'discount'    => 0,
-                    'no_of_days'  => 0,
+                // Applied from cash/GCash
+                $appliedAmount = $amountToPay;
+
+                // Change only from cash overpayment
+                $change = max(0, $cashAmount - $appliedAmount);
+
+                // Update Payment table
+                $payment->update([
+                    'amount'          => $cashAmount + $gcashAmount,
+                    'total_amount'    => $totalPaid + $appliedAmount,
+                    'Gcash_reference' => $data['Gcash_reference'] ?? null,
+                    'change'          => $change,
                 ]);
 
-                }
-        
-            }
 
-            $change = ($data['cash_amount'] ?? 0) - $amountToPay;
 
-            $payment->update([
-                'amount'       => $data['cash_amount'] ?? 0.00,
-                'total_amount' => $totalPaid + $amountToPay,
-                'change'       => $change,
-            ]);
+           
         });
 
         // Clear scanned cards from session
@@ -890,7 +856,7 @@ public function submit_payment(Request $request)
          Cache::forget('dashboard.totalRevenue');
 
         // Redirect with success
-        return redirect()->route('parkout.receipt', ['id' => $ticket->uuid])
+        return redirect()->route('receipt.index', ['id' => $ticket->uuid])
                          ->with([
                              'success' => 'Payment successful!',
                              'id'      => $ticket->uuid,
@@ -905,31 +871,6 @@ public function submit_payment(Request $request)
 }
 
 
-
-    public function parkout_receipt(Request $request){
-
-        $ticket = Ticket::where('uuid',$request->id)->first();
-        if(!$ticket){
-                //  return back()->with('error', 'Insufficient Balance.');
-                 abort(404, 'Ticket not found');
-        }
-      
-
-        $payment = Payment::where('ticket_id',$ticket->id)->first();
-
-
-        $details =  $payment->details;
-        $balance = $payment->balance;
-        $company = Company::findOrFail(1);
-
-        return Inertia('Parkout/Receipt',[
-            'ticket' => (new TicketResource($ticket))->resolve(),
-            'payment' => $payment,
-            'company' => $company,
-            'details' => $details
-            
-        ]);
-    }
 
 
 }

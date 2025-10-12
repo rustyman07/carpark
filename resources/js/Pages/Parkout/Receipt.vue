@@ -31,9 +31,9 @@
             <v-divider></v-divider>
 
             <!-- Receipt Body -->
-            <div class="receipt-body pa-6">
+            <div class="receipt-body pa-6 text-sm">
               <!-- Ticket Information Section -->
-              <div class="section mb-6">
+              <div class="section  text-indigo-900 mb-6">
                 <h3 class="section-title mb-4">
                   <v-icon size="20" class="mr-2">mdi-information-outline</v-icon>
                   Parking Details
@@ -41,17 +41,16 @@
 
                 <v-card class="info-card elevation-0" color="grey-lighten-5" rounded="lg">
                   <div class="pa-4">
-                    <div class="info-row mb-3">
+                    <div class="info-row mb-3 flex w-full justify-between">
                       <div class="d-flex align-center">
-                        <v-icon size="18" color="indigo-darken-4" class="mr-2">mdi-barcode</v-icon>
+   
                         <span class="label">Ticket No.</span>
                       </div>
                       <span class="value">{{ props.ticket.ticket_no }}</span>
                     </div>
 
-                    <div class="info-row mb-3">
+                    <div class="info-row mb-3 flex w-full justify-between">
                       <div class="d-flex align-center">
-                        <v-icon size="18" color="indigo-darken-4" class="mr-2">mdi-car</v-icon>
                         <span class="label">Plate No.</span>
                       </div>
                       <span class="value">{{ props.ticket.plate_no }}</span>
@@ -59,9 +58,9 @@
 
                     <v-divider class="my-3"></v-divider>
 
-                    <div class="info-row mb-3">
+                    <div class="info-row mb-3 flex w-full justify-between">
                       <div class="d-flex align-center">
-                        <v-icon size="18" color="success" class="mr-2">mdi-login</v-icon>
+
                         <span class="label">From</span>
                       </div>
                       <div class="text-right">
@@ -70,9 +69,8 @@
                       </div>
                     </div>
 
-                    <div class="info-row mb-3">
+                    <div class="info-row mb-3 flex w-full justify-between">
                       <div class="d-flex align-center">
-                        <v-icon size="18" color="error" class="mr-2">mdi-logout</v-icon>
                         <span class="label">To</span>
                       </div>
                       <div class="text-right">
@@ -83,9 +81,9 @@
 
                     <v-divider class="my-3"></v-divider>
 
-                    <div class="info-row">
-                      <div class="d-flex align-center">
-                        <v-icon size="18" color="indigo-darken-4" class="mr-2">mdi-clock-outline</v-icon>
+                    <div class="info-row flex w-full justify-between" >
+                      <div class="d-flex align-center ">
+        
                         <span class="label">Duration</span>
                       </div>
                       <span class="value font-weight-bold">{{ duration }}</span>
@@ -103,7 +101,7 @@
 
                 <v-card class="payment-card elevation-0" color="grey-lighten-5" rounded="lg">
                   <div class="pa-4">
-                    <div class="info-row mb-3">
+                    <div class="info-row mb-3 flex w-full justify-between">
                       <span class="label">Parking Fee</span>
                       <span class="value">{{ formatCurrency(props.ticket.park_fee) }}</span>
                     </div>
@@ -121,7 +119,6 @@
                         <div class="pa-3">
                           <div class="d-flex align-center justify-space-between mb-2">
                             <div class="d-flex align-center">
-                              <v-icon size="20" color="indigo-darken-4" class="mr-2">mdi-credit-card</v-icon>
                               <span class="text-body-2 font-weight-medium">{{ card.card_number }}</span>
                             </div>
                             <v-chip color="success" variant="flat" size="x-small">Used</v-chip>
@@ -139,7 +136,6 @@
                       <v-divider class="mb-3"></v-divider>
                       <div v-for="item in filteredCash" :key="item.id" class="info-row mb-2">
                         <div class="d-flex align-center">
-                          <v-icon size="18" color="success" class="mr-2">mdi-cash</v-icon>
                           <span class="label">Paid in Cash</span>
                         </div>
                         <span class="value">{{ formatCurrency(item.amount) }}</span>
@@ -149,13 +145,13 @@
                     <v-divider class="my-3"></v-divider>
 
                     <!-- Amount if applicable -->
-                    <div v-if="props.payment.amount !== 0" class="info-row mb-3">
+                    <div v-if="props.payment.amount !== 0" class="info-row mb-3 flex w-full justify-between">
                       <span class="label">Amount Received</span>
                       <span class="value">{{ formatCurrency(props.payment.amount) }}</span>
                     </div>
 
                     <!-- Total Amount -->
-                    <div class="info-row mb-3">
+                    <div class="info-row mb-3 flex w-full justify-between">
                       <span class="label font-weight-bold">Total Amount</span>
                       <span class="value font-weight-bold text-indigo-darken-4">
                         {{ formatCurrency(props.payment.total_amount) }}
@@ -169,7 +165,6 @@
                       <div class="pa-3">
                         <div class="d-flex align-center justify-space-between">
                           <div class="d-flex align-center">
-                            <v-icon color="success" class="mr-2">mdi-cash-refund</v-icon>
                             <span class="font-weight-bold text-success">Change</span>
                           </div>
                           <span class="text-h6 font-weight-bold text-success">
@@ -182,28 +177,8 @@
                 </v-card>
               </div>
 
-              <!-- Thank You Message -->
-              <v-card class="thank-you-card elevation-0" color="indigo-lighten-5" rounded="lg">
-                <div class="pa-4 text-center">
-                  <v-icon size="32" color="indigo-darken-4" class="mb-2">mdi-heart</v-icon>
-                  <p class="text-body-1 font-weight-medium text-indigo-darken-4 mb-1">
-                    Thank you for choosing us!
-                  </p>
-                  <p class="text-caption text-medium-emphasis mb-0">
-                    Drive safely and have a great day
-                  </p>
-                </div>
-              </v-card>
             </div>
 
-            <v-divider></v-divider>
-
-            <!-- Footer -->
-            <div class="receipt-footer pa-4 text-center">
-              <p class="text-caption text-medium-emphasis mb-0">
-                Receipt generated on {{ new Date().toLocaleString() }}
-              </p>
-            </div>
           </v-card>
 
           <!-- Action Buttons -->
@@ -282,7 +257,7 @@ const parkinDate = computed(() => {
 
 const parkinTime = computed(() => {
   return props.ticket?.park_datetime
-    ? dayjs(props.ticket.park_datetime).format("hh:mm A")
+    ? dayjs(props.ticket.park_datetime).format("hh:mm:s A")
     : null
 })
 
@@ -294,33 +269,40 @@ const parkoutDate = computed(() => {
 
 const parkoutTime = computed(() => {
   return props.ticket?.park_out_datetime
-    ? dayjs(props.ticket.park_out_datetime).format("hh:mm A")
+    ? dayjs(props.ticket.park_out_datetime).format("hh:mm:s A")
     : null
 })
 
 const duration = computed(() => {
   if (!props.ticket?.park_datetime || !props.ticket?.park_out_datetime) return null
 
-  const start = dayjs(props.ticket.park_datetime).startOf('minute')
-  const end = dayjs(props.ticket.park_out_datetime).startOf('minute')
+  const start = dayjs(props.ticket.park_datetime)
+  const end = dayjs(props.ticket.park_out_datetime)
 
-  const diffMinutes = end.diff(start, 'minute')
-  const days = Math.floor(diffMinutes / (60 * 24))
-  const hours = Math.floor((diffMinutes % (60 * 24)) / 60)
-  const minutes = diffMinutes % 60
+  // Use seconds for full accuracy
+  const diffSeconds = end.diff(start, 'second')
 
+  const days = Math.floor(diffSeconds / (60 * 60 * 24))
+  const hours = Math.floor((diffSeconds % (60 * 60 * 24)) / 3600)
+  const minutes = Math.ceil((diffSeconds % 3600) / 60)
+  const seconds = diffSeconds % 60
+
+  // Format cleanly
   if (days > 0) {
-    return `${days}d ${hours}h ${minutes}m`
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`
   } else if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  } else {
+    return `${hours}h ${minutes}m ${seconds}s`
+  } else if (minutes > 0) {
     return `${minutes}m`
-  }
+  } 
 })
 
+
 const printReceipt = () => {
-  window.print()
+//   window.print()
+   window.open(route('receipt.print', { uuid: props.ticket.uuid }), '_blank')
 }
+
 
 const goToDashboard = () => {
   router.visit(route('dashboard'))
@@ -328,25 +310,7 @@ const goToDashboard = () => {
 </script>
 
 <style scoped>
-.receipt-wrapper {
 
-  min-height: 100vh;
-  padding: 2rem 0;
-}
-
-.text-white-70 {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* Success Header */
-.success-header {
-  animation: fadeInDown 0.6s ease-out;
-}
-
-.success-avatar {
-  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
-  animation: successPulse 2s ease-in-out infinite;
-}
 
 @keyframes successPulse {
   0%, 100% {
@@ -374,7 +338,7 @@ const goToDashboard = () => {
 .receipt-card {
   background: white;
   animation: fadeInUp 0.8s ease-out;
-  max-width: 600px;
+  max-width: 400px;
   margin: 0 auto;
 }
 
@@ -389,81 +353,6 @@ const goToDashboard = () => {
   }
 }
 
-.company-header {
-  background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
-}
-
-/* Receipt Body */
-.section-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1a237e;
-  display: flex;
-  align-items: center;
-}
-
-.info-card,
-.payment-card {
-  border: 1px solid #e0e0e0;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.label {
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.value {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.time-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.time-badge.success {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-.time-badge.error {
-  background: #ffebee;
-  color: #c62828;
-}
-
-/* Cards Section */
-.card-item {
-  background: white;
-  border: 1px solid #e0e0e0;
-  transition: all 0.2s ease;
-}
-
-.card-item:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Change Card */
-.change-card {
-  border: 2px solid #81c784;
-}
-
-/* Thank You Card */
-.thank-you-card {
-  border: 2px solid #c5cae9;
-}
 
 /* Action Buttons */
 .action-buttons {
