@@ -10,7 +10,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PaymentDetail;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -105,6 +105,10 @@ public function index(Request $request)
                     'amount'       => $amount,
                     'balance'      => $data['price'],
                     'created_at'   => now(),
+                    'created_by'   => Auth::id(),
+                    'uuid'         => (string) Str::uuid()
+
+
                     // 'updated_at'   => now(),
                 ];
             }
@@ -117,7 +121,7 @@ public function index(Request $request)
              Cache::forget('dashboard.totalCards');
       
             return redirect()->route('card-inventory.index')->with([
-                'success' => 'Card Inventory with details created successfully!',
+                'success' => 'Cards  created successfully!',
             ]);
 
         } catch (\Throwable $e) {
@@ -160,26 +164,37 @@ public function scan_qr_cards(Request $request)
         $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)
             ->where('status', 'Available')
             ->first();
-    } else {
-        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->where('status', 'Confirmed')->first();
-
-            if (!$card) {
-        return redirect()->back()->with(
-            'error' , 'Card needs to be confirmed'
-        );
-    }
-
-
-
-    }
 
     // ❌ Invalid QR
-    if (!$card) {
-        return redirect()->back()->with(
-            'error' , 'Invalid QR Code'
-        );
+        if (!$card) {
+            return redirect()->back()->with(
+                'error' , 'Invalid QR Code'
+            );
+        }
+
+
+    } else {
+        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code);
+
+    // ❌ Invalid QR
+        if (!$card) {
+            return redirect()->back()->with(
+                'error' , 'Invalid QR Code'
+            );
+        }
+
+        if ($card->status !== 'Confirmed') {
+            
+            return redirect()->back()->with(
+                'error', 'This card is not yet confirmed. Please contact the administrator.',
+            );
+        }
+
+      
     }
 
+
+  
     // ❌ No balance
     if ($card->balance <= 0) {
         return redirect()->back()->with(
@@ -349,7 +364,10 @@ public function updateStatus(Request $request, $id)
         return back()->with('error', 'Card status must be sold before confirming.');
     }
 
-    $card->update(['status' => 'Confirmed']);
+    $card->update([
+        'status' => 'Confirmed',
+        'valid_until' => now()->addYear(),
+    ]);
 
     $cardDetail = CardInventoryDetail::latest()->paginate(10);
 
@@ -362,16 +380,18 @@ public function updateStatus(Request $request, $id)
 
 
 
-public function print_card($card_number)
+public function print_card($uuid)
 {
-    $card = CardInventoryDetail::where('card_number',$card_number)->firstOrFail();
+  
+    $card = CardInventoryDetail::where('uuid',$uuid)->firstOrFail();
     $company = Company::first();
+
 
     // Generate QR Code from card_number as SVG (no imagick needed)
     $qrCodeSvg = QrCode::format('svg')
         ->size(200)
         ->errorCorrection('H')
-        ->generate($card->card_number);
+        ->generate($card->uuid);
     
     // Convert SVG to base64
     $qrCode = base64_encode($qrCodeSvg);

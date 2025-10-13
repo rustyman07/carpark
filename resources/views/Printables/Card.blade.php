@@ -7,7 +7,7 @@
     <style>
         @page {
             margin: 0;
-            size: 80mm 100mm;
+            size: 80mm auto;
         }
 
         body {
@@ -144,6 +144,7 @@
     <div class="divider"></div>
 
     {{-- Validity --}}
+    @if($card->valid_until)
     <div class="validity">
         <div class="row">
             <span>Valid From:</span>
@@ -151,9 +152,10 @@
         </div>
         <div class="row">
             <span>Valid Until:</span>
-            <span class="bold">{{ \Carbon\Carbon::parse($card->valid_until)->format('M d, Y h:i A') }}</span>
+            <span class="bold">{{ \Carbon\Carbon::parse($card->valid_until)->format('M d, Y ') }}</span>
         </div>
     </div>
+     @endif
 
     <div class="divider"></div>
 

@@ -129,8 +129,8 @@ public function store(Request $request)
 
 
 
-        // return back()->with('success', 'Ticket created successfully!');
-        return redirect()->route('parkin.show',['uuid' => $uuid])->with('success', 'Ticket created successfully!');
+
+        return redirect()->route('parkin.show',['uuid' => $uuid]);
     }
 
 
@@ -627,12 +627,14 @@ if ($company->rate == 'perhour') {
         // Charge hourly
         $hoursParked = max(1, ceil($minutesDiff / 60));
         $rate = $hoursParked * $ratePerHour;
+   
 
     } elseif ($minutesDiff <= 1440) {
 
         $daysParked = 1;
         $hoursParked = 0;
         $rate = $ratePerDay;
+         
 
     } else {
         // More than 1 day
@@ -652,7 +654,6 @@ if ($company->rate == 'perhour') {
 }
 
 $ticket->park_fee = $rate;
-
 
 
     $ticket->fill([

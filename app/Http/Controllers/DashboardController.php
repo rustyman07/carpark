@@ -22,9 +22,15 @@ class DashboardController extends Controller
             });
 
             // 💳 Total cards — refresh every 10 min (changes rarely)
-            $totalCards = Cache::remember('dashboard.totalCards', now()->addMinutes(10), function () {
-                return CardInventoryDetail::count();
+            // $totalCards = Cache::remember('dashboard.totalCards', now()->addMinutes(10), function () {
+            //     return CardInventoryDetail::where('status','Confirmed')->count();
+            // });
+
+  $totalCards = Cache::remember('dashboard.totalCards', now()->addSeconds(5), function () {
+                return CardInventoryDetail::where('status','Confirmed')->count();
             });
+
+
 
             // 💰 Total revenue today — refresh every 2 min
             $totalRevenue = Cache::remember('dashboard.totalRevenue', now()->addMinutes(2), function () {
@@ -47,7 +53,7 @@ class DashboardController extends Controller
                     ->select('park_datetime', 'plate_no')
                     ->first();
             });
-            
+
 
 
 

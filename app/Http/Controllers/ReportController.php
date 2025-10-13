@@ -72,7 +72,7 @@ class ReportController extends Controller
         ];
 
         // Generate and stream PDF using Blade view
-        return Pdf::loadView('Printables.Revenue', $data)
+        return Pdf::loadView('Printables.ParkingReport', $data)
             ->setPaper('a4', 'portrait')
             ->setOption('margin-top', 10)
             ->setOption('margin-right', 10)

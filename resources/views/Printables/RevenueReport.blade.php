@@ -80,7 +80,7 @@
         .signature-line { 
             border-top: 2px solid #1f2937; 
             padding-top: 8px; 
-            margin-top: 48px; 
+      ; 
             width: 250px; 
         }
         .signature-label { font-size: 14px; font-weight: 600; }
@@ -112,8 +112,8 @@
                 </td>
                 <td width='33.33%'>
                     <div class='summary-item'>
-                        <p class='summary-label'>Total Collection</p>
-                        <p class='summary-value'>{{ number_format($totalCollected, 2) }}</p>
+                        <p class='summary-label'>GCash Total</p>
+                        <p class='summary-value'>{{ number_format($gcashTotal, 2) }}</p>
                     </div>
                 </td>
                 <td width='33.33%'>
@@ -126,8 +126,10 @@
             <tr>
                 <td width='33.33%'>
                     <div class='summary-item'>
-                        <p class='summary-label'>GCash Total</p>
-                        <p class='summary-value'>{{ number_format($gcashTotal, 2) }}</p>
+  
+                        <p class='summary-label'>Total Collection</p>
+                        <p class='summary-value'>{{ number_format($totalCollected, 2) }}</p>
+
                     </div>
                 </td>
                 <td width='33.33%'>
@@ -150,14 +152,14 @@
         <table>
             <thead>
                 <tr>
+                    <th width='18%'>Payment Date</th>
                     <th width='8%'>Payment ID</th>
                     <th width='12%'>Ticket No.</th>
-                    <th width='18%'>Payment Date</th>
-                    <th width='12%'>Type</th>
+                    <th width='12%'>Source</th>
                     <th width='10%'>Method</th>
-                    <th width='13%' class='text-right'>Amount Due</th>
-                    <th width='13%' class='text-right'>Paid</th>
+                    <th width='13%' class='text-right'>Amount Received</th>
                     <th width='14%' class='text-right'>Change</th>
+                     <th width='13%' class='text-right'>Paid</th>
                 </tr>
             </thead>
             <tbody>
@@ -168,17 +170,17 @@
                             : 'N/A';
                     @endphp
                     <tr>
+                         <td>{{ $paidAt }}</td>
                         <td class='font-weight-500'>#{{ $payment->id }}</td>
                         <td>{{ $payment->ticket->ticket_no ?? 'N/A' }}</td>
-                        <td>{{ $paidAt }}</td>
                         <td>{{ ucfirst($payment->payment_type ?? 'Regular') }}</td>
                         <td>{{ $payment->payment_method ?? 'Cash' }}</td>
-                        <td class='text-right'>{{ number_format($payment->total_amount, 2) }}</td>
-                        <td class='text-right font-weight-500'>{{ number_format($payment->amount, 2) }}</td>
+                        <td class='text-right '>{{ number_format($payment->amount, 2) }}</td>
                         <td class='text-right'>{{ number_format($payment->change, 2) }}</td>
+                        <td class='text-right font-weight-500'>{{ number_format($payment->total_amount, 2) }}</td>
                     </tr>
                     
-                    @if($payment->details->count() > 0)
+                    <!-- @if($payment->details->count() > 0)
                         @foreach($payment->details as $detail)
                         <tr class='detail-row'>
                             <td colspan='3' style='padding-left: 40px;'>
@@ -192,14 +194,14 @@
                             <td></td>
                         </tr>
                         @endforeach
-                    @endif
+                    @endif -->
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan='6' class='text-right'>TOTAL COLLECTED:</td>
+                    <td colspan='7' class='text-right'>TOTAL COLLECTED:</td>
                     <td class='text-right'>{{ number_format($totalCollected, 2) }}</td>
-                    <td class='text-right'>{{ number_format($totalChange, 2) }}</td>
+                    <!-- <td class='text-right'>{{ number_format($totalChange, 2) }}</td> -->
                 </tr>
             </tfoot>
         </table>

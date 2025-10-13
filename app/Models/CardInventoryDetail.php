@@ -13,6 +13,7 @@ class CardInventoryDetail extends Model
 
        protected $fillable = [
     'card_inventory_id',
+    'uuid',
     'card_template_id',
     'card_name',
     'card_number',
@@ -26,6 +27,7 @@ class CardInventoryDetail extends Model
     'cancelled',
     'cancelled_by',
     'cancelled_datetime',
+    'valid_until',
     'created_by',
 ];
 

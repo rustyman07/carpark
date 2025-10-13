@@ -66,17 +66,15 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('card-inventory', [CardInventoryController::class, 'index'])->name('card-inventory.index');
     Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');
     Route::post('scan-qr-cards', [CardInventoryController::class, 'scan_qr_cards'])->name('scan.qr.cards');
-    Route::get('/card/print/{card_number}', [CardInventoryController::class, 'print_card'])->name('print.card');
+    Route::get('/card/print/{uuid}', [CardInventoryController::class, 'print_card'])->name('print.card');
     Route::get('sell-card', [CardInventoryController::class, 'sell_card'])->name('sell-card.create');
     Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment');
     Route::put('/card-inventory/{id}/status', [CardInventoryController::class, 'updateStatus'])->name('card-inventory.update-status');
-
 
     Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
     Route::post('/shifts', [ShiftController::class, 'store'])->name('shifts.store');
     Route::put('/shifts/{shift}', [ShiftController::class, 'update'])->name('shifts.update');
     Route::delete('/shifts/{shift}', [ShiftController::class, 'destroy'])->name('shifts.destroy');
-
 
     Route::post('/shiftlogs/start', [ShiftLogController::class, 'startShift'])->name('shiftlogs.start');
     Route::post('/shiftlogs/end', [ShiftLogController::class, 'endShift'])->name('shiftlogs.end');
@@ -86,8 +84,8 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('transaction/ticket-payments', [PaymentController::class, 'index'])->name('ticket.payments');
 
 
-    Route::get('/reports/parkout', [ReportController::class, 'todayParkout'])
-    ->name('reports.parkout');
+    // Route::get('/reports/parkout', [ReportController::class, 'todayParkout'])
+    // ->name('reports.parkout');
     
 // Route::get('/reports/parkout/pdf', [ReportController::class, 'generatePDF'])
 //     ->name('reports.parkout.pdf');

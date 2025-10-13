@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('card_inventory_id');
             $table->unsignedBigInteger('card_template_id');
+             $table->uuid('uuid')->nullable()->unique();
             $table->string('card_number')->unique();
             $table->string('qr_code_hash');
             $table->string('status');
@@ -27,6 +28,7 @@ return new class extends Migration
             $table->boolean('cancelled')->default(0);     
             $table->integer('cancelled_by')->nullable();
             $table->dateTime('cancelled_datetime')->nullable();
+            $table->dateTime('valid_until')->nullable();
             $table->integer('created_by')->nullable();
              $table->softDeletes();
             $table->timestamps();

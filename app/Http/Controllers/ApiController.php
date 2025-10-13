@@ -16,6 +16,7 @@ class ApiController extends Controller
 
         $cards = CardInventoryDetail::where('card_number', 'like', "%{$query}%")
                     ->where('status','AVAILABLE')
+                    ->orderBy('card_number', 'desc')
                     ->limit(50)
                     ->get(['id', 'card_number','card_name','price']); // return only what you need
 

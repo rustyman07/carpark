@@ -39,12 +39,12 @@ return Inertia('Payments/Index', [
     $totalPayments = $payments->count();
     $totalAmount = $payments->sum('total_amount');
     $totalChange = $payments->sum('change');
-    $totalCollected = $payments->sum('amount');
+    $totalCollected = $payments->sum('total_amount');
     
     // Group by payment method
     $cashTotal = $payments->where('payment_method', 'Cash')->sum('amount');
-    $gcashTotal = $payments->where('payment_method', 'Gcash')->sum('amount');
-    $cardTotal = $payments->where('payment_method', 'Card')->sum('amount');
+    $gcashTotal = $payments->where('payment_method', 'Gcash')->sum('total_amount');
+    $cardTotal = $payments->where('payment_method', 'Card')->sum('total_amount');
     
     // Group by payment type
     $regularPayments = $payments->where('payment_type', 'regular')->sum('amount');

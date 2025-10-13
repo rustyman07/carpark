@@ -682,7 +682,8 @@ const confirmStatusChange = () => {
 
 const downloadQRCode = async (item) => {
 
-   window.open(route('print.card', { card_number: item.card_number }), '_blank')
+   window.open(route('print.card', { uuid: item.uuid }), '_blank')
+
 
 //   cardToDownload.value = item;
 //   await nextTick();
