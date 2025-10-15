@@ -11,10 +11,11 @@
 
         body {
             font-family: 'Courier New', monospace;
-            font-size: 10pt;
+            font-size: 16pt;
             margin: 0;
             padding: 5mm;
             width: 70mm;
+            line-height: 1.5;
         }
 
         .peso {
@@ -23,12 +24,17 @@
 
         .center { text-align: center; }
         .bold { font-weight: bold; }
-        .company-name { font-size: 14pt; font-weight: bold; }
-        .divider { border-top: 1px dashed #000; margin: 5px 0; }
-        .row { display: flex; justify-content: space-between; margin: 3px 0; }
-        .barcode { text-align: center; margin: 10px 0; }
+        .company-name { font-size: 16pt; font-weight: bold; }
+        .divider { border-top: 1px dashed #000; margin: 8px 0; }
+        .row { 
+            display: flex; 
+            justify-content: space-between; 
+            margin: 5px 0;
+            font-size: 13pt;
+        }
+        .barcode { text-align: center; margin: 12px 0; }
         .barcode img { max-width: 100%; }
-        .terms { font-size: 8pt; margin-top: 10px; }
+        .terms { font-size: 11pt; margin-top: 12px; line-height: 1.5; }
 
         /* Logo styling */
         .header {
@@ -41,8 +47,31 @@
         .logo {
             margin-top: -20px;
             margin-left: 70px;
-            width: 30mm;
+            width: 35mm;
             height: auto;
+        }
+
+        .section-label {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .section-value {
+            font-size: 13pt;
+            margin-top: 2px;
+        }
+
+        .receipt-header {
+            font-size: 16pt;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .total-row {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 6px 0;
         }
     </style>
 </head>
@@ -52,15 +81,9 @@
         <img src="data:image/png;base64,{{ base64_encode(file_get_contents($logoPath)) }}" class="logo" alt="Logo">
     @endif
 
-    <!-- <div class="header">
-        <div class="company-name">{{ $company->name }}</div>
-        <div>{{ $company->address }}</div>
-        <div>{{ $company->contact }}</div>
-    </div> -->
-
     <div class="divider"></div>
 
-    <div class="center bold">PARKING RECEIPT</div>
+    <div class="center receipt-header">PARKING RECEIPT</div>
 
     <div class="divider"></div>
 
@@ -76,16 +99,16 @@
     <div class="divider"></div>
 
     <div>
-        <div class="bold">ENTRY:</div>
-        <div>{{ \Carbon\Carbon::parse($ticket->park_datetime)->format('m/d/Y h:i:s A') }}</div>
+        <div class="section-label">ENTRY:</div>
+        <div class="section-value">{{ \Carbon\Carbon::parse($ticket->park_datetime)->format('m/d/Y h:i:s A') }}</div>
     </div>
 
-    <div style="margin-top: 5px;">
-        <div class="bold">EXIT:</div>
-        <div>{{ \Carbon\Carbon::parse($ticket->park_out_datetime)->format('m/d/Y h:i:s A') }}</div>
+    <div style="margin-top: 8px;">
+        <div class="section-label">EXIT:</div>
+        <div class="section-value">{{ \Carbon\Carbon::parse($ticket->park_out_datetime)->format('m/d/Y h:i:s A') }}</div>
     </div>
 
-    {{-- ✅ DURATION SECTION ADDED HERE --}}
+    {{-- DURATION SECTION --}}
     @php
         $totalMinutes = $ticket->total_minutes ?? 0;
         $days = intdiv($totalMinutes, 1440);
@@ -99,15 +122,14 @@
         $duration = implode(' ', $durationParts);
     @endphp
 
-    <div style="margin-top: 5px;">
-        <div class="bold">DURATION:</div>
-        <div>{{ $duration }}</div>
+    <div style="margin-top: 8px;">
+        <div class="section-label">DURATION:</div>
+        <div class="section-value">{{ $duration }}</div>
     </div>
-    {{-- ✅ END OF DURATION SECTION --}}
 
     <div class="divider"></div>
 
-    <div class="center bold">PAYMENT DETAILS</div>
+    <div class="center section-label" style="font-size: 15pt;">PAYMENT DETAILS</div>
 
     <div class="row">
         <span>Parking Fee:</span>
@@ -121,12 +143,12 @@
     </div>
     @endif
 
-    <div class="row bold">
+    <div class="row total-row">
         <span>TOTAL:</span>
         <span><span class="peso">&#8369;</span>{{ number_format($payment->total_amount, 2) }}</span>
     </div>
 
-    <div class="row bold">
+    <div class="row total-row">
         <span>CHANGE:</span>
         <span><span class="peso">&#8369;</span>{{ number_format($payment->change, 2) }}</span>
     </div>
@@ -135,21 +157,14 @@
 
     <div class="barcode">
         <img src="data:image/png;base64,{{ $barcode }}" alt="barcode">
-        <div>{{ $ticket->ticket_no }}</div>
+        <div style="font-size: 12pt; margin-top: 5px;">{{ $ticket->ticket_no }}</div>
     </div>
 
     <div class="divider"></div>
 
     <div class="center">
-        <div class="bold">THANK YOU!</div>
-        <div>Drive Safely</div>
+        <div class="bold" style="font-size: 15pt;">THANK YOU!</div>
+        <div style="font-size: 13pt; margin-top: 3px;">Drive Safely</div>
     </div>
-
-    <!-- <div class="terms">
-        <div class="center bold">TERMS & CONDITIONS</div>
-        <div>• Ticket must be presented upon exit</div>
-        <div>• Lost ticket subject to maximum fee</div>
-        <div>• Management not liable for damage</div>
-    </div> -->
 </body>
 </html>
