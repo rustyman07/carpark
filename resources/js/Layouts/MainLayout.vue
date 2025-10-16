@@ -285,16 +285,28 @@ const props = defineProps({ auth: Object });
 
 const allItems = [
   { title: 'Dashboard', value: 'dashboard', route: 'dashboard', icon: 'mdi-view-dashboard' },
-  { title: 'Park In', value: 'park_in', route: 'parkin.index', icon: 'mdi-car-arrow-right' },
-  { title: 'Park Out', value: 'park_out', route: 'parkout', icon: 'mdi-car-arrow-left' },
-  { title: 'Card Template', route: 'card-template.index', value: 'card_template', icon: 'mdi-card-text-outline' },
+  ...(page.props.auth.user.role === 1
+    ? [
+        { title: 'Park In', value: 'park_in', route: 'parkin.index', icon: 'mdi-car-arrow-right' },
+        { title: 'Park Out', value: 'park_out', route: 'parkout', icon: 'mdi-car-arrow-left' },
+        { title: 'Card Template', route: 'card-template.index', value: 'card_template', icon: 'mdi-card-text-outline' },
+      ]
+    : []),
+
   { title: 'Card Inventory', route: 'card-inventory.index', value: 'card_inventory', icon: 'mdi-card-account-details' },
-  { title: 'Sell Card', route: 'sell-card.create', value: 'sell_card', icon: 'mdi-cash-register' },
-  { title: 'Logs', value: 'logs', route: 'logs', icon: 'mdi-history' },
+{ title: 'Logs', value: 'logs', route: 'logs', icon: 'mdi-history' },
   { title: 'Transactions', value: 'transactions', route: 'ticket.payments', icon: 'mdi-receipt-text' },
-  { title: 'Users', value: 'users', route: 'users.index', icon: 'mdi-account-group' },
-  { title: 'Settings', value: 'settings', route: 'company.index', icon: 'mdi-cog' },
-  { title: 'Shift', value: 'shift', route: 'shifts.index', icon: 'mdi-cog' },
+
+  ...(page.props.auth.user.role === 1
+    ? [
+        { title: 'Sell Card', route: 'sell-card.create', value: 'sell_card', icon: 'mdi-cash-register' },        
+        { title: 'Users', value: 'users', route: 'users.index', icon: 'mdi-account-group' },
+        { title: 'Settings', value: 'settings', route: 'company.index', icon: 'mdi-cog' },
+      ]
+    : []),
+
+
+//   { title: 'Shift', value: 'shift', route: 'shifts.index', icon: 'mdi-cog' },
   { title: 'Log out', value: 'log_out', route: 'logout', icon: 'mdi-logout' },
 ];
 
@@ -309,8 +321,8 @@ const limitedItems = [
 ];
 
 const items = computed(() => {
-  const role = props?.auth?.user?.role ?? 2;
-  return role === 1 ? allItems : limitedItems;
+  const role = props?.auth?.user?.role ;
+  return role === 1 || role === 3 ? allItems : limitedItems;
 });
 
 const activeItem = computed(() => {

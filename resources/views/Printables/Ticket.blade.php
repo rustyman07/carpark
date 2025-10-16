@@ -10,7 +10,7 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
+                font-family: 'Roboto', sans-serif;
             font-size: 13pt;
             margin: 0;
             padding: 5mm;
@@ -37,7 +37,7 @@
             margin-bottom: 8px;
         }
         .logo {
-            width: 40mm;
+            width: 50mm;
             height: auto;
             margin: 0 auto;
         }

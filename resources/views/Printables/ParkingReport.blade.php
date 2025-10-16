@@ -38,9 +38,19 @@
         .summary-value { font-size: 20px; font-weight: bold; margin-top: 4px; }
 
         .content { padding: 24px 48px; }
+        .staff-section { margin-bottom: 16px; page-break-inside: avoid; }
+        .staff-header { 
+    
+            padding: 12px 16px; 
+            border-radius: 4px 4px 0 0;
+            margin-bottom: 0;
+        }
+        .staff-header h4 { font-size: 14px; font-weight: bold; margin: 0; }
+        .staff-header p { font-size: 12px; margin: 4px 0 0 0; opacity: 0.9; }
+        
         table { width: 100%; border-collapse: collapse; }
-        th { background-color: #f9fafb; padding: 12px 16px; text-align: left; font-size: 11px; font-weight: bold; text-transform: uppercase; border-bottom: 2px solid #d1d5db; }
-        td { padding: 12px 16px; font-size: 14px; }
+        th { background-color: #f9fafb; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: bold; text-transform: uppercase; border-bottom: 2px solid #d1d5db; }
+        td { padding: 8px 10px; font-size: 12px; }
         tbody tr { border-bottom: 1px solid #e5e7eb; }
         tbody tr:nth-child(odd) { background-color: #f9fafb; }
         tfoot tr { background-color: #f3f4f6; border-top: 2px solid #1f2937; }
@@ -108,62 +118,70 @@
     </div>
 
     <div class='content'>
-        <table>
-            <thead>
-                <tr>
-                    <th>Ticket No.</th>
-                    <th>Plate No.</th>
-                    <th>Park In</th>
-                    <th>Park Out</th>
-                    <th>Duration</th>
-                    <th>Payment</th>
-                    <th class='text-right'>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($tickets as $ticket)
-                    @php
-                        $parkIn = $ticket->park_datetime 
-                            ? \Carbon\Carbon::parse($ticket->park_datetime)->format('M d, Y h:i:s A') 
-                            : 'N/A';
-                        
-                        $parkOut = $ticket->park_out_datetime 
-                            ? \Carbon\Carbon::parse($ticket->park_out_datetime)->format('M d, Y h:i:s A') 
-                            : 'N/A';
-                        
-                        $totalMinutes = $ticket->total_minutes ?? 0;
-                        $days = intdiv($totalMinutes, 1440);
-                        $hours = intdiv($totalMinutes % 1440, 60);
-                        $minutes = $totalMinutes % 60;
-                        
-                        $durationParts = [];
-                        if ($days > 0) $durationParts[] = "{$days}d";
-                        if ($hours > 0) $durationParts[] = "{$hours}h";
-                        if ($minutes > 0 || empty($durationParts)) $durationParts[] = "{$minutes}m";
-                        $duration = implode(' ', $durationParts);
-                    @endphp
-                    <tr>
-                        <td class='font-weight-500'>{{ $ticket->ticket_no }}</td>
-                        <td>{{ $ticket->plate_no ?? 'N/A' }}</td>
-                        <td>{{ $parkIn }}</td>
-                        <td>{{ $parkOut }}</td>
-                        <td>{{ $duration }}</td>
-                        <td>{{ $ticket->mode_of_payment ?? 'Cash' }}</td>
-                        <td class='text-right font-weight-500'>{{ number_format($ticket->park_fee, 2) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan='6' class='text-right'>TOTAL AMOUNT:</td>
-                    <td class='text-right'>{{ number_format($totalParkFee, 2) }}</td>
-                </tr>
-            </tfoot>
-        </table>
+        @foreach($groupedTickets as $group)
+            <div class='staff-section'>
+                <div class='staff-header'>
+                    <h4>Park out by: {{ $group['staff_name'] }}</h4>
+                    <p>Tickets: {{ $group['count'] }} | Total: {{ number_format($group['total'], 2) }}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticket No.</th>
+                            <th>Plate No.</th>
+                            <th>Park In</th>
+                            <th>Park Out</th>
+                            <th>Duration</th>
+                            <th>Payment</th>
+                            <th class='text-right'>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($group['tickets'] as $ticket)
+                            @php
+                                $parkIn = $ticket->park_datetime 
+                                    ? \Carbon\Carbon::parse($ticket->park_datetime)->format('M d, Y h:i:s A') 
+                                    : 'N/A';
+                                
+                                $parkOut = $ticket->park_out_datetime 
+                                    ? \Carbon\Carbon::parse($ticket->park_out_datetime)->format('M d, Y h:i:s A') 
+                                    : 'N/A';
+                                
+                                $totalMinutes = $ticket->total_minutes ?? 0;
+                                $days = intdiv($totalMinutes, 1440);
+                                $hours = intdiv($totalMinutes % 1440, 60);
+                                $minutes = $totalMinutes % 60;
+                                
+                                $durationParts = [];
+                                if ($days > 0) $durationParts[] = "{$days}d";
+                                if ($hours > 0) $durationParts[] = "{$hours}h";
+                                if ($minutes > 0 || empty($durationParts)) $durationParts[] = "{$minutes}m";
+                                $duration = implode(' ', $durationParts);
+                            @endphp
+                            <tr>
+                                <td class='font-weight-500'>{{ $ticket->ticket_no }}</td>
+                                <td>{{ $ticket->plate_no ?? 'N/A' }}</td>
+                                <td>{{ $parkIn }}</td>
+                                <td>{{ $parkOut }}</td>
+                                <td>{{ $duration }}</td>
+                                <td>{{ $ticket->mode_of_payment ?? 'Cash' }}</td>
+                                <td class='text-right font-weight-500'>{{ number_format($ticket->park_fee, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan='6' class='text-right'>SUBTOTAL:</td>
+                            <td class='text-right'>{{ number_format($group['total'], 2) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        @endforeach
     </div>
-   
+
     <div class='footer'>
-                <div> <p class=''>{{ $preparedBy }}</p></div>
+        <div><p class=''>{{ $preparedBy }}</p></div>
         <div class='signature-grid'>
             <div class='signature-item'>
                 <div class='signature-line'>

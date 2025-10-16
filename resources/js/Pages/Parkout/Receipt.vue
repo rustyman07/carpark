@@ -8,7 +8,7 @@
             <v-avatar color="success" size="80" class="mb-4 success-avatar">
               <v-icon size="50" color="white">mdi-check-circle</v-icon>
             </v-avatar>
-            <h1  color="success" class="text-h4 font-weight-bold text-white mb-2">
+            <h1  color="success" class="text-h4 font-weight-bold text-white mb-2 text-success">
               Payment Successful!
             </h1>
             <!-- <p class="text-white-70 text-h6">
@@ -31,10 +31,10 @@
             <v-divider></v-divider>
 
             <!-- Receipt Body -->
-            <div class="receipt-body pa-6 text-sm">
+            <div class="receipt-body pa-6 text-sm text-indigo-darken-4">
               <!-- Ticket Information Section -->
-              <div class="section  text-indigo-900 mb-6">
-                <h3 class="section-title mb-4">
+              <div class="section  mb-6">
+                <h3 class="section-title mb-4 ">
                   <v-icon size="20" class="mr-2">mdi-information-outline</v-icon>
                   Parking Details
                 </h3>
@@ -94,7 +94,7 @@
 
               <!-- Payment Breakdown Section -->
               <div class="section mb-6">
-                <h3 class="section-title mb-4">
+                <h3 class="section-title mb-4 text-indigo-darken-4">
                   <v-icon size="20" class="mr-2">mdi-receipt-text</v-icon>
                   Payment Breakdown
                 </h3>
@@ -153,7 +153,7 @@
                     <!-- Total Amount -->
                     <div class="info-row mb-3 flex w-full justify-between">
                       <span class="label font-weight-bold">Total Amount</span>
-                      <span class="value font-weight-bold text-indigo-darken-4">
+                      <span class="value font-weight-bold ">
                         {{ formatCurrency(props.payment.total_amount) }}
                       </span>
                     </div>
@@ -279,22 +279,21 @@ const duration = computed(() => {
   const start = dayjs(props.ticket.park_datetime)
   const end = dayjs(props.ticket.park_out_datetime)
 
-  // Use seconds for full accuracy
-  const diffSeconds = end.diff(start, 'second')
 
-  const days = Math.floor(diffSeconds / (60 * 60 * 24))
-  const hours = Math.floor((diffSeconds % (60 * 60 * 24)) / 3600)
-  const minutes = Math.ceil((diffSeconds % 3600) / 60)
-  const seconds = diffSeconds % 60
+const diffSeconds = end.diff(start, 'second');
 
-  // Format cleanly
-  if (days > 0) {
-    return `${days}d ${hours}h ${minutes}m ${seconds}s`
-  } else if (hours > 0) {
-    return `${hours}h ${minutes}m ${seconds}s`
-  } else if (minutes > 0) {
-    return `${minutes}m`
-  } 
+const days = Math.floor(diffSeconds / (60 * 60 * 24));
+const hours = Math.floor((diffSeconds % (60 * 60 * 24)) / 3600);
+const minutes = Math.ceil((diffSeconds % 3600) / 60);
+
+    if (days > 0) {
+    return `${days} ${days === 1 ? 'day' : 'days'}${hours > 0 ? ` ${hours} ${hours === 1 ? 'hour' : 'hours'}` : ''}${minutes > 0 ? ` ${minutes} ${minutes === 1 ? 'min' : 'mins'}` : ''}`;
+    } else if (hours > 0) {
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'}${minutes > 0 ? ` ${minutes} ${minutes === 1 ? 'min' : 'mins'}` : ''}`;
+    } else {
+    return `${minutes} ${minutes === 1 ? 'min' : 'mins'}`;
+    }
+
 })
 
 

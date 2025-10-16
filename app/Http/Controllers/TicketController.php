@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\TicketResource;
 use App\Models\Ticket;
 use App\Models\Company;
+use App\Models\User;
 use App\Models\CardInventoryDetail;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Auth;
@@ -221,12 +222,19 @@ public function store(Request $request)
 {
     $user = Auth::user();
 
+
+    $staff = User::where('deleted_at', null)
+        ->where('role', 2)
+        ->get();
+
     $type     = $request->input('type', 'PARK-IN');
     $dateFrom = $request->input('dateFrom', now()->toDateString());
     $dateTo   = $request->input('dateTo', now()->toDateString());
+    $request->input('staff', 'All');
 
     $tickets = Ticket::whereNull('deleted_at')
         ->where('is_park_out', $type === 'PARK-IN' ? 0 : 1)
+        ->with('parkOutUser:id,name') // 👈 eager load only needed fields
         ->select(
             'id',
             'ticket_no',
@@ -237,7 +245,6 @@ public function store(Request $request)
             'park_fee',
             'park_out_by'
         );
-
     $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
 
     if ($dateFrom && $dateTo) {
@@ -245,10 +252,15 @@ public function store(Request $request)
                 ->whereDate($dateColumn, '<=', $dateTo);
     }
 
-    // ✅ Only apply user restriction for PARK-OUT logs
-    if ($type === 'PARK-OUT' && $user->role != 1) {
+
+    if ($type === 'PARK-OUT' && $user->role == 2) {
         $tickets->where('park_out_by', $user->id);
     }
+    
+    if ($type === 'PARK-OUT' && $user->role != 2 && $request->filled('staff') && $request->input('staff') != 'All') {
+        $tickets->where('park_out_by',(int) $request->input('staff'));
+    }
+    
 
     return inertia('Logs/Index', [
         'Tickets' => $tickets->orderByDesc('created_at')->get(),
@@ -256,6 +268,7 @@ public function store(Request $request)
             'type' => $type,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
+            'staff' => $staff
         ]
     ]);
 }

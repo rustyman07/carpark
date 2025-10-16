@@ -51,4 +51,9 @@ class Ticket extends Model
         'park_out_by',
         'created_by',
     ];
+    
+public function parkOutUser()
+    {
+        return $this->belongsTo(User::class, 'park_out_by');
+    }
 }

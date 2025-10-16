@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\Company;
+use App\Models\User;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -18,7 +19,6 @@ class ReportController extends Controller
 
         $company = Company::first();
 
-        // Convert to Carbon dates
         $from = Carbon::parse($dateFrom)->startOfDay();
         $to = Carbon::parse($dateTo)->endOfDay();
 
@@ -27,21 +27,34 @@ class ReportController extends Controller
             ->where('remarks', 'Paid')
             ->whereNull('deleted_at');
 
-        // Filter if cashier
         if ($user = Auth::user()) {
             if ($user->role === 2) {
                 $query->where('park_out_by', $user->id);
+            } elseif ($user->role != 2 && $request->filled('staff') && $request->input('staff') != 'All') {
+                $query->where('park_out_by', (int) $request->input('staff'));
             }
         }
 
         $tickets = $query->orderBy('park_out_datetime', 'desc')->get();
 
+        // Group tickets by park_out_by (staff member)
+        $groupedTickets = $tickets->groupBy('park_out_by')->map(function ($group) {
+            $staffId = $group->first()->park_out_by;
+            $staff = User::find($staffId);
+            
+            return [
+                'staff_id' => $staffId,
+                'staff_name' => $staff ? $staff->name : 'Unknown',
+                'tickets' => $group,
+                'total' => $group->sum('park_fee'),
+                'count' => $group->count(),
+            ];
+        });
 
         $reportDate = $from->isSameDay($to)
             ? $from->format('F d, Y')
             : $from->format('F d, Y') . ' - ' . $to->format('F d, Y');
 
-      
         $cashTotal = 0;
         $gcashTotal = 0;
         $cardTotal = 0;
@@ -55,11 +68,11 @@ class ReportController extends Controller
             elseif ($mode === 'card') $cardTotal += $fee;
         }
 
-        // Get logo as base64
         $logoBase64 = base64_encode(file_get_contents(public_path('images/comlogo.png')));
 
         $data = [
             'tickets' => $tickets,
+            'groupedTickets' => $groupedTickets,
             'totalParkFee' => $tickets->sum('park_fee'),
             'totalTickets' => $tickets->count(),
             'reportDate' => $reportDate,
@@ -71,7 +84,6 @@ class ReportController extends Controller
             'preparedBy' => $user ? $user->name : 'N/A',
         ];
 
-        // Generate and stream PDF using Blade view
         return Pdf::loadView('Printables.ParkingReport', $data)
             ->setPaper('a4', 'portrait')
             ->setOption('margin-top', 10)

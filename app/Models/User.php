@@ -39,7 +39,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Shift::class);
     }
+    
 
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'park_out_by');
+    }
     /**
      * ✅ Relationship: User has many shift logs
      */

@@ -88,7 +88,7 @@
       <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
         ₱ {{ totalParkFee.toLocaleString() }}
       </h3>
-      <p class="text-caption text-medium-emphasis">Total Park Fee (per shift)</p>
+      <p class="text-caption text-medium-emphasis">Total Park Fee (per staff)</p>
     </div>
     <div class="kpi-card-footer">
               <v-btn 
@@ -137,14 +137,22 @@
               />
             </v-col>
             <v-col cols="12" md="2">
+            
                 <v-select
-                label="Shift"
-                :items="['MORNING', 'AFTERNOON', 'NIGHT']"
-                v-model="selectedShift"
-                density="comfortable"
-                      hide-details="auto"
-                variant="outlined"
-                />
+  label="Staff"
+  :items="[
+    { label: 'All', value: 'All' },
+    ...props.filters.staff.map(s => ({ label: s.name, value: s.id }))
+  ]"
+  item-title="label"
+  item-value="value"
+  v-model="selectedStaff.value"
+  density="comfortable"
+  hide-details="auto"
+  variant="outlined"
+/>
+
+
             </v-col>
 
             <v-col cols="12" md="3">
@@ -314,7 +322,7 @@ const items = ref(formatTickets(props.Tickets))
 const nextPageUrl = ref(props.Tickets.next_page_url)
 const showVoidDialog = ref(false)
 const ticketToVoid = ref(null)
-const selectedShift = ref('')
+const selectedStaff = ref({ label: 'All', value: 'All' })
 
 const today = dayjs().format('YYYY-MM-DD')
 const dateFrom = ref(today)
@@ -328,6 +336,7 @@ const headers = [
   { key: 'park_out_datetime', title: 'Park Out', sortable: true },
     { key: 'park_fee', title: 'Park Fee', align: 'center' },
   { key: 'remarks', title: 'Remarks', align: 'center' },
+  {key: 'park_out_by', title: 'Parked Out By', align: 'center' },
   { key: 'action', title: 'Action', align: 'center', sortable: false }
 ]
 
@@ -349,7 +358,7 @@ const previeReport = () => {
   const params = new URLSearchParams({
     dateFrom: dayjs(dateFrom.value).format("YYYY-MM-DD"),
     dateTo: dayjs(dateTo.value).format("YYYY-MM-DD"),
-    shift: selectedShift.value || "",
+    staff: selectedStaff.value.value || "",
   }).toString();
 
   window.open(`${route("reports.parkout.preview")}?${params}`, "_blank");
@@ -362,7 +371,7 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
     dateFrom: dateFrom.value,
     dateTo: dateTo.value,
     type: selectedType.value,
-     shift: selectedShift.value,
+     staff: selectedStaff.value.value,
   }
 
   router.get(url, params, {

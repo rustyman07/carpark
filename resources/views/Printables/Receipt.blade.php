@@ -10,7 +10,7 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
+          font-family: 'Roboto', sans-serif;
             font-size: 16pt;
             margin: 0;
             padding: 5mm;
@@ -44,10 +44,13 @@
             flex-direction: column;
             text-align: center;
         }
+              .logo-container {
+            text-align: center;
+            margin-bottom: 8px;
+        }
         .logo {
-            margin-top: -20px;
-            margin-left: 70px;
-            width: 35mm;
+    
+            width: 50mm;
             height: auto;
         }
 
@@ -76,11 +79,12 @@
     </style>
 </head>
 <body>
-    {{-- Company Logo (upper-left corner) --}}
-    @if(file_exists($logoPath))
-        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($logoPath)) }}" class="logo" alt="Logo">
-    @endif
-
+    {{-- Company Logo --}}
+    <div class="logo-container">
+        @if(file_exists($logoPath))
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents($logoPath)) }}" class="logo" alt="Logo">
+        @endif
+    </div>
     <div class="divider"></div>
 
     <div class="center receipt-header">PARKING RECEIPT</div>
@@ -107,20 +111,28 @@
         <div class="section-label">EXIT:</div>
         <div class="section-value">{{ \Carbon\Carbon::parse($ticket->park_out_datetime)->format('m/d/Y h:i:s A') }}</div>
     </div>
+{{-- DURATION SECTION --}}
+@php
+    $totalMinutes = $ticket->total_minutes ?? 0;
+    $days = intdiv($totalMinutes, 1440);
+    $hours = intdiv($totalMinutes % 1440, 60);
+    $minutes = $totalMinutes % 60;
 
-    {{-- DURATION SECTION --}}
-    @php
-        $totalMinutes = $ticket->total_minutes ?? 0;
-        $days = intdiv($totalMinutes, 1440);
-        $hours = intdiv($totalMinutes % 1440, 60);
-        $minutes = $totalMinutes % 60;
+    $durationParts = [];
 
-        $durationParts = [];
-        if ($days > 0) $durationParts[] = "{$days}d";
-        if ($hours > 0) $durationParts[] = "{$hours}h";
-        if ($minutes > 0 || empty($durationParts)) $durationParts[] = "{$minutes}m";
-        $duration = implode(' ', $durationParts);
-    @endphp
+    if ($days > 0) {
+        $durationParts[] = "{$days} " . ($days === 1 ? 'day' : 'days');
+    }
+    if ($hours > 0) {
+        $durationParts[] = "{$hours} " . ($hours === 1 ? 'hour' : 'hours');
+    }
+    if ($minutes > 0 || empty($durationParts)) {
+        $durationParts[] = "{$minutes} " . ($minutes === 1 ? 'min' : 'mins');
+    }
+
+    $duration = implode(' ', $durationParts);
+@endphp
+
 
     <div style="margin-top: 8px;">
         <div class="section-label">DURATION:</div>
