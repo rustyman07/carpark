@@ -257,7 +257,7 @@ const parkinDate = computed(() => {
 
 const parkinTime = computed(() => {
   return props.ticket?.park_datetime
-    ? dayjs(props.ticket.park_datetime).format("hh:mm:s A")
+    ? dayjs(props.ticket.park_datetime).format("hh:mm:ss A")
     : null
 })
 
@@ -269,7 +269,7 @@ const parkoutDate = computed(() => {
 
 const parkoutTime = computed(() => {
   return props.ticket?.park_out_datetime
-    ? dayjs(props.ticket.park_out_datetime).format("hh:mm:s A")
+    ? dayjs(props.ticket.park_out_datetime).format("hh:mm:ss A")
     : null
 })
 

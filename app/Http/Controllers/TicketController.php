@@ -659,7 +659,7 @@ if ($company->rate == 'perhour') {
             // Remaining minutes exceed grace period → add 1 full day
             $daysParked += 1;
             $rate += $ratePerDay;
-            $hoursParked = ceil($remainingMinutes / 60);
+            // $hoursParked = ceil($remainingMinutes / 60);
         } else {
             $hoursParked = 0;
         }

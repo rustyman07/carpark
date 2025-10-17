@@ -336,7 +336,7 @@ const headers = [
   { key: 'park_out_datetime', title: 'Park Out', sortable: true },
     { key: 'park_fee', title: 'Park Fee', align: 'center' },
   { key: 'remarks', title: 'Remarks', align: 'center' },
-  {key: 'park_out_by', title: 'Parked Out By', align: 'center' },
+  {key: 'park_out_user.name', title: 'Parked Out By', align: 'center' },
   { key: 'action', title: 'Action', align: 'center', sortable: false }
 ]
 
