@@ -237,18 +237,21 @@
               </p>
 
               <!-- Stat Items -->
-              <div class="stat-item mb-5">
-                <div class="d-flex align-center justify-space-between mb-2">
-                  <span class="text-body-2 text-medium-emphasis">Average Duration</span>
-                  <span class="text-subtitle-2 font-weight-bold text-indigo-darken-4">3.5 hrs</span>
-                </div>
-                <v-progress-linear
-                  model-value="70"
-                  color="indigo-darken-4"
-                  height="8"
-                  rounded
-                ></v-progress-linear>
-              </div>
+                <div class="stat-item mb-5">
+            <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-body-2 text-medium-emphasis">Average Duration</span>
+                <span class="text-subtitle-2 font-weight-bold text-indigo-darken-4">
+                {{ formatDuration(props.averageDurationToday) }}
+                </span>
+            </div>
+
+            <v-progress-linear
+                :model-value="Math.min((props.averageDurationToday / 1440) * 100, 100)" 
+                color="indigo-darken-4"
+                height="8"
+                rounded
+            ></v-progress-linear>
+            </div>
 
               <div class="stat-item mb-5">
                 <div class="d-flex align-center justify-space-between mb-2">
@@ -263,18 +266,22 @@
                 ></v-progress-linear>
               </div>
 
-              <div class="stat-item mb-5">
-                <div class="d-flex align-center justify-space-between mb-2">
-                  <span class="text-body-2 text-medium-emphasis">Peak Hours</span>
-                  <span class="text-subtitle-2 font-weight-bold text-indigo-darken-4">2-5 PM</span>
-                </div>
-                <v-progress-linear
-                  model-value="95"
-                  color="warning"
-                  height="8"
-                  rounded
-                ></v-progress-linear>
-              </div>
+            <div class="stat-item mb-5">
+            <div class="d-flex align-center justify-space-between mb-2">
+                <span class="text-body-2 text-medium-emphasis">Peak Hours</span>
+                <span class="text-subtitle-2 font-weight-bold text-indigo-darken-4">
+                {{ props.peakHourData?.peak ? formatPeakHour(props.peakHourData.peak.hour) : 'N/A' }}
+                </span>
+            </div>
+            <v-progress-linear
+                :model-value="peakPercent"
+                color="warning"
+                height="8"
+                rounded
+            ></v-progress-linear>
+            </div>
+
+
 
               <v-divider class="my-5"></v-divider>
 
@@ -325,7 +332,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted,computed } from 'vue';
 import ApexCharts from 'vue3-apexcharts';
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -337,10 +344,14 @@ const props = defineProps({
   totalRevenue: Number,
   revenueData: Array,
   latestParkin: Object,
-  latestParkout: Object
-});
+  latestParkout: Object,
+  averageDurationToday: Number,
+  averageDurationFormatted: String, 
+  peakHourData: Object,
+})
 
 
+console.log('Peak hour data:', props.peakHourData);
 
 dayjs.extend(relativeTime);
 
@@ -474,7 +485,35 @@ const downloadReport = () => {
   window.open(route('reports.revenue'), '_blank');
 };
 
+const formatDuration = (totalMinutes) => {
+  if (!totalMinutes || isNaN(totalMinutes)) return 'N/A';
 
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = Math.floor(totalMinutes % 60);
+
+    if (days > 0 && hours > 0 && minutes > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (days > 0 && hours > 0) return `${days}d ${hours}h`;
+    if (days > 0 && minutes > 0) return `${days}d ${minutes}m`;
+    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+    if (days > 0) return `${days}d`;
+    if (hours > 0) return `${hours}h`;
+    return `${minutes}m`;
+
+};
+
+const formatPeakHour = (hour) => {
+  if (hour === null || hour === undefined) return 'N/A';
+  const start = dayjs().hour(hour).minute(0);
+  const end = start.add(1, 'hour');
+  return `${start.format('h A')} - ${end.format('h A')}`;
+};
+
+const peakPercent = computed(() => {
+  if (!props.peakHourData?.peak || !props.peakHourData?.all?.length) return 0;
+  const max = Math.max(...props.peakHourData.all.map(h => h.total));
+  return Math.round((props.peakHourData.peak.total / max) * 100);
+});
 
 
 // Update time every minute

@@ -121,9 +121,6 @@
 
       </v-row> 
 
-
-
-
       <!-- Dialogs -->
       <Create 
         v-model="showDialog" 
@@ -426,16 +423,16 @@
   class="download-card-template"
 >
   <div class="card-template-inner">
-    <!-- 🔹 Company Logo -->
-    <div class="card-logo-section" style="text-align: center; margin-bottom: 10px;">
+    <!-- Company Logo -->
+    <div class="card-logo-section">
       <img
         src="/images/comlogo.png"
         alt="Company Logo"
         class="company-logo"
-        style="width: 100px; height: auto;"
       />
     </div>
 
+    <!-- Card Number & Status -->
     <div class="card-header-section">
       <h3 class="card-number">{{ cardToDownload.card_number }}</h3>
       <v-chip
@@ -447,36 +444,39 @@
             : 'warning'
         "
         size="small"
+        variant="flat"
       >
         {{ cardToDownload.status }}
       </v-chip>
     </div>
 
+    <!-- QR Code -->
     <div class="qr-section">
-      <img :src="qrCodeMap[cardToDownload.id]" alt="QR" class="qr-image" />
+      <img :src="qrCodeMap[cardToDownload.id]" alt="QR Code" class="qr-image" />
     </div>
 
+    <!-- Card Details -->
     <div class="card-details">
       <div class="detail-row">
-        <span class="label">Amount:</span>
+        <span class="label">Amount</span>
         <span class="value">{{ formatCurrency(cardToDownload.amount) }}</span>
       </div>
       <div class="detail-row">
-        <span class="label">Balance:</span>
+        <span class="label">Balance</span>
         <span class="value">{{ formatCurrency(cardToDownload.balance) }}</span>
       </div>
       <div class="detail-row">
-        <span class="label">Days:</span>
+        <span class="label">Days</span>
         <span class="value">{{ cardToDownload.no_of_days }}</span>
       </div>
     </div>
 
+    <!-- Footer -->
     <div class="card-footer-section">
-      <p class="generated-date">Generated: {{ formatDate(cardToDownload.created_at) }}</p>
+      <p class="generated-date">{{ formatDate(cardToDownload.created_at) }}</p>
     </div>
   </div>
 </div>
-
 
 
 
@@ -682,37 +682,37 @@ const confirmStatusChange = () => {
 
 const downloadQRCode = async (item) => {
 
-   window.open(route('print.card', { uuid: item.uuid }), '_blank')
+  // window.open(route('print.card', { uuid: item.uuid }), '_blank')
 
 
-//   cardToDownload.value = item;
-//   await nextTick();
+  cardToDownload.value = item;
+  await nextTick();
 
-//   const cardElement = document.getElementById('download-card');
-//   if (!cardElement) {
-//     console.error('❌ Card element not found');
-//     return;
-//   }
+  const cardElement = document.getElementById('download-card');
+  if (!cardElement) {
+    console.error('❌ Card element not found');
+    return;
+  }
 
-//   try {
-//     const canvas = await html2canvas(cardElement, {
-//       backgroundColor: '#ffffff',
-//       scale: 2,
-//       useCORS: true,
-//     });
+  try {
+    const canvas = await html2canvas(cardElement, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+    });
 
-//     const imageURL = canvas.toDataURL('image/png');
-//     const link = document.createElement('a');
-//     link.href = imageURL;
-//     link.download = `${item.card_number || 'card'}-${item.id}.png`;
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
+    const imageURL = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = imageURL;
+    link.download = `${item.card_number || 'card'}-${item.id}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-//     cardToDownload.value = null;
-//   } catch (err) {
-//     console.error('⚠️ Failed to download card:', err);
-//   }
+    cardToDownload.value = null;
+  } catch (err) {
+    console.error('⚠️ Failed to download card:', err);
+  }
 };
 
 const viewTransactions = (item) => {
@@ -856,92 +856,96 @@ const exportData = (format) => {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Download Card Template */
+
+
+
 .download-card-template {
   position: absolute;
   top: -9999px;
   left: -9999px;
-  width: 350px;
+  width: 400px;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
 }
 
 .card-template-inner {
-  padding: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
+}
+
+.card-logo-section {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.company-logo {
+  width: 80px;
+  height: auto;
 }
 
 .card-header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .card-number {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a237e;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
   margin: 0;
 }
 
 .qr-section {
-  display: flex;
-  justify-content: center;
-  margin: 24px 0;
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .qr-image {
-  width: 180px;
-  height: 180px;
-  border: 4px solid #1a237e;
-  border-radius: 12px;
-  padding: 8px;
-  background: white;
+  width: 160px;
+  height: 160px;
+  border-radius: 8px;
 }
 
 .card-details {
-  background: #f5f5f5;
-  border-radius: 12px;
-  padding: 16px;
-  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.detail-row:last-child {
-  border-bottom: none;
+  padding: 12px 0;
 }
 
 .detail-row .label {
-  font-weight: 600;
+  font-size: 14px;
   color: #666;
-  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .detail-row .value {
-  font-weight: 700;
-  color: #1a237e;
-  font-size: 1rem;
+  font-size: 16px;
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .card-footer-section {
   text-align: center;
   padding-top: 16px;
-  border-top: 2px solid #e0e0e0;
+  border-top: 1px solid #f0f0f0;
 }
 
 .generated-date {
-  font-size: 0.75rem;
+  font-size: 12px;
   color: #999;
   margin: 0;
 }
@@ -976,5 +980,9 @@ const exportData = (format) => {
 .v-card {
   animation: fadeInUp 0.5s ease-out;
 }
+
+
+
+
 
 </style>

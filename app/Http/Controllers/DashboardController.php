@@ -57,7 +57,6 @@ class DashboardController extends Controller
 
 
 
-
             // 🏁 Latest park-out — refresh every 30 sec
             $latestParkout = Cache::remember('dashboard.latestParkout', now()->addSeconds(30), function () {
                 return Ticket::whereNull('deleted_at')
@@ -66,14 +65,40 @@ class DashboardController extends Controller
                     ->first();
             });
 
-            return Inertia::render('Dashboard/Index', [
-                'activeParkings' => $activeParkings,
-                'totalCards'     => $totalCards,
-                'totalRevenue'   => $totalRevenue,
-                'revenueData'    => $revenueData,
-                'latestParkin'   => $latestParkin,
-                'latestParkout'  => $latestParkout,
+            $averageDurationToday = Cache::remember('dashboard.averageDurationToday', now()->addMinutes(2), function () {
+                return Ticket::whereDate('park_out_datetime', today())
+                    ->whereNotNull('total_minutes')
+                    ->avg('total_minutes');
+            });
+
+
+            $peakHourData = Cache::remember('dashboard.peakHourData', now()->addMinutes(2), function () {
+                $hourlyData = Ticket::selectRaw('HOUR(park_datetime) as hour, COUNT(*) as total')
+                    ->whereDate('park_datetime', today())
+                    ->groupBy('hour')
+                    ->orderBy('hour')
+                    ->get();
+
+                $peak = $hourlyData->sortByDesc('total')->first();
+
+                return [
+                    'peak' => $peak,
+                    'all'  => $hourlyData,
+                ];
+            });
+
+
+                return Inertia::render('Dashboard/Index', [
+            'activeParkings'       => $activeParkings,
+            'totalCards'           => $totalCards,
+            'totalRevenue'         => $totalRevenue,
+            'revenueData'          => $revenueData,
+            'latestParkin'         => $latestParkin,
+            'latestParkout'        => $latestParkout,
+            'averageDurationToday' => round($averageDurationToday, 2),
+            'peakHourData'         => $peakHourData,
             ]);
+
         } catch (\Throwable $e) {
             // 🧯 Log the error for debugging
             Log::error('Dashboard data error: ' . $e->getMessage(), [
@@ -81,7 +106,7 @@ class DashboardController extends Controller
                 'line' => $e->getLine(),
             ]);
 
-            // 🪶 Fallback response if something breaks
+          
             return Inertia::render('Dashboard/Index', [
                 'error' => 'Unable to load dashboard data at the moment.',
                 'activeParkings' => 0,

@@ -219,7 +219,7 @@ public function store(Request $request)
     }
 
     public function showLogs(Request $request)
-{
+{   
     $user = Auth::user();
 
 
