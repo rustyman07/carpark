@@ -56,18 +56,11 @@
             </v-col>
 
             <!-- Search Button -->
-            <v-col cols="12" sm="6" md="3">
-              <v-btn
-                color="indigo-darken-4"
-                variant="flat"
-                size="large"
-                @click="handleSearch"
-                class="search-btn"
-              >
-                <v-icon>mdi-magnify</v-icon>
-                Search
-              </v-btn>
-            </v-col>
+             <v-col cols="12" md="3">
+        <v-btn color="primary" @click="searchTransactions" :loading="loading">
+          Search
+        </v-btn>
+      </v-col>
           </v-row>
         </div>
       </div>
@@ -428,8 +421,9 @@
 <script setup>
 import { ref, computed, defineProps } from 'vue'
 import dayjs from 'dayjs'
-import { usePage } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import { formatCurrency, formatDate } from '../../utils/utility'
+import axios from 'axios'   
 
 const headers = [
   { key: 'id', title: 'ID', sortable: true, width: '80px' },
@@ -446,44 +440,85 @@ const headers = [
 // const page = usePage()
 // const payments = computed(() => page.props.payments)
 
-
 const props = defineProps({
-  payments: Object,
+  payments: Array,
+  filters: Object,
 })
 
 const today = dayjs().format('YYYY-MM-DD')
-const dateFrom = ref(today)
-const dateTo = ref(today)
+
 const searchQuery = ref('')
 const filterStatus = ref('All')
-const filterType = ref('All')
+
 const itemsPerPage = ref(10)
 const pageNumber = ref(1)
+const payments = ref(props.payments.data || [])
+const loading = ref(false)
 
 // Dialog state
 const detailsDialog = ref(false)
 const selectedPayment = ref(null)
+// const dateFrom = ref(today)
+// const dateTo = ref(today)
+// const filterType = ref('All')
 
-const handleSearch = () => {
-  applyFilters()
-}
+// const handleSearch = () => {
+//   applyFilters()
+// }
 
-const applyFilters = () => {
-  const params = {
+
+
+// const searchTransactions = async () => {
+//   try {
+//     loading.value = true
+
+//     const params = {
+//       dateFrom: dateFrom.value,
+//       dateTo: dateTo.value,
+//       type: filterType.value, // 'Card', 'Ticket', or 'All'
+//     }
+
+//     const { data } = await axios.get('/api/payments/search', { params })
+
+//     if (data.success) {
+//       payments.value = data.data
+//     } else {
+//       payments.value = []
+//     }
+//   } catch (error) {
+//     console.error('Error fetching transactions:', error)
+//   } finally {
+//      loading.value = false
+//   }
+// }
+
+
+// Reactive filters (start with props from server)
+const dateFrom = ref(props.filters.dateFrom)
+const dateTo = ref(props.filters.dateTo)
+const filterType = ref(props.filters.type)
+
+// Function to trigger Inertia visit (re-fetch)
+const searchTransactions = () => {
+  router.get(route('payments.index'), {
     dateFrom: dateFrom.value,
     dateTo: dateTo.value,
-    type: filterType.value !== 'All' ? filterType.value : null,
-  }
-  
-  console.log('Filtering with:', params)
-  
+    type: filterType.value,
+  }, {
+    preserveState: true, // keep component state
+    replace: true,       // don’t push history entries
+  })
+}
+
+
+
   // Use Inertia to navigate with filters
   // Uncomment and adjust the route name as needed:
   // router.get(route('payments.index'), params, {
   //   preserveState: true,
   //   preserveScroll: true,
   // })
-}
+
 
 const getTodayCount = () => {
   const today = dayjs().format('YYYY-MM-DD')

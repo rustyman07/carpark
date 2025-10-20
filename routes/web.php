@@ -24,15 +24,8 @@ use Inertia\Inertia;
 //     return Inertia::render('Dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
-// // 👇 Profile routes (only for logged-in users)
-// Route::middleware('auth')->group(function () {
-//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-// });
 
-// --- Your custom routes ---
-// Protect all business routes behind authentication
+
 Route::middleware(['auth'])->group(function () {
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -79,7 +72,8 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     // Route::post('/shiftlogs/start', [ShiftLogController::class, 'startShift'])->name('shiftlogs.start');
     // Route::post('/shiftlogs/end', [ShiftLogController::class, 'endShift'])->name('shiftlogs.end');
 
-    Route::get('transaction/ticket-payments', [PaymentController::class, 'index'])->name('ticket.payments');
+    Route::get('transaction', [PaymentController::class, 'index'])->name('payments.index');
+
 
 
     // Route::get('/reports/parkout', [ReportController::class, 'todayParkout'])

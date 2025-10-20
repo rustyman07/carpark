@@ -5,22 +5,54 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Company;
-
+use Carbon\Carbon;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PaymentController extends Controller
 {
-    public function index(){
-         // $payments = Payment::orderBy('created_at', 'desc')->paginate(20); // 20 per page
-     $payments = Payment::orderBy('created_at', 'desc')->with(['ticket', 'details','user'])->get();
 
-return Inertia('Payments/Index', [
-    'payments' => $payments,
-]);
+public function index(Request $request)
+{
+    // Get filters (or default to today)
+    $dateFrom = $request->input('dateFrom', now()->toDateString());
+    $dateTo   = $request->input('dateTo', now()->toDateString());
+    $type     = $request->input('type', 'All');
 
+    // Convert to full-day range
+    $from = Carbon::parse($dateFrom)->startOfDay();
+    $to   = Carbon::parse($dateTo)->endOfDay();
+
+    // Build query
+    $query = Payment::with(['ticket', 'details', 'user'])
+        ->whereBetween('paid_at', [$from, $to]);
+
+    if ($type !== 'All') {
+        $query->where('payment_type', $type);
     }
+
+    $payments = $query->orderBy('paid_at', 'desc')->get();
+
+    return Inertia::render('Payments/Index', [
+        'payments' => $payments,
+        'filters' => [
+            'dateFrom' => $dateFrom,
+            'dateTo'   => $dateTo,
+            'type'     => $type,
+        ],
+    ]);
+}
+
+
+
+//     public function index(){
+// return Inertia('Payments/Index');
+
+//     }
+
+
+
 
 
 

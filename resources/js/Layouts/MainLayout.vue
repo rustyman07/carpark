@@ -295,7 +295,7 @@ const allItems = [
 
   { title: 'Card Inventory', route: 'card-inventory.index', value: 'card_inventory', icon: 'mdi-card-account-details' },
 { title: 'Logs', value: 'logs', route: 'logs', icon: 'mdi-history' },
-  { title: 'Transactions', value: 'transactions', route: 'ticket.payments', icon: 'mdi-receipt-text' },
+  { title: 'Transactions', value: 'transactions', route: 'payments.index', icon: 'mdi-receipt-text' },
 
   ...(page.props.auth.user.role === 1
     ? [
