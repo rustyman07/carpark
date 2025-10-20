@@ -167,6 +167,28 @@
 
     <div class="divider"></div>
 
+    @if(!empty($details) )
+
+    <div class="center section-label" style="font-size: 14pt;">CARD USED</div>
+
+    @foreach($details as $card)
+        <div class="row">
+            <span>Card:</span>
+            <span class="bold">{{ $card['card_number'] ?? 'N/A' }}</span>
+        </div>
+        <div class="row">
+            <span>Used:</span>
+            <span><span class="peso">&#8369;</span>{{ - number_format($card['amount'] ?? 0, 2) }}</span>
+        </div>
+        <div class="row">
+            <span>Remaining:</span>
+            <span><span class="peso">&#8369;</span>{{ number_format($card['balance'] ?? 0, 2) }}</span>
+        </div>
+        <div class="divider"></div>
+    @endforeach
+@endif
+
+
     <div class="barcode">
         <img src="data:image/png;base64,{{ $barcode }}" alt="barcode">
         <div style="font-size: 12pt; margin-top: 5px;">{{ $ticket->ticket_no }}</div>

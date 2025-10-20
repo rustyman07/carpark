@@ -68,7 +68,7 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('scan-qr-cards', [CardInventoryController::class, 'scan_qr_cards'])->name('scan.qr.cards');
     Route::get('/card/print/{uuid}', [CardInventoryController::class, 'print_card'])->name('print.card');
     Route::get('sell-card', [CardInventoryController::class, 'sell_card'])->name('sell-card.create');
-    Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment');
+    Route::post('sell-card', [CardInventoryController::class, 'sell_card_payment'])->name('sell-card.payment'); 
     Route::put('/card-inventory/{id}/status', [CardInventoryController::class, 'updateStatus'])->name('card-inventory.update-status');
 
     // Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');

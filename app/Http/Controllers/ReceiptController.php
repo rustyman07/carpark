@@ -36,33 +36,36 @@ class ReceiptController extends Controller
     }
 
 
-    public function printReceipt($uuid)
-    {
-        $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
-        $payment = Payment::where('ticket_id', $ticket->id)->firstOrFail();
-        $details = $payment->details;
-        $company = Company::findOrFail(1);
-        $logoPath = public_path('images/comlogo.png'); // absolute path for DomPDF
+public function printReceipt($uuid)
+{
+    $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+    $payment = Payment::where('ticket_id', $ticket->id)->firstOrFail();
 
-        // Generate barcode as base64
-        $barcodeGenerator = new \Picqer\Barcode\BarcodeGeneratorPNG();
-        $barcode = base64_encode($barcodeGenerator->getBarcode($ticket->ticket_no, $barcodeGenerator::TYPE_CODE_128));
+    // Decode details — single card info
+    $details = $payment->details;
 
-        $data = [
-            'ticket' => $ticket,
-            'payment' => $payment,
-            'details' => $details,
-            'company' => $company,
-            'barcode' => $barcode,
-            'logoPath' => $logoPath,
-        ];
+    $company = Company::findOrFail(1);
+    $logoPath = public_path('images/comlogo.png');
 
-        // Set paper size for thermal printer (80mm = 226.77 points)
-        $pdf = Pdf::loadView('Printables.Receipt', $data)
-            ->setPaper([0, 0, 226.77, 841.89], 'portrait'); // 80mm x 297mm
+    // Generate barcode
+    $barcodeGenerator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+    $barcode = base64_encode($barcodeGenerator->getBarcode($ticket->ticket_no, $barcodeGenerator::TYPE_CODE_128));
 
-        return $pdf->stream('receipt-' . $ticket->ticket_no . '.pdf');
-    }
+    $data = [
+        'ticket' => $ticket,
+        'payment' => $payment,
+        'details' => $details,
+        'company' => $company,
+        'barcode' => $barcode,
+        'logoPath' => $logoPath,
+    ];
+
+    $pdf = Pdf::loadView('Printables.Receipt', $data)
+        ->setPaper([0, 0, 226.77, 841.89], 'portrait'); // 80mm x 297mm
+
+    return $pdf->stream('receipt-' . $ticket->ticket_no . '.pdf');
+}
+
 
     
 }

@@ -160,12 +160,11 @@
         <v-divider></v-divider>
 
         <!-- Data Table -->
-        <v-data-table-server
+         <v-data-table
           :headers="headers"
-          :items="payments.data"
-          v-model:items-per-page="itemsPerPage"
-          :page="pageNumber"
-          :items-length="payments.total"
+          :items="props.payments"
+         hide-default-footer
+        :items-per-page="props.payments.length"
           class="custom-data-table"
         >
           <template v-slot:item.id="{ item }">
@@ -245,7 +244,7 @@
               <v-tooltip activator="parent" location="top">View Details</v-tooltip>
             </v-btn>
           </template>
-        </v-data-table-server>
+        </v-data-table>
       </v-card>
 
       <!-- Payment Details Dialog -->
@@ -353,7 +352,7 @@
                 <v-col cols="12" sm="6">
                   <div class="detail-item">
                     <span class="detail-label">Processed By:</span>
-                    <span class="detail-value">{{ selectedPayment.processed_by || 'N/A' }}</span>
+                    <span class="detail-value">{{ selectedPayment.user.name || 'N/A' }}</span>
                   </div>
                 </v-col>
                 <v-col cols="12" sm="6">
@@ -427,7 +426,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, defineProps } from 'vue'
 import dayjs from 'dayjs'
 import { usePage } from '@inertiajs/vue3'
 import { formatCurrency, formatDate } from '../../utils/utility'
@@ -444,12 +443,18 @@ const headers = [
   { key: 'actions', title: 'Details', align: 'center', width: '100px', sortable: false },
 ]
 
-const page = usePage()
-const payments = computed(() => page.props.payments)
+// const page = usePage()
+// const payments = computed(() => page.props.payments)
 
+
+const props = defineProps({
+  payments: Object,
+})
+
+const today = dayjs().format('YYYY-MM-DD')
+const dateFrom = ref(today)
+const dateTo = ref(today)
 const searchQuery = ref('')
-const dateFrom = ref('')
-const dateTo = ref('')
 const filterStatus = ref('All')
 const filterType = ref('All')
 const itemsPerPage = ref(10)
@@ -482,7 +487,7 @@ const applyFilters = () => {
 
 const getTodayCount = () => {
   const today = dayjs().format('YYYY-MM-DD')
-  return payments.value.data?.filter(p => 
+  return props.payments.filter(p => 
     dayjs(p.paid_at).format('YYYY-MM-DD') === today
   ).length || 0
 }

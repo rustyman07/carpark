@@ -42,7 +42,10 @@ class Payment extends Model
     {
         return $this->hasMany(PaymentDetail::class,'payment_id');
     }
-
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'processed_by', 'id');
+    }   
 
 }
 

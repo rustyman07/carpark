@@ -126,6 +126,7 @@ public function store(Request $request)
 
             Cache::forget('dashboard.activeParkings');
             Cache::forget('dashboard.latestParkin');
+              Cache::forget('dashboard.peakHourData');
         });
 
 
@@ -786,15 +787,17 @@ public function submit_payment(Request $request)
             $cashAmount  = $data['cash_amount'] ?? 0;
             $gcashAmount = $data['gcash_amount'] ?? 0;
 
-            if (!empty($cards) && ($cashAmount + $gcashAmount) > 0) {
-                $ticket->mode_of_payment = 'mixed';
-            } elseif (!empty($cards)) {
-                $ticket->mode_of_payment = 'card';
-            } elseif (!empty($gcashAmount)) {
-                $ticket->mode_of_payment = 'gcash';
-            } else {
-                $ticket->mode_of_payment = 'cash';
-            }
+        if (!empty($cards) && $cashAmount > 0) {
+            $ticket->mode_of_payment = 'Card w/ Cash';
+        } elseif (!empty($cards) && $gcashAmount > 0) {
+            $ticket->mode_of_payment = 'Card w/ Gcash';
+        } elseif (!empty($cards)) {
+            $ticket->mode_of_payment = 'Card';
+        } elseif ($gcashAmount > 0) {
+            $ticket->mode_of_payment = 'Gcash';
+        } else {
+            $ticket->mode_of_payment = 'Cash';
+        }
 
             $ticket->save();
           
@@ -868,6 +871,8 @@ public function submit_payment(Request $request)
      
          Cache::forget('dashboard.revenueData');
          Cache::forget('dashboard.totalRevenue');
+       
+       
 
         // Redirect with success
         return redirect()->route('receipt.index', ['id' => $ticket->uuid])

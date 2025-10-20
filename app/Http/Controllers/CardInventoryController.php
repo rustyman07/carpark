@@ -138,24 +138,13 @@ public function index(Request $request)
     public function sell_card(){
              
         $cardTemplate = CardTemplate::where('cancelled', 0)->get();
-
-        return Inertia('SellCards/Create',[
-            'cardTemplate' => $cardTemplate
-        ]);
-    }
-// public function show_no_available_cards($template_id)
-// {
-//     $Availblecard = CardInventoryDetail::where('card_template_id', $template_id)
-//     ->where('status','AVAILABLE')
-//     ->whereNull('deleted_at')
-//     ->count();
-
       
 
-//     return response()->json([
-//         'available_quantity' => $Availblecard
-//     ]);
-// }
+        return Inertia('SellCards/Create',[
+            'cardTemplate' => $cardTemplate,
+              'scannedCards' => session('scannedCards')
+        ]);
+    }
 
 
 public function scan_qr_cards(Request $request)
@@ -165,6 +154,9 @@ public function scan_qr_cards(Request $request)
             ->where('status', 'Available')
             ->first();
 
+
+
+
     // ❌ Invalid QR
         if (!$card) {
             return redirect()->back()->with(
@@ -172,9 +164,14 @@ public function scan_qr_cards(Request $request)
             );
         }
 
+    
 
     } else {
-        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code);
+        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->first();
+
+
+         
+  
 
     // ❌ Invalid QR
         if (!$card) {
@@ -182,6 +179,15 @@ public function scan_qr_cards(Request $request)
                 'error' , 'Invalid QR Code'
             );
         }
+
+             if ($card->status == 'Consumed') {
+            
+            return redirect()->back()->with(
+                'error', 'This card has already been consumed.',
+            );
+        }
+
+
 
         if ($card->status !== 'Confirmed') {
             
@@ -194,7 +200,7 @@ public function scan_qr_cards(Request $request)
     }
 
 
-  
+
     // ❌ No balance
     if ($card->balance <= 0) {
         return redirect()->back()->with(
@@ -240,13 +246,97 @@ public function scan_qr_cards(Request $request)
 
     session()->put("scanned_cards_payment", $scanned);
 
+//   return Inertia::render('SellCards/Create', [
+//         'scannedCards' =>  $scanned[$card->id]
+//     ]);
 
+//    return back()->with(
+//     ['success' => 'Card scanned successfully!',
+//     'scannedCards' =>  $scanned[$card->id]
+//     ]);
 
-return Inertia::render('SellCards/Create', [
-    'scannedCards' =>  $scanned[$card->id]
-]);
-      
+    return redirect()
+        ->route('sell-card.create')
+        ->with([
+            'success' => 'Card scanned successfully!',
+            'scannedCards' =>   $scanned[$card->id]
+        ]);
+        
 }
+
+
+
+// public function scan_qr_cards(Request $request)
+// {
+//     if ($request->is_sell_card) {
+//         // 🟢 Selling card — must be Available
+//         $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)
+//             ->where('status', 'Available')
+//             ->first();
+
+//         if (!$card) {
+//             return back()->with('error', 'Invalid QR Code');
+//         }
+//     } else {
+//         // 🟢 Normal parking payment card — must be Confirmed
+//         $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->first();
+
+//         if (!$card) {
+//             return back()->with('error', 'Invalid QR Code');
+//         }
+
+//         if ($card->status !== 'Confirmed') {
+//             return back()->with('error', 'This card is not yet confirmed. Please contact the administrator.');
+//         }
+//     }
+
+//     // ❌ Insufficient balance
+//     if ($card->balance <= 0) {
+//         return back()->with('error', 'Insufficient balance');
+//     }
+
+//     if (!$request->is_sell_card) {
+//         $ticketId = $request->ticket_id;
+        
+//      $scanned = session()->get('scanned_card');
+
+//         // Replace any previously scanned card in session (single card only)
+//         session()->put("scanned_card", [
+//             'id'          => $card->id,
+//             'card_number' => $card->card_number,
+//             'balance'     => $card->balance,
+//             'price'       => $card->price ?? 0,
+//             'no_of_days'  => $card->no_of_days ?? 0,
+//         ]);
+
+
+
+//         return redirect()
+//             ->route('show.payment', ['uuid' => $request->ticket_uuid])
+//             ->with('success', 'Card linked successfully');
+//     }
+
+
+//     // ✅ If selling card
+//     $scanned = session()->get("scanned_cards_payment", []);
+
+//         $scanned = [
+//             'id'          => $card->id,
+//             'card_name'   => $card->card_name,
+//             'card_number' => $card->card_number,
+//             'balance'     => $card->balance,
+//             'price'       => $card->price ?? 0,
+//             'no_of_days'  => $card->no_of_days ?? 0,
+//         ];
+    
+
+//     session()->put("scanned_cards_payment", $scanned);
+ 
+//     return back()->with('success', 'Card scanned successfully!');
+
+
+// }
+
 
 
 
@@ -256,7 +346,7 @@ public function sell_card_payment(Request $request)
         'customer'      => 'required|string',
         'cash_amount' => 'required|numeric',
         'cards'       => 'nullable|array',
-        'Gcash_reference' => 'nullable|string',
+        'Gcash_reference' => 'required_with:gcash_amount|regex:/^[A-Za-z0-9]{10,15}$/',
         'payment_method'      => 'required|string',
         'cards.*'     => 'integer|exists:card_inventory_details,id',
     ]);
