@@ -146,7 +146,7 @@
                   </v-alert>
 
                   <v-row>
-                    <v-col cols="12" sm="6">
+                    <v-col cols="12" >
                       <v-text-field
                         label="Hourly Billing Limit"
                         variant="outlined"
@@ -163,8 +163,15 @@
                         bg-color="surface"
                       />
                     </v-col>
+                  </v-row>
+                </div>
+              </v-expand-transition>
 
-                    <v-col cols="12" sm="6">
+              <!-- Grace Period Display -->
+              <v-expand-transition>
+                <div v-if="form.rate === 'perday' || form.rate === 'combination'">
+                  <v-row>
+                    <v-col cols="12" >
                       <v-text-field
                         label="Grace Period"
                         variant="outlined"
@@ -175,7 +182,7 @@
                         min="0"
                         suffix="minutes"
                         prepend-inner-icon="mdi-clock-plus-outline"
-                        hint="Free minutes allowed beyond hourly limit"
+                        hint="Free minutes allowed beyond hourly or daily limit"
                         persistent-hint
                         :readonly="isDisabled"
                         bg-color="surface"
@@ -215,14 +222,12 @@
                 
                 <v-btn
                   v-else
-                 color="indigo-darken-4"        
+                  color="indigo-darken-4"        
                   @click="updateCompany"
                   prepend-icon="mdi-content-save"
                   size="large"
                   class="px-6"
-                  
                   :loading="form.processing"
-               
                 >
                   Save Changes
                 </v-btn>
@@ -299,7 +304,6 @@ const updateCompany = () => {
     preserveScroll: true,
     onSuccess: () => {
       isDisabled.value = true;
-      // Update original values after successful save
       Object.keys(originalValues).forEach(key => {
         originalValues[key] = form[key];
       });
@@ -314,7 +318,6 @@ const updateCompany = () => {
 
 <style scoped>
 .settings-wrapper {
-
   min-height: 100vh;
 }
 
@@ -338,22 +341,18 @@ const updateCompany = () => {
   border-bottom: 2px solid rgba(102, 126, 234, 0.2);
 }
 
-/* Enhanced field focus states */
 :deep(.v-field--focused) {
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
-/* Smooth transitions */
 :deep(.v-field), :deep(.v-btn) {
   transition: all 0.2s ease;
 }
 
-/* Disabled state styling */
 :deep(.v-field--disabled) {
   opacity: 0.7;
 }
 
-/* Button hover effects */
 .v-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

@@ -36,7 +36,7 @@ public function update(Request $request, $id)
     // If rate type is NOT "combination", clear those fields to avoid confusion
     if ($validated['rate'] !== 'combination') {
         $validated['hourly_billing_limit'] = null;
-        $validated['grace_minutes'] = null;
+
     }
 
     $company->update($validated);
