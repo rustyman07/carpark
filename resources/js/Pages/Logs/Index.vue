@@ -61,7 +61,7 @@
           </v-card>
         </v-col>
 
-        <v-col cols="12" sm="6" md="3">
+        <!-- <v-col cols="12" sm="6" md="3">
           <v-card class="stat-card elevation-4" rounded="lg">
             <div class="pa-4">
               <div class="d-flex align-center justify-space-between mb-2">
@@ -74,15 +74,23 @@
               <p class="text-caption text-medium-emphasis">Voided Tickets</p>
             </div>
           </v-card>
-        </v-col>
-      </v-row>
-
-
+        </v-col> -->
+        
       <v-col cols="12" sm="6" md="3">
   <v-card class="stat-card elevation-4" rounded="lg">
     <div class="pa-4">
       <div class="d-flex align-center justify-space-between mb-2">
         <v-icon size="32" color="indigo">mdi-cash</v-icon>
+          <v-btn 
+                variant="text" 
+                color="indigo-darken-4" 
+                size="small"
+                append-icon="mdi-arrow-right"
+                 @click="previeReport"
+              >
+              
+                View Report
+              </v-btn>
        
       </div>
       <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
@@ -90,7 +98,7 @@
       </h3>
       <p class="text-caption text-medium-emphasis">Total Park Fee (per staff)</p>
     </div>
-    <div class="kpi-card-footer">
+    <!-- <div class="kpi-card-footer">
               <v-btn 
                 variant="text" 
                 color="indigo-darken-4" 
@@ -101,9 +109,12 @@
               
                 View Report
               </v-btn>
-            </div>
+    </div> -->
   </v-card>
 </v-col>
+      </v-row>
+
+
 
 
       <!-- Main Data Table Card -->
@@ -456,6 +467,7 @@ const confirmVoid = () => {
 .stat-card {
   background: white;
   border-left: 4px solid transparent;
+ border-left-color: #1A237E;
   transition: all 0.3s ease;
 }
 
@@ -464,21 +476,7 @@ const confirmVoid = () => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
 }
 
-.stat-card:nth-child(1) {
-  border-left-color: #4caf50;
-}
 
-.stat-card:nth-child(2) {
-  border-left-color: #2196f3;
-}
-
-.stat-card:nth-child(3) {
-  border-left-color: #ff9800;
-}
-
-.stat-card:nth-child(4) {
-  border-left-color: #f44336;
-}
 
 /* Data Table Card */
 .data-table-card {

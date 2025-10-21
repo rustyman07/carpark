@@ -85,7 +85,7 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/reports/parkout/preview', [ReportController::class, 'previewPDF'])
     ->name('reports.parkout.preview');
-      Route::get('/reports/payments', [PaymentController::class, 'generatePaymentReport'])->name('reports.revenue');
+      Route::get('/reports/transaction/preview', [PaymentController::class, 'generatePaymentReport'])->name('reports.transaction.preview');
 
     // routes/web.php
     Route::get('/receipt/print/{uuid}', [ReceiptController::class, 'printReceipt'])->name('receipt.print');

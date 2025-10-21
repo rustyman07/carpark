@@ -16,17 +16,23 @@ class PaymentController extends Controller
 public function index(Request $request)
 {
     // Get filters (or default to today)
+
     $dateFrom = $request->input('dateFrom', now()->toDateString());
     $dateTo   = $request->input('dateTo', now()->toDateString());
+
+
     $type     = $request->input('type', 'All');
 
     // Convert to full-day range
-    $from = Carbon::parse($dateFrom)->startOfDay();
-    $to   = Carbon::parse($dateTo)->endOfDay();
+   // $from = Carbon::parse($dateFrom)->startOfDay();
+    //$to   = Carbon::parse($dateTo)->endOfDay();
+
 
     // Build query
     $query = Payment::with(['ticket', 'details', 'user'])
-        ->whereBetween('paid_at', [$from, $to]);
+        ->whereDate('paid_at', '>=', $dateFrom)
+        ->whereDate('paid_at', '<=', $dateTo);
+    
 
     if ($type !== 'All') {
         $query->where('payment_type', $type);
@@ -55,20 +61,29 @@ public function index(Request $request)
 
 
 
-
     public function generatePaymentReport(Request $request)
 {
-    $startDate = $request->input('start_date', now()->startOfDay());
-    $endDate = $request->input('end_date', now()->endOfDay());
+    // $startDate = $request->input('start_date', now()->startOfDay());
+    // $endDate = $request->input('end_date', now()->endOfDay());*
+
+        $startDate = $request->input('dateFrom') 
+        ? Carbon::parse($request->input('dateFrom'))->startOfDay()
+        : now()->startOfDay();
+
+    $endDate = $request->input('dateTo') 
+        ? Carbon::parse($request->input('dateTo'))->endOfDay()
+        : now()->endOfDay();
+
+    $type = $request->input('type'); 
     
-    // Fetch payments with related data
+
     $payments = Payment::with(['ticket', 'details'])
         ->whereBetween('paid_at', [$startDate, $endDate])
-        ->where('status', 'paid') // or whatever status indicates paid
+        ->where('status', 'paid') 
         ->orderBy('paid_at', 'asc')
         ->get();
     
-    // Calculate totals
+ 
     $totalPayments = $payments->count();
     $totalAmount = $payments->sum('total_amount');
     $totalChange = $payments->sum('change');

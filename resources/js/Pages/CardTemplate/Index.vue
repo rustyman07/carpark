@@ -23,68 +23,7 @@
         </v-btn>
       </div>
 
-      <!-- Stats Summary Cards -->
-      <v-row class="mb-6">
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="primary">mdi-card-multiple</v-icon>
-                <v-chip size="small" color="primary" variant="flat">Total</v-chip>
-              </div>
-              <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
-                {{ templates.length }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Template Types</p>
-            </div>
-          </v-card>
-        </v-col>
 
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="success">mdi-cash-multiple</v-icon>
-                <v-chip size="small" color="success" variant="flat">Revenue</v-chip>
-              </div>
-              <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
-                {{ formatCurrency(totalRevenue) }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Total Value</p>
-            </div>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="warning">mdi-tag-multiple</v-icon>
-                <v-chip size="small" color="warning" variant="flat">Discount</v-chip>
-              </div>
-              <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
-                {{ formatCurrency(totalDiscount) }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Total Discount</p>
-            </div>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="info">mdi-calendar-range</v-icon>
-                <v-chip size="small" color="info" variant="flat">Average</v-chip>
-              </div>
-              <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
-                {{ averageDays }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Avg. Days</p>
-            </div>
-          </v-card>
-        </v-col>
-      </v-row>
 
       <!-- Create Dialog -->
       <Create v-model="showDialog" :selectedTemplate="selectedTemplate" />

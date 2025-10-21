@@ -417,13 +417,13 @@
       </v-card>
 
       <!-- Hidden Download Card Template -->
-<div
+<!-- <div
   v-if="cardToDownload"
   id="download-card"
   class="download-card-template"
 >
   <div class="card-template-inner">
-    <!-- Company Logo -->
+
     <div class="card-logo-section">
       <img
         src="/images/comlogo.png"
@@ -432,7 +432,7 @@
       />
     </div>
 
-    <!-- Card Number & Status -->
+
     <div class="card-header-section">
       <h3 class="card-number">{{ cardToDownload.card_number }}</h3>
       <v-chip
@@ -450,12 +450,12 @@
       </v-chip>
     </div>
 
-    <!-- QR Code -->
+ 
     <div class="qr-section">
       <img :src="qrCodeMap[cardToDownload.id]" alt="QR Code" class="qr-image" />
     </div>
 
-    <!-- Card Details -->
+  
     <div class="card-details">
       <div class="detail-row">
         <span class="label">Amount</span>
@@ -471,12 +471,33 @@
       </div>
     </div>
 
-    <!-- Footer -->
     <div class="card-footer-section">
       <p class="generated-date">{{ formatDate(cardToDownload.created_at) }}</p>
     </div>
   </div>
+</div> -->
+
+
+
+<div 
+  v-if="cardToDownload"
+  id="download-card"
+  class="w-[250px] flex  border border-gray-300 rounded-lg p-4 bg-white"
+  
+>
+    <div class="w-50">
+        <div class="qr-section">
+            <img :src="qrCodeMap[cardToDownload.id]" alt="QR Code" class="qr-image" />
+        </div>
+    </div>
+    <div class="w-50">
+            <div class="detail-row">
+        <span class="label">Amount</span>
+        <span class="value">{{ formatCurrency(cardToDownload.amount) }}</span>
+      </div>
+    </div>
 </div>
+
 
 
 

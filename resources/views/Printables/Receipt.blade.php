@@ -167,8 +167,7 @@
 
     <div class="divider"></div>
 
-    @if(!empty($details) )
-
+@if($details->isNotEmpty())
     <div class="center section-label" style="font-size: 14pt;">CARD USED</div>
 
     @foreach($details as $card)

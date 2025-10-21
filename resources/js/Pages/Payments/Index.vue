@@ -117,7 +117,16 @@
             <div class="pa-4">
               <div class="d-flex align-center justify-space-between mb-2">
                 <v-icon size="32" color="warning">mdi-calendar-today</v-icon>
-                <v-chip size="small" color="warning" variant="flat">Today</v-chip>
+                    <v-btn 
+                variant="text" 
+                color="indigo-darken-4" 
+                size="small"
+                append-icon="mdi-arrow-right"
+                 @click="previewReport"
+              >
+              
+                View Report
+              </v-btn>
               </div>
               <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
                 {{ getTodayCount() }}
@@ -505,11 +514,22 @@ const searchTransactions = () => {
     dateTo: dateTo.value,
     type: filterType.value,
   }, {
-    preserveState: true, // keep component state
+    preserveState: false, // keep component state
     replace: true,       // don’t push history entries
   })
 }
 
+
+
+const previewReport = () => {
+  const params = new URLSearchParams({
+    dateFrom: dayjs(dateFrom.value).format("YYYY-MM-DD"),
+    dateTo: dayjs(dateTo.value).format("YYYY-MM-DD"),
+    type: filterType.value || "",
+  }).toString();
+
+  window.open(`${route("reports.transaction.preview")}?${params}`, "_blank");
+};
 
 
   // Use Inertia to navigate with filters
@@ -543,16 +563,6 @@ const getPaymentTypeIcon = (type) => {
   }
 }
 
-const getPaymentMethodColor = (method) => {
-  switch(method) {
-    case 'Visa': return 'primary'
-    case 'Mastercard': return 'warning'
-    case 'GCash': return 'info'
-    case 'PayMaya': return 'success'
-    case 'Cash': return 'success'
-    default: return 'grey'
-  }
-}
 
 const getPaymentMethodDotColor = (method) => {
   switch(method) {
