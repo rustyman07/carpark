@@ -6,7 +6,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; color: #1f2937; }
         .header { border-bottom: 2px solid #1f2937; padding: 32px 48px; text-align: center; position: relative; }
-        .header img { position: absolute; top: 0; left: 30px; height: 170px; width: 170px; }
+        .header img { position: absolute; top: 20; left: 30px; height: 140px; width: 140px; }
         .header h1 { font-size: 24px; font-weight: bold; text-transform: uppercase; }
         .header h2 { font-size: 20px; font-weight: 600; margin-top: 5px; }
         .header p { font-size: 14px; color: #4b5563; margin-top: 5px; }

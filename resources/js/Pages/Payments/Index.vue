@@ -13,55 +13,7 @@
           </p>
 
           <!-- Filters Section -->
-          <v-row align="center">
-            <!-- Date From -->
-            <v-col cols="12" sm="6" md="3">
-              <v-date-input
-                v-model="dateFrom"
-                prepend-icon=""
-                label="Date From"
-                prepend-inner-icon="$calendar"
-                density="comfortable"
-                hide-details="auto"
-                variant="outlined"
-                bg-color="white"
-              />
-            </v-col>
-
-            <!-- Date To -->
-            <v-col cols="12" sm="6" md="3">
-              <v-date-input
-                v-model="dateTo"
-                prepend-icon=""
-                label="Date To"
-                prepend-inner-icon="$calendar"
-                density="comfortable"
-                hide-details="auto"
-                variant="outlined"
-                bg-color="white"
-              />
-            </v-col>
-
-            <!-- Payment Type Filter -->
-            <v-col cols="12" sm="6" md="3">
-              <v-select
-                v-model="filterType"
-                :items="['All', 'Ticket', 'Card']"
-                label="Payment Type"
-                density="comfortable"
-                variant="outlined"
-                bg-color="white"
-                hide-details
-              />
-            </v-col>
-
-            <!-- Search Button -->
-             <v-col cols="12" md="3">
-        <v-btn color="primary" @click="searchTransactions" :loading="loading">
-          Search
-        </v-btn>
-      </v-col>
-          </v-row>
+ 
         </div>
       </div>
 
@@ -139,8 +91,65 @@
 
       <!-- Main Data Table Card -->
       <v-card class="data-table-card elevation-8" rounded="lg">
+
+        <div  class="filters-section pa-6 pb-4">
+                     <v-row align="center">
+            <!-- Date From -->
+            <v-col cols="12" sm="6" md="3">
+              <v-date-input
+                v-model="dateFrom"
+                prepend-icon=""
+                label="Date From"
+                prepend-inner-icon="$calendar"
+                density="comfortable"
+                hide-details="auto"
+                variant="outlined"
+                bg-color="white"
+              />
+            </v-col>
+
+            <!-- Date To -->
+            <v-col cols="12" sm="6" md="3">
+              <v-date-input
+                v-model="dateTo"
+                prepend-icon=""
+                label="Date To"
+                prepend-inner-icon="$calendar"
+                density="comfortable"
+                hide-details="auto"
+                variant="outlined"
+                bg-color="white"
+              />
+            </v-col>
+
+            <!-- Payment Type Filter -->
+            <v-col cols="12" sm="6" md="3">
+              <v-select
+                v-model="filterType"
+                :items="['All', 'Ticket', 'Card']"
+                label="Payment Type"
+                density="comfortable"
+                variant="outlined"
+                bg-color="white"
+                hide-details
+              />
+            </v-col>
+             <v-col cols="12" md="2">
+              <v-btn
+                color="indigo-darken-4"
+                size="large"
+                block
+                 @click="searchTransactions"
+                prepend-icon="mdi-magnify"
+              >
+                Search
+              </v-btn>
+            </v-col>
+
+          </v-row>
+        </div>
         <!-- Export Button Section -->
-        <div class="export-section pa-4 text-right">
+        <!-- <div class="export-section pa-4 text-right">
           <v-menu>
             <v-list>
               <v-list-item @click="exportData('excel')">
@@ -157,7 +166,7 @@
               </v-list-item>
             </v-list>
           </v-menu>
-        </div>
+        </div> -->
 
         <v-divider></v-divider>
 
@@ -245,6 +254,18 @@
               <v-icon>mdi-eye</v-icon>
               <v-tooltip activator="parent" location="top">View Details</v-tooltip>
             </v-btn>
+          </template>
+            <template v-slot:body.append>
+                <tr class="summary-row">
+                    <td class="text-left font-weight-bold text-indigo-darken-4">
+                        <v-icon class="mr-2">mdi-calculator</v-icon>
+                        Total Summary:
+                    </td>
+                    <td></td>
+                    <td class=" text-right font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalAmount) }}</td>
+                    <!-- <td class=" text-right font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td> -->
+            
+                </tr>
           </template>
         </v-data-table>
       </v-card>
@@ -502,19 +523,18 @@ const selectedPayment = ref(null)
 // }
 
 
-// Reactive filters (start with props from server)
 const dateFrom = ref(props.filters.dateFrom)
 const dateTo = ref(props.filters.dateTo)
 const filterType = ref(props.filters.type)
 
-// Function to trigger Inertia visit (re-fetch)
+
 const searchTransactions = () => {
   router.get(route('payments.index'), {
     dateFrom: dateFrom.value,
     dateTo: dateTo.value,
     type: filterType.value,
   }, {
-    preserveState: false, // keep component state
+    preserveState: true, // keep component state
     replace: true,       // don’t push history entries
   })
 }
@@ -567,13 +587,35 @@ const getPaymentTypeIcon = (type) => {
 const getPaymentMethodDotColor = (method) => {
   switch(method) {
     case 'Cash': return '#4caf50'  // Green
-    case 'GCash': return '#2196f3' // Blue
-    case 'Visa': return '#3f51b5'  // Indigo
-    case 'Mastercard': return '#3f51b5' // Indigo
-    case 'PayMaya': return '#4caf50' // Green
+    case 'Gcash': return '#2196f3' // Blue
     default: return '#9e9e9e' // Grey
   }
 }
+
+const totalAmount = computed(() => {
+  if (!props.payments) return 0;
+  return props.payments.reduce((sum, row) => sum + Number(row.total_amount || 0), 0);
+});
+
+// const totalBalance = computed(() => {
+//   if (!cardDetail.value?.data) return 0;
+//   return cardDetail.value.data.reduce((sum, row) => sum + Number(row.balance || 0), 0);
+// });
+
+
+
+// const totalPrice = computed(() => {
+//   if (!cardDetail.value?.data) return 0;
+//   return cardDetail.value.data.reduce((sum, row) => sum + Number(row.price || 0), 0);
+// });
+
+// const totalDiscount = computed(() => {
+//   if (!cardDetail.value?.data) return 0;
+//   return cardDetail.value.data.reduce((sum, row) => sum + Number(row.discount || 0), 0);
+// });
+
+
+
 
 const exportData = (format) => {
   console.log(`Exporting data as ${format}`)

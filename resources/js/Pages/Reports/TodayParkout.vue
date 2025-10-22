@@ -199,7 +199,7 @@ const formatDuration = (ticket) => {
   if (days > 0) parts.push(`${days}d`);
   if (hours > 0) parts.push(`${hours}h`);
   
-  return parts.length > 0 ? parts.join(' ') : '< 1h';
+  return parts.length > 0 ? parts.join(' ') : '< 1h'; 
 };
 
 const printReport = () => {

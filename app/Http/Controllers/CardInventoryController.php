@@ -48,7 +48,8 @@ public function index(Request $request)
 
     return inertia('CardInventory/Index', [
         'cardTemplate' => $cardTemplate,
-        'cardDetail'   => $cardDetailQuery->paginate(10)->withQueryString()
+        // 'cardDetail'   => $cardDetailQuery->paginate(10)->withQueryString()
+        'cardDetail'   => $cardDetailQuery->get()
     ]);
 }
 

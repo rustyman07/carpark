@@ -42,7 +42,7 @@
           <v-row>
             <!-- Left Side - Ticket Information -->
             <v-col cols="12" md="5">
-              <v-card class="ticket-card elevation-8" rounded="xl">
+              <v-card class="ticket-card elevation-8" rounded="sm">
                 <div class="card-header pa-6 pb-4">
                   <div class="d-flex align-center justify-space-between">
                     <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
@@ -135,7 +135,7 @@
                             {{ formatCurrency(ticket.data.park_fee) }}
                           </p>
                         </div>
-                        <v-icon size="40" color="indigo-darken-4">mdi-cash-multiple</v-icon>
+                 
                       </div>
                     </div>
                   </v-card>
@@ -145,7 +145,7 @@
 
             <!-- Right Side - Payment Form -->
             <v-col cols="12" md="7">
-              <v-card class="payment-card elevation-8" rounded="xl">
+              <v-card class="payment-card elevation-8" rounded="sm">
                 <div class="card-header pa-6 pb-4">
                   <div class="d-flex align-center justify-space-between">
                     <h3 class="text-h6 font-weight-bold text-indigo-darken-4">

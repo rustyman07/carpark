@@ -868,7 +868,7 @@ public function submit_payment(Request $request)
         // Redirect with success
         return redirect()->route('receipt.index', ['id' => $ticket->uuid])
                          ->with([
-                             'success' => 'Payment successful!',
+                             
                              'id'      => $ticket->uuid,
                              'company' => $company,
                              'cards'   => $cards,

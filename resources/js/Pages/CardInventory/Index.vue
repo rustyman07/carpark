@@ -213,24 +213,21 @@
       <!-- Main Data Table Card -->
       <v-card class="data-table-card elevation-4" rounded="lg">
         <!-- Filters Section -->
-        <div class="filters-section pa-6 pb-4">
-          <v-row align="center">
-            <v-col cols="12" md="3">
-              <v-text-field
-                v-model="filters.cardNumber"
-                prepend-inner-icon="mdi-magnify"
-                label="Search card number"
-                density="comfortable"
-                hide-details="auto"
-                variant="outlined"
-                bg-color="white"
-                clearable
-              />
-            </v-col>
-
-            <v-col cols="12" md="7">
-              <v-row>
-                <v-col cols="12" sm="5">
+        <div class="filters-section pa-4">
+          <v-row>
+                <v-col cols="12" md="3">
+                <v-text-field
+                    v-model="filters.cardNumber"
+                    prepend-inner-icon="mdi-magnify"
+                    label="Search card number"
+                    density="comfortable"
+                    hide-details="auto"
+                    variant="outlined"
+                    bg-color="white"
+                    clearable
+                />
+                </v-col>
+                <v-col cols="12" sm="2">
                   <v-date-input
                     v-model="filters.startDate"
                     prepend-icon=""
@@ -243,7 +240,7 @@
                   />
                 </v-col>
 
-                <v-col cols="12" sm="5">
+                <v-col cols="12" sm="2">
                   <v-date-input
                     v-model="filters.endDate"
                     prepend-icon=""
@@ -255,20 +252,30 @@
                     bg-color="white"
                   />
                 </v-col>
-
-                <v-col cols="12" sm="2" class="d-flex align-center">
-                  <v-btn
-                    color="indigo-darken-4"
-                    @click="applyDateFilter"
-                    icon="mdi-magnify"
-                    size="large"
-                    class="elevation-2"
-                  ></v-btn>
-                </v-col>
-              </v-row>
+                <v-col cols="12" sm="3" >
+                <v-select
+                    v-model="filters.status"
+                    :items="['All', 'Available', 'Sold','Confirmed','Consumed']"
+                    label="Status"
+                    density="comfortable"
+                    variant="outlined"
+                    bg-color="white"
+                    hide-details
+                />
             </v-col>
-
-            <v-col cols="12" md="2" class="text-right">
+                 <v-col cols="12" sm="2">
+              <v-btn
+                color="indigo-darken-4"
+                size="large"
+                block
+                  @click="applyDateFilter"
+                prepend-icon="mdi-magnify"
+              >
+                Search
+              </v-btn>
+            </v-col>
+            
+            <!-- <v-col cols="12" md="2" class="text-right">
               <v-menu>
                 <template v-slot:activator="{ props }">
                   <v-btn
@@ -295,7 +302,7 @@
                   </v-list-item>
                 </v-list>
               </v-menu>
-            </v-col>
+            </v-col> -->
           </v-row>
         </div>
 
@@ -304,7 +311,7 @@
         <!-- Data Table -->
         <v-data-table-server
           :headers="headers"
-          :items="cardDetail.data"
+          :items="cardDetail"
           v-model:items-per-page="itemsPerPage"
           :page="pageNumber"
           :items-length="cardDetail.total"
@@ -467,7 +474,7 @@
       </div>
       <div class="detail-row">
         <span class="label">Days</span>
-        <span class="value">{{ cardToDownload.no_of_days }}</span>
+        <span class="value"></span>
       </div>
     </div>
 
@@ -476,6 +483,40 @@
     </div>
   </div>
 </div> -->
+
+<div 
+v-if="cardToDownload"
+id="download-card"
+  class=" w-[270px] flex flex-col border  border-gray-300 rounded-lg bg-white"
+>
+
+<div class=" flex flex-col items-center  px-8 pt-8">
+  <img :src="`/images/comlogo.png`" alt="Company Logo" class="w-[80px] " />
+    <hr class="my-4 w-full border-t border-gray-100" />
+      <span class="text-xl font-bold">{{ cardToDownload.card_name }}</span>
+</div>
+
+<div class=" p-3 flex items-center justify-center">
+  <img :src="qrCodeMap[cardToDownload.id]" alt="QR Code" class="w-[120px]" />
+</div>
+
+  <div class="w-full text-xs bg-sky-800 flex flex-col gap-2 px-8 p-4">
+    <div class="space-y-1 mt-2 text-white text-xs">
+      <div class="flex justify-between">
+        <span class="label ">CARD NUMBER</span>
+        <span class="value font-semibold">{{ cardToDownload.card_number }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="label ">NO. OF DAYS</span>
+        <span class="value font-semibold">{{ cardToDownload.no_of_days }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="label ">AMOUNT</span>
+        <span class="value font-semibold">{{ cardToDownload.amount }}</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 
@@ -539,6 +580,7 @@ const filters = ref({
   cardNumber: '',
   startDate: new Date(),
   endDate: new Date(),
+  status: 'All'
 });
 const pageNumber = ref(cardDetail.value.current_page);
 const itemsPerPage = ref(cardDetail.value.per_page);
@@ -632,7 +674,7 @@ const applyDateFilter = () => {
       card_number: filters.value.cardNumber,
       dateFrom: formattedStartDate,
       dateTo: formattedEndDate,
-      page: 1,
+      status: filters.value.status,
     },
     { preserveState: true, replace: true }
   );

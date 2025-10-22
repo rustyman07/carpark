@@ -14,106 +14,7 @@
         </div>
       </div>
 
-      <!-- Stats Summary Cards -->
-      <v-row class="mb-6">
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="success">mdi-car-arrow-right</v-icon>
-                <v-chip size="small" color="success" variant="flat">Active</v-chip>
-              </div>
-              <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
-                {{ items.filter(i => !i.park_out_datetime || i.park_out_datetime === '-').length }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Currently Parked</p>
-            </div>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="info">mdi-car-arrow-left</v-icon>
-                <v-chip size="small" color="info" variant="flat">Completed</v-chip>
-              </div>
-              <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
-                {{ items.filter(i => i.park_out_datetime && i.park_out_datetime !== '-').length }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Exited Today</p>
-            </div>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="warning">mdi-ticket</v-icon>
-                <v-chip size="small" color="warning" variant="flat">Total</v-chip>
-              </div>
-              <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
-                {{ items.length }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Total Records</p>
-            </div>
-          </v-card>
-        </v-col>
-
-        <!-- <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="error">mdi-alert-circle</v-icon>
-                <v-chip size="small" color="error" variant="flat">Voided</v-chip>
-              </div>
-              <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
-                {{ items.filter(i => i.remarks === 'VOIDED').length }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Voided Tickets</p>
-            </div>
-          </v-card>
-        </v-col> -->
-        
-      <v-col cols="12" sm="6" md="3">
-  <v-card class="stat-card elevation-4" rounded="lg">
-    <div class="pa-4">
-      <div class="d-flex align-center justify-space-between mb-2">
-        <v-icon size="32" color="indigo">mdi-cash</v-icon>
-          <v-btn 
-                variant="text" 
-                color="indigo-darken-4" 
-                size="small"
-                append-icon="mdi-arrow-right"
-                 @click="previeReport"
-              >
-              
-                View Report
-              </v-btn>
-       
-      </div>
-      <h3 class="text-h5 font-weight-bold text-indigo-darken-4">
-        ₱ {{ totalParkFee.toLocaleString() }}
-      </h3>
-      <p class="text-caption text-medium-emphasis">Total Park Fee (per staff)</p>
-    </div>
-    <!-- <div class="kpi-card-footer">
-              <v-btn 
-                variant="text" 
-                color="indigo-darken-4" 
-                size="small"
-                append-icon="mdi-arrow-right"
-                 @click="previeReport"
-              >
-              
-                View Report
-              </v-btn>
-    </div> -->
-  </v-card>
-</v-col>
-      </v-row>
-
+    
 
 
 
@@ -122,7 +23,7 @@
         <!-- Filters Section -->
         <div class="filters-section pa-6 pb-4">
           <v-row align="center">
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="2">
               <v-date-input
                 v-model="dateFrom"
                 prepend-icon=""
@@ -147,38 +48,35 @@
                 bg-color="white"
               />
             </v-col>
-            <v-col cols="12" md="2">
-            
+            <v-col cols="12" md="3">   
                 <v-select
-  label="Staff"
-  :items="[
-    { label: 'All', value: 'All' },
-    ...props.filters.staff.map(s => ({ label: s.name, value: s.id }))
-  ]"
-  item-title="label"
-  item-value="value"
-  v-model="selectedStaff.value"
-  density="comfortable"
-  hide-details="auto"
-  variant="outlined"
-/>
-
-
+                    label="Staff"
+                    :items="[
+                        { label: 'All', value: 'All' },
+                        ...props.filters.staff.map(s => ({ label: s.name, value: s.id }))
+                    ]"
+                    item-title="label"
+                    item-value="value"
+                    v-model="selectedStaff.value"
+                    density="comfortable"
+                    hide-details="auto"
+                    variant="outlined"
+                />
             </v-col>
 
             <v-col cols="12" md="3">
-              <v-select
-                label="Log Type"
-                :items="types"
-                item-title="label"
-                item-value="value"
-                v-model="selectedType"
-                density="comfortable"
-                hide-details="auto"
-                variant="outlined"
-                bg-color="white"
-                prepend-inner-icon="mdi-filter"
-              />
+                <v-select
+                    label="Log Type"
+                    :items="types"
+                    item-title="label"
+                    item-value="value"
+                    v-model="selectedType"
+                    density="comfortable"
+                    hide-details="auto"
+                    variant="outlined"
+                    bg-color="white"
+                    prepend-inner-icon="mdi-filter"
+                />
             </v-col>
 
             <v-col cols="12" md="2">
@@ -192,6 +90,7 @@
                 Search
               </v-btn>
             </v-col>
+
           </v-row>
         </div>
 
@@ -264,6 +163,32 @@
               Already Voided
             </v-chip>
           </template>
+                      <template v-slot:body.append>
+                <tr class="summary-row">
+                    <td class="text-left font-weight-bold text-indigo-darken-4">
+                        <v-icon class="mr-2">mdi-calculator</v-icon>
+                        Total Summary:
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="  font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalParkFee) }}</td>
+                    <td></td>
+                    <td></td>
+                    <td >
+                 <v-btn 
+                variant="text" 
+                color="indigo-darken-4" 
+                size="small"
+                append-icon="mdi-arrow-right"
+                 @click="previeReport"
+              >
+                View Report
+              </v-btn>
+            </td>
+            
+                </tr>
+          </template>
         </v-data-table>
 
         <!-- Load More Section -->
@@ -314,7 +239,7 @@
 <script setup>
 import { ref,computed } from 'vue'
 import { router } from '@inertiajs/vue3'
-import { formatDate } from '../../utils/utility'
+import { formatCurrency, formatDate } from '../../utils/utility'
 import dayjs from 'dayjs'
 
 const props = defineProps({
@@ -374,6 +299,7 @@ const previeReport = () => {
 
   window.open(`${route("reports.parkout.preview")}?${params}`, "_blank");
 };
+
 
 
 

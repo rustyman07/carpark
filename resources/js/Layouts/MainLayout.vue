@@ -399,3 +399,59 @@ watch(() => page.props.flash?.error, val => {
   }
 }, { deep: true, immediate: true });
 </script>
+<style scoped>
+/* Fix drawer scrim to cover entire scrollable page */
+:deep(.v-navigation-drawer__scrim) {
+  position: fixed !important;
+  height: 100vh !important;
+}
+
+/* Enhanced styling for the drawer and app bar */
+.app-bar-custom {
+  backdrop-filter: blur(10px);
+}
+
+.toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.user-chip {
+  font-size: 0.875rem;
+  padding: 4px 12px;
+}
+
+.custom-drawer {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.drawer-header {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
+}
+
+.navigation-list .v-list-item {
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+}
+
+.navigation-list .v-list-item:hover {
+  transform: translateX(4px);
+}
+
+.child-item {
+  padding-left: 16px;
+}
+
+.error-dialog {
+  overflow: hidden;
+}
+
+.error-header {
+  background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+}
+
+.custom-snackbar {
+  font-weight: 500;
+}
+</style>

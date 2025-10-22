@@ -47,17 +47,19 @@
                   Username
                 </label>
                 <v-text-field
-                  v-model="form.username"
-                  placeholder="Enter username"
-                  variant="outlined"
-                  density="comfortable"
-                  :error-messages="form.errors.username"
-                  prepend-inner-icon="mdi-account-circle"
-                  hide-details="auto"
-                  rounded="lg"
-                  bg-color="indigo-lighten-5"
-                  color="indigo-darken-4"
+                v-model="form.username"
+                placeholder="Enter username"
+                variant="outlined"
+                density="compact"
+                :error-messages="form.errors.username"
+                prepend-inner-icon="mdi-account-circle"
+                hide-details="auto"
+                rounded="lg"
+                bg-color="indigo-lighten-5"
+                color="indigo-darken-4"
+                @input="form.username = form.username.replace(/\s+/g, '')"
                 />
+
               </div>
             </v-col>
 

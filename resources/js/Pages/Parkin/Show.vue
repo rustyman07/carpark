@@ -1,40 +1,7 @@
 <template>
   <div class="ticket-wrapper">
     <v-container fluid class="py-8">
-<div id="download-card"
-  class="w-[350px] h-[200px] flex border border-gray-300 rounded-lg p-4 bg-white"
->
-  <!-- LEFT: QR Code -->
-  <div class="w-1/3 flex flex-col justify-center">
-      <span class="label font-bold text-center">Card 7 days</span>
-    <div class="qr-section ">
-      <img :src="`/images/pngegg.png`" alt="QR Code" class="qr-image w-[100px]" />
-    </div>
-  </div>
-  <v-divider vertical class="mx-3 bg-gray-300"></v-divider>
-  <!-- RIGHT: Details + Company Logo -->
-  <div class="w-full text-xs flex flex-col gap-2">
-    <!-- ✅ Align company logo to the right -->
-    <div class="qr-section flex justify-center">
-      <img :src="`/images/comlogo.png`" alt="Company Logo" class="qr-image w-[100px]" />
-    </div>
 
-    <div class="space-y-1 mt-2">
-      <div class="flex justify-between">
-        <span class="label font-bold">Card Name</span>
-        <span class="value">1225</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="label  font-bold">Card No of Days</span>
-        <span class="value">7</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="label  font-bold">Card Amount</span>
-        <span class="value">2,300</span>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 

@@ -6,37 +6,45 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; }
         .header { border-bottom: 2px solid #1f2937; padding: 32px 48px; text-align: center; position: relative; }
-        .header img { position: absolute; top: 0; left: 30px; height: 170px; width: 170px; }
+        .header img { position: absolute; top: 20; left: 30px; height: 140px; width: 140px; }
         .header h1 { font-size: 24px; font-weight: bold; text-transform: uppercase; }
         .header h2 { font-size: 20px; font-weight: 600; margin-top: 5px; }
         .header p { font-size: 14px; color: #4b5563; margin-top: 5px; }
 
-        .summary { 
+       .summary { 
             padding: 24px 48px; 
-            background-color: #f9fafb; 
+            background-color: #ffffff; 
             border-bottom: 1px solid #e5e7eb; 
         }
         .summary h3 { 
-            font-size: 12px; 
+            font-size: 14px; 
             font-weight: bold; 
             text-transform: uppercase; 
-            margin-bottom: 16px; 
+            margin-bottom: 16px;
+            color: #1f2937;
         }
         .summary-grid { 
-            width: 100%; 
+            width: 100%;
         }
         .summary-item { 
-            border-left: 4px solid #2563eb; 
-            padding: 12px 16px; 
-            background: white; 
-            border-radius: 6px;
+            padding: 0;
+            border: none;
+            background: transparent;
             vertical-align: top;
         }
-        .summary-item.green { border-left-color: #16a34a; }
-        .summary-item.orange { border-left-color: #f59e0b; }
-        .summary-label { font-size: 11px; color: #4b5563; text-transform: uppercase; }
-        .summary-value { font-size: 20px; font-weight: bold; margin-top: 4px; }
-
+        .summary-label { 
+            font-size: 10px; 
+            color: #6b7280; 
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .summary-value { 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin-top: 6px;
+            color: #1f2937;
+        }
         .content { padding: 24px 48px; }
         .staff-section { margin-bottom: 16px; page-break-inside: avoid; }
         .staff-header { 
