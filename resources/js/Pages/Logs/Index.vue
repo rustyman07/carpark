@@ -163,7 +163,7 @@
               Already Voided
             </v-chip>
           </template>
-                      <template v-slot:body.append>
+          <template v-slot:body.append>
                 <tr class="summary-row">
                     <td class="text-left font-weight-bold text-indigo-darken-4">
                         <v-icon class="mr-2">mdi-calculator</v-icon>
@@ -176,16 +176,16 @@
                     <td></td>
                     <td></td>
                     <td >
-                 <v-btn 
-                variant="text" 
-                color="indigo-darken-4" 
-                size="small"
-                append-icon="mdi-arrow-right"
-                 @click="previeReport"
-              >
-                View Report
-              </v-btn>
-            </td>
+                        <v-btn 
+                        variant="text" 
+                        color="indigo-darken-4" 
+                        size="small"
+                        append-icon="mdi-arrow-right"
+                        @click="previeReport"
+                    >
+                        View Report
+                    </v-btn>
+                    </td>
             
                 </tr>
           </template>

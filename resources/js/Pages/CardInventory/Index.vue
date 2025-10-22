@@ -43,7 +43,7 @@
     </v-dialog>
 
       <!-- Stats Summary Cards -->
-      <v-row class="mb-6">
+      <!-- <v-row class="mb-6">
         <v-col cols="12" sm="6" md="3">
           <v-card class="stat-card elevation-4" rounded="lg">
             <div class="pa-4">
@@ -89,20 +89,6 @@
           </v-card>
         </v-col>
 
-        <!-- <v-col cols="12" sm="6" md="3">
-          <v-card class="stat-card elevation-4" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-2">
-                <v-icon size="32" color="warning">mdi-wallet</v-icon>
-                <v-chip size="small" color="warning" variant="flat">Balance</v-chip>
-              </div>
-              <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
-                {{ formatCurrency(totalBalance) }}
-              </h3>
-              <p class="text-caption text-medium-emphasis">Total Balance</p>
-            </div>
-          </v-card>
-        </v-col> -->
 
         <v-col cols="12" sm="6" md="3">
   <v-card class="stat-card elevation-4" rounded="lg">
@@ -119,7 +105,7 @@
   </v-card>
 </v-col>
 
-      </v-row> 
+      </v-row>  -->
 
       <!-- Dialogs -->
       <Create 
@@ -309,12 +295,10 @@
         <v-divider></v-divider>
 
         <!-- Data Table -->
-        <v-data-table-server
+        <v-data-table
           :headers="headers"
           :items="cardDetail"
-          v-model:items-per-page="itemsPerPage"
-          :page="pageNumber"
-          :items-length="cardDetail.total"
+           hide-default-footer
           class="custom-data-table"
           @update:page="goToPage"
         >
@@ -410,17 +394,19 @@
                 Total Summary:
               </td>
               <td></td>
-              <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalPrice) }}</td>
-              <td class="font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td>
+                <td></td>
+              <td></td>
+              <!-- <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalPrice) }}</td>
+              <td class="font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td> -->
               <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalAmount) }}</td>
-              <td class="font-weight-bold text-warning">{{ formatCurrency(totalBalance) }}</td>
+              <!-- <td class="font-weight-bold text-warning">{{ formatCurrency(totalBalance) }}</td> -->
               <td></td>
               <td></td>
               <td></td>
               <td></td>
             </tr>
           </template>
-        </v-data-table-server>
+        </v-data-table>
       </v-card>
 
       <!-- Hidden Download Card Template -->
@@ -608,8 +594,8 @@ if (user.value.role == 1) { // admin
 }
 // Computed totals
 const totalAmount = computed(() => {
-  if (!cardDetail.value?.data) return 0;
-  return cardDetail.value.data.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  if (!cardDetail.value) return 0;
+  return cardDetail.value.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 });
 
 // const totalBalance = computed(() => {
@@ -880,15 +866,8 @@ const exportData = (format) => {
 }
 
 /* Summary Row */
-.summary-row {
-  background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%) !important;
-  font-size: 0.95rem;
-  border-top: 2px solid #1a237e;
-}
 
-.summary-row td {
-  padding: 16px !important;
-}
+
 
 /* Confirmation Dialog - Indigo Theme */
 .confirm-card {

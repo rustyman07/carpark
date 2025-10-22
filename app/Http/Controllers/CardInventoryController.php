@@ -24,9 +24,10 @@ class CardInventoryController extends Controller
 public function index(Request $request)
 {
 
-    $dateFrom = $request->input('dateFrom', now()->toDateString());
-    $dateTo   = $request->input('dateTo', now()->toDateString());;
-    $cardNumber  = $request->input('card_number');
+    $dateFrom    =  $request->input('dateFrom', now()->toDateString());
+    $dateTo      =  $request->input('dateTo', now()->toDateString());;
+    $cardNumber  =  $request->input('card_number');
+    $status      =  $request->input('status','Available');
 
     $cardTemplate = CardTemplate::where('cancelled', 0)->get();
 
@@ -36,6 +37,10 @@ public function index(Request $request)
     // ✅ Add search by card number
     if (!empty($cardNumber)) {
         $cardDetailQuery->where('card_number', 'like', '%' . $cardNumber . '%');
+    }
+
+    if($status !== 'All'){
+         $cardDetailQuery->where('status', $status);
     }
 
     if ($dateFrom && $dateTo) {
@@ -460,7 +465,7 @@ public function updateStatus(Request $request, $id)
         'valid_until' => now()->addYear(),
     ]);
 
-    $cardDetail = CardInventoryDetail::latest()->paginate(10);
+    $cardDetail = CardInventoryDetail::latest()->get();
 
     return back()->with([
         'cardDetail' => $cardDetail,
