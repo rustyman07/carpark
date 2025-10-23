@@ -36,7 +36,7 @@
             <!-- Card Name -->
             <v-col cols="12">
               <div class="input-group">
-                <label class="input-label">
+                <label class="input-label text-indigo-darken-4 font-weight-bold mb-2 d-block ">
                   <v-icon size="18" class="mr-1">mdi-card-text</v-icon>
                   Card Name
                 </label>
@@ -46,8 +46,9 @@
                   variant="outlined"
                   density="comfortable"
                   :error-messages="form.errors.card_name"
-                  prepend-inner-icon="mdi-credit-card-outline"
                   hide-details="auto"
+                      bg-color="indigo-lighten-5"
+                  color="indigo-darken-4"
                 />
               </div>
             </v-col>
@@ -55,7 +56,7 @@
             <!-- Number of Days -->
             <v-col cols="12" sm="6">
               <div class="input-group">
-                <label class="input-label">
+                <label class="input-label text-indigo-darken-4 font-weight-bold mb-2 d-block">
                   <v-icon size="18" class="mr-1">mdi-calendar-range</v-icon>
                   Duration (Days)
                 </label>
@@ -67,8 +68,9 @@
                   type="number"
                   min="1"
                   :error-messages="form.errors.no_of_days"
-                  prepend-inner-icon="mdi-calendar-clock"
                   hide-details="auto"
+                bg-color="indigo-lighten-5"
+                  color="indigo-darken-4"
                 />
               </div>
             </v-col>
@@ -76,7 +78,7 @@
             <!-- Price -->
             <v-col cols="12" sm="6">
               <div class="input-group">
-                <label class="input-label">
+                <label class="input-label text-indigo-darken-4 font-weight-bold mb-2 d-block">
                   <v-icon size="18" class="mr-1">mdi-cash</v-icon>
                   Price
                 </label>
@@ -90,8 +92,9 @@
                   step="0.01"
                   prefix="₱"
                   :error-messages="form.errors.price"
-                  prepend-inner-icon="mdi-currency-php"
                   hide-details="auto"
+                    bg-color="indigo-lighten-5"
+                  color="indigo-darken-4"
                 />
               </div>
             </v-col>
@@ -99,7 +102,7 @@
             <!-- Discount -->
             <v-col cols="12" sm="6">
               <div class="input-group">
-                <label class="input-label">
+                <label class="input-label text-indigo-darken-4 font-weight-bold mb-2 d-block">
                   <v-icon size="18" class="mr-1">mdi-tag</v-icon>
                   Discount (Optional)
                 </label>
@@ -113,8 +116,9 @@
                   step="0.01"
                   prefix="₱"
                   :error-messages="form.errors.discount"
-                  prepend-inner-icon="mdi-tag-outline"
                   hide-details="auto"
+                bg-color="indigo-lighten-5"
+                  color="indigo-darken-4"
                 />
               </div>
             </v-col>
@@ -122,12 +126,12 @@
             <!-- Final Amount Preview -->
             <v-col cols="12" sm="6">
               <div class="input-group">
-                <label class="input-label">
+                <label class="input-label text-indigo-darken-4 font-weight-bold mb-2 d-block">
                   <v-icon size="18" class="mr-1">mdi-calculator</v-icon>
                   Final Amount
                 </label>
                 <v-card class="amount-preview elevation-0" color="indigo-lighten-5" rounded="lg">
-                  <div class="pa-3 d-flex align-center justify-center">
+                  <div class=" d-flex align-center justify-center">
                     <span class="text-h6 font-weight-bold text-indigo-darken-4">
                       ₱{{ calculateFinalAmount }}
                     </span>
@@ -248,14 +252,14 @@ const update = () => form.put(route('card-template.update', props.selectedTempla
 }
 
 .form-header {
-  background: linear-gradient(135deg, rgba(26, 35, 126, 0.05) 0%, rgba(26, 35, 126, 0.02) 100%);
+ background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
 }
 
 .input-group {
   margin-bottom: 0.5rem;
 }
 
-.input-label {
+.input-label text-indigo-darken-4 font-weight-bold mb-2 d-block {
   display: flex;
   align-items: center;
   font-weight: 600;

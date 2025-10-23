@@ -247,6 +247,7 @@
                     variant="outlined"
                     bg-color="white"
                     hide-details
+                           prepend-inner-icon="mdi-filter"
                 />
             </v-col>
                  <v-col cols="12" sm="2">
@@ -302,6 +303,10 @@
           class="custom-data-table"
           @update:page="goToPage"
         >
+
+            <template v-slot:item.card_number="{ item }">
+            <span class="font-weight-bold text-indigo-darken-4">{{ item.card_number }}</span>
+          </template>
           <template v-slot:item.price="{ item }">
             <span class="font-weight-medium">{{ formatCurrency(item.price) }}</span>
           </template>
@@ -389,12 +394,11 @@
           <!-- Summary Footer -->
           <template v-slot:body.append>
             <tr class="summary-row">
-              <td class="text-left font-weight-bold text-indigo-darken-4">
-                <v-icon class="mr-2">mdi-calculator</v-icon>
-                Total Summary:
-              </td>
-              <td></td>
-                <td></td>
+                               <td colspan="2" class="text-left font-weight-bold text-indigo-darken-4">
+                       No of Records: {{cardDetail.length }}
+            </td>
+                      
+            <td></td>
               <td></td>
               <!-- <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalPrice) }}</td>
               <td class="font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td> -->

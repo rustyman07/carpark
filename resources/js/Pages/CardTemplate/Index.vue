@@ -151,6 +151,22 @@
               ></v-btn>
             </div>
           </template>
+                      <template v-slot:body.append>
+                <tr class="summary-row" >
+                    <td colspan="2" class="text-left font-weight-bold text-indigo-darken-4">
+                       No of Records: {{filteredTemplates.length }}
+                    </td>
+                      
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                     
+                    <!-- <td class=" text-right font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td> -->
+            
+                </tr>
+          </template>
         </v-data-table>
       </v-card>
     </v-container>
@@ -192,19 +208,19 @@ const filteredTemplates = computed(() => {
   )
 })
 
-const totalRevenue = computed(() => {
-  return templates.value.reduce((sum, t) => sum + Number(t.amount || 0), 0)
-})
+// const totalRevenue = computed(() => {
+//   return templates.value.reduce((sum, t) => sum + Number(t.amount || 0), 0)
+// })
 
-const totalDiscount = computed(() => {
-  return templates.value.reduce((sum, t) => sum + Number(t.discount || 0), 0)
-})
+// const totalDiscount = computed(() => {
+//   return templates.value.reduce((sum, t) => sum + Number(t.discount || 0), 0)
+// })
 
-const averageDays = computed(() => {
-  if (!templates.value.length) return 0
-  const total = templates.value.reduce((sum, t) => sum + Number(t.no_of_days || 0), 0)
-  return Math.round(total / templates.value.length)
-})
+// const averageDays = computed(() => {
+//   if (!templates.value.length) return 0
+//   const total = templates.value.reduce((sum, t) => sum + Number(t.no_of_days || 0), 0)
+//   return Math.round(total / templates.value.length)
+// })
 
 const editItem = (item) => {
   selectedTemplate.value = item

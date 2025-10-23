@@ -66,7 +66,7 @@
         .text-right { text-align: right; }
         .font-weight-500 { font-weight: 500; }
 
-        .footer { padding: 48px; border-top: 1px solid #e5e7eb; text-align: left; width: fit-content; }
+        .footer { padding-left:48px; padding-top: 12px ; margin-top: 15px; border-top: 1px solid #e5e7eb; text-align: left; width: fit-content; }
         .signature-grid { display: flex; justify-content: flex-start; }
         .signature-item { text-align: left; }
         .signature-line { border-top: 2px solid #1f2937; padding-top: 8px; margin-top: 8px; width: 200px; }

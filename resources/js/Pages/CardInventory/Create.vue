@@ -34,7 +34,7 @@
             <!-- Template Selection -->
             <v-col cols="12">
               <div class="input-group">
-                <label class="input-label">
+                <label class="input-label text-indigo-darken-4 font-weight-bold mb-2 d-block">
                   <v-icon size="18" class="mr-1">mdi-card-text-outline</v-icon>
                   Select Card Template
                 </label>
@@ -46,8 +46,10 @@
                   placeholder="Choose a template"
                   variant="outlined"
                   density="comfortable"
-                  prepend-inner-icon="mdi-format-list-bulleted"
+
                   hide-details="auto"
+                 bg-color="indigo-lighten-5"
+                  color="indigo-darken-4"
                   @update:modelValue="onTemplateChange"
                 >
                   <template v-slot:item="{ props, item }">
@@ -69,7 +71,7 @@
             <!-- Number of Cards -->
             <v-col cols="12">
               <div class="input-group">
-                <label class="input-label">
+                <label class="input-label text-indigo-darken-4 font-weight-bold mb-2 d-block">
                   <v-icon size="18" class="mr-1">mdi-numeric</v-icon>
                   Number of Cards to Generate
                 </label>
@@ -81,8 +83,9 @@
                   type="number"
                   min="1"
                   :error-messages="form.errors.no_of_cards"
-                  prepend-inner-icon="mdi-counter"
                   hide-details="auto"
+                bg-color="indigo-lighten-5"
+                  color="indigo-darken-4"
                 />
               </div>
             </v-col>
@@ -271,14 +274,14 @@ const onTemplateChange = (id) => {
 }
 
 .form-header {
-  background: linear-gradient(135deg, rgba(26, 35, 126, 0.05) 0%, rgba(26, 35, 126, 0.02) 100%);
+   background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
 }
 
 .input-group {
   margin-bottom: 0.5rem;
 }
 
-.input-label {
+.input-label text-indigo-darken-4 font-weight-bold mb-2 d-block {
   display: flex;
   align-items: center;
   font-weight: 600;

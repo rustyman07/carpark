@@ -18,7 +18,7 @@
       </div>
 
       <!-- Stats Summary Cards -->
-      <v-row class="mb-6">
+      <!-- <v-row class="mb-6">
         <v-col cols="12" sm="6" md="3">
           <v-card class="stat-card elevation-4" rounded="lg">
             <div class="pa-4">
@@ -87,7 +87,7 @@
             </div>
           </v-card>
         </v-col>
-      </v-row>
+      </v-row> -->
 
       <!-- Main Data Table Card -->
       <v-card class="data-table-card elevation-8" rounded="lg">
@@ -132,6 +132,7 @@
                 variant="outlined"
                 bg-color="white"
                 hide-details
+                 prepend-inner-icon="mdi-filter"
               />
             </v-col>
              <v-col cols="12" md="2">
@@ -257,12 +258,26 @@
           </template>
             <template v-slot:body.append>
                 <tr class="summary-row">
-                    <td class="text-left font-weight-bold text-indigo-darken-4">
-                        <v-icon class="mr-2">mdi-calculator</v-icon>
-                        Total Summary:
+                    <td colspan="2" class="text-left font-weight-bold text-indigo-darken-4">
+                       No of Records: {{props.payments.length }}
                     </td>
+                      <td class=" text-right font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalAmount) }}</td>
                     <td></td>
-                    <td class=" text-right font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalAmount) }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                     <td>                    
+                    <v-btn 
+                        variant="text" 
+                        color="indigo-darken-4" 
+                        size="small"
+                        append-icon="mdi-arrow-right"
+                        @click="previewReport"
+                        >
+              
+                     View Report
+              </v-btn></td>
                     <!-- <td class=" text-right font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td> -->
             
                 </tr>

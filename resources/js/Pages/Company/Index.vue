@@ -108,8 +108,6 @@
                     density="comfortable"
                     v-model="form.rate_perhour"
                     :disabled="isDisabled || (form.rate !== 'perhour' && form.rate !== 'combination')"
-                    prepend-inner-icon="mdi-clock-outline"
-                    prefix="$"
                     type="number"
                     :readonly="isDisabled || (form.rate !== 'perhour' && form.rate !== 'combination')"
                     bg-color="surface"
@@ -123,8 +121,7 @@
                     density="comfortable"
                     v-model="form.rate_perday"
                     :disabled="isDisabled || (form.rate !== 'perday' && form.rate !== 'combination')"
-                    prepend-inner-icon="mdi-calendar-today"
-                    prefix="$"
+              
                     type="number"
                     :readonly="isDisabled || (form.rate !== 'perday' && form.rate !== 'combination')"
                     bg-color="surface"

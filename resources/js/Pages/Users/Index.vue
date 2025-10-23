@@ -17,15 +17,14 @@
           size="large"
           @click="addusers"
           prepend-icon="mdi-plus-circle"
-     
-         
+      
         >
-          Add User
+          Add User  
         </v-btn>
       </div>
 
       <!-- Stats Summary Cards -->
-      <v-row class="mb-8">
+      <!-- <v-row class="mb-8">
         <v-col cols="12" sm="6" lg="3">
           <v-card class="stat-card elevation-4" rounded="lg">
             <div class="pa-4">
@@ -94,7 +93,7 @@
             </div>
           </v-card>
         </v-col>
-      </v-row>
+      </v-row> -->
 
       <!-- Create/Edit Dialog -->
       <Create v-model="showDialog" :selectedItem="selectedItem" :shifts="props.shifts" />
@@ -139,10 +138,10 @@
       <!-- Users Data Table -->
       <v-card class="data-table-card elevation-12" rounded="lg">
         <div class="card-header pa-6 pb-4">
-          <div class="d-flex align-center justify-space-between flex-wrap ga-4">
+          <div class="d-flex align-center justify-space-between flex-wrap ">
             
                 <h3 class="text-h6 font-weight-bold text-indigo-darken-4">     
-                <v-icon class="mr-2" size="28" color="indigo-darken-4">mdi-account-multiple</v-icon> 
+                <v-icon class="mr-2" >mdi-account-multiple</v-icon> 
                  Users List
                 </h3>
                        
@@ -150,14 +149,12 @@
               v-model="searchQuery"
               prepend-inner-icon="mdi-magnify"
               label="Search users"
-              density="comfortable"
+             density="compact"
               hide-details
               variant="outlined"
-              bg-color="white"
               clearable
-           
               style="max-width: 350px;"
-              class="elevation-2"
+            color="indigo-darken-4"
             />
           </div>
         </div>
@@ -238,6 +235,18 @@
               />
             </div>
           </template>
+                    <template v-slot:body.append>
+                <tr class="summary-row">
+                     <td colspan="2" class="text-left font-weight-bold text-indigo-darken-4">
+                       No of Records: {{filteredUsers.length }}
+                    </td>
+                    <td></td>
+                   
+                    <td></td>
+                
+            
+                </tr>
+          </template>
         </v-data-table>
       </v-card>
     </v-container>
@@ -264,7 +273,6 @@ const headers = [
   { key: 'fullname', title: 'User', sortable: true },
   { key: 'contact', title: 'Contact' },
   { key: 'role', title: 'Role', align: 'center' },
-  { key: 'shift', title: 'Shift', align: 'center' },
   { key: 'actions', title: 'Actions', align: 'center', sortable: false }
 ]
 

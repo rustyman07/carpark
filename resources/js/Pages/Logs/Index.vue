@@ -165,11 +165,10 @@
           </template>
           <template v-slot:body.append>
                 <tr class="summary-row">
-                    <td class="text-left font-weight-bold text-indigo-darken-4">
-                        <v-icon class="mr-2">mdi-calculator</v-icon>
-                        Total Summary:
+                     <td colspan="2" class="text-left font-weight-bold text-indigo-darken-4">
+                       No of Records: {{items.length }}
                     </td>
-                    <td></td>
+                    
                     <td></td>
                     <td></td>
                     <td class="  font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalParkFee) }}</td>
