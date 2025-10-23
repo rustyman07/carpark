@@ -85,7 +85,7 @@ class ReportController extends Controller
         ];
 
         return Pdf::loadView('Printables.ParkingReport', $data)
-            ->setPaper('a4', 'portrait')
+            ->setPaper('a4', 'landscape')
             ->setOption('margin-top', 10)
             ->setOption('margin-right', 10)
             ->setOption('margin-bottom', 10)

@@ -1,6 +1,6 @@
 <template>
   <!-- QR Scanner Dialog -->
-  <v-dialog v-model="isScanQR" max-width="600">
+  <v-dialog v-model="isScanQR" max-width="600" persistent>
     <v-card rounded="lg">
       <v-card-title class="pa-6 pb-4">
         <div class="d-flex align-center">
@@ -30,94 +30,85 @@
         <v-col cols="12" md="10" lg="8">
           <!-- Header -->
           <div class="page-header mb-6 text-center">
-            <v-icon size="48" color="white" class="mb-2">mdi-cash-register</v-icon>
             <h1 class="text-h4 font-weight-bold text-white mb-2">
               Payment Processing
             </h1>
-            <p class="text-white-70">
-              Complete your parking payment
-            </p>
           </div>
 
           <v-row>
             <!-- Left Side - Ticket Information -->
             <v-col cols="12" md="5">
               <v-card class="ticket-card elevation-8" rounded="sm">
-                <div class="card-header pa-6 pb-4">
+                <div class="card-header pa-4">
                   <div class="d-flex align-center justify-space-between">
-                    <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
-                      <v-icon class="mr-2">mdi-ticket-confirmation</v-icon>
+                    <h3 class="text-sm font-weight-bold text-indigo-darken-4">
                       Ticket Details
                     </h3>
-                    <v-chip color="success" variant="flat" size="small">
-                      Active
-                    </v-chip>
                   </div>
                 </div>
 
                 <v-divider></v-divider>
 
                 <div class="pa-6">
-                  <!-- Ticket Info Items -->
+                  <!-- Ticket Number -->
                   <div class="info-item mb-4">
-                    <div class="d-flex align-center mb-2">
-                      <v-icon size="20" color="indigo-darken-4" class="mr-2">mdi-barcode</v-icon>
-                      <span class="text-caption text-medium-emphasis">Ticket Number</span>
+                    <div class="d-flex align-center justify-space-between mb-2">
+                      <span class="text-caption text-indigo-darken-4">Ticket Number</span>
+                      <p class="text-xs font-weight-bold text-indigo-darken-4 mb-0">
+                        {{ ticket.data.ticket_no }}
+                      </p>
                     </div>
-                    <p class="text-h6 font-weight-bold text-indigo-darken-4 mb-0 ml-7">
-                      {{ ticket.data.ticket_no }}
-                    </p>
                   </div>
 
                   <v-divider class="my-4"></v-divider>
 
+                  <!-- Park In -->
                   <div class="info-item mb-4">
-                    <div class="d-flex align-center mb-2">
-                      <v-icon size="20" color="success" class="mr-2">mdi-login</v-icon>
-                      <span class="text-caption text-medium-emphasis">Park In</span>
-                    </div>
-                    <p class="text-subtitle-1 font-weight-medium mb-0 ml-7">
-                      {{ formatDate(ticket.data.park_datetime) }}
-                    </p>
-                    <p class="text-body-2 text-success font-weight-bold ml-7">
-                      {{ parkinTime }}
-                    </p>
-                  </div>
-
-                  <div class="info-item mb-4">
-                    <div class="d-flex align-center mb-2">
-                      <v-icon size="20" color="error" class="mr-2">mdi-logout</v-icon>
-                      <span class="text-caption text-medium-emphasis">Park Out</span>
-                    </div>
-                    <p class="text-subtitle-1 font-weight-medium mb-0 ml-7">
-                      {{ formatDate(ticket.data.park_out_datetime) }}
-                    </p>
-                    <p class="text-body-2 text-error font-weight-bold ml-7">
-                      {{ parkoutTime }}
-                    </p>
-                  </div>
-
-                  <v-divider class="my-4"></v-divider>
-
-                  <div class="info-item mb-4" v-if="ticket.data.days_parked !== 0">
-                    <div class="d-flex align-center justify-space-between">
-                      <div class="d-flex align-center">
-                        <v-icon size="20" color="indigo-darken-4" class="mr-2">mdi-calendar-range</v-icon>
-                        <span class="text-body-2">Number of Days</span>
+                    <div class="d-flex align-center justify-space-between text-indigo-darken-4 mb-2">
+                      <span class="text-caption">Park In</span>
+                      <div class="d-flex flex-column align-end">
+                        <span class="text-xs font-weight-bold">
+                          {{ formatDate(ticket.data.park_datetime) }}
+                        </span>
+                        <span class="text-xs font-weight-bold">
+                          {{ parkinTime }}
+                        </span>
                       </div>
+                    </div>
+                  </div>
+
+                  <!-- Park Out -->
+                  <div class="info-item mb-4">
+                    <div class="d-flex align-center justify-space-between mb-2 text-indigo-darken-4">
+                      <span class="text-caption">Park Out</span>
+                      <div class="d-flex flex-column align-end">
+                        <span class="text-xs font-weight-bold">
+                          {{ formatDate(ticket.data.park_out_datetime) }}
+                        </span>
+                        <span class="text-xs font-weight-bold">
+                          {{ parkoutTime }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <v-divider class="my-4"></v-divider>
+
+                  <!-- Number of Days -->
+                  <div class="info-item mb-4" v-if="ticket.data.days_parked > 0">
+                    <div class="d-flex align-center justify-space-between">
+                      <span class="text-caption text-indigo-darken-4">Number of Days</span>
                       <span class="text-h6 font-weight-bold text-indigo-darken-4">
                         {{ ticket.data.days_parked }}
                       </span>
                     </div>
                   </div>
 
-                  <div class="info-item mb-4" v-if="hoursPark !== 0">
+                  <!-- Number of Hours -->
+                  <div class="info-item mb-4" v-if="hoursPark > 0">
                     <div class="d-flex align-center justify-space-between">
-                      <div class="d-flex align-center">
-                        <v-icon size="20" color="indigo-darken-4" class="mr-2">mdi-clock-outline</v-icon>
-                        <span class="text-body-2">Number of Hours</span>
-                      </div>
-                      <span class="text-h6 font-weight-bold text-indigo-darken-4">
+                      <span class="text-caption text-indigo-darken-4">Number of Hours</span>
+                      <span class="text-sm font-weight-bold text-indigo-darken-4">
                         {{ hoursPark }}
                       </span>
                     </div>
@@ -126,16 +117,15 @@
                   <v-divider class="my-4"></v-divider>
 
                   <!-- Total Bill -->
-                  <v-card class="total-card elevation-0" color="indigo-lighten-5" rounded="lg">
+                  <v-card class="total-card elevation-0" color="indigo-lighten-5" rounded="sm">
                     <div class="pa-4">
                       <div class="d-flex align-center justify-space-between">
                         <div>
                           <p class="text-caption text-medium-emphasis mb-1">Total Parking Fee</p>
-                          <p class="text-h5 font-weight-bold text-indigo-darken-4 mb-0">
+                          <p class="text-md font-weight-bold text-indigo-darken-4 mb-0">
                             {{ formatCurrency(ticket.data.park_fee) }}
                           </p>
                         </div>
-                 
                       </div>
                     </div>
                   </v-card>
@@ -146,10 +136,9 @@
             <!-- Right Side - Payment Form -->
             <v-col cols="12" md="7">
               <v-card class="payment-card elevation-8" rounded="sm">
-                <div class="card-header pa-6 pb-4">
+                <div class="card-header pa-4">
                   <div class="d-flex align-center justify-space-between">
-                    <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
-                      <v-icon class="mr-2">mdi-credit-card</v-icon>
+                    <h3 class="text-sm font-weight-bold text-indigo-darken-4">
                       Payment Method
                     </h3>
                   </div>
@@ -159,20 +148,20 @@
 
                 <div class="pa-6">
                   <!-- Scan Card Button -->
-                  <v-btn
-                    color="indigo-darken-4"
-                    size="large"
-                    block
-                    @click="scanQR"
-                    class="mb-6 scan-card-btn"
-                  >
-                    <v-icon start size="24">mdi-qrcode-scan</v-icon>
-                    Scan Card QR Code
-                  </v-btn>
-
-                  <!-- Scanned Cards Table -->
-                  <div class="cards-section mb-6">
-                    <h4 class="text-subtitle-1 font-weight-bold text-indigo-darken-4 mb-3">
+                <v-btn
+                color="indigo-darken-4"
+                size="large"
+                block
+                @click="scanQR"
+                class="mb-6 scan-card-btn text-xs"
+                style="text-transform: none;"
+                >
+                <v-icon start size="24">mdi-qrcode-scan</v-icon>
+                Scan Card
+                </v-btn>
+                                <!-- Scanned Cards Table -->
+                  <div v-if="items.length > 0" class="cards-section mb-6">
+                    <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">
                       Scanned Cards
                     </h4>
 
@@ -190,7 +179,7 @@
                           <v-icon size="48" color="grey-lighten-1" class="mb-3">
                             mdi-credit-card-off-outline
                           </v-icon>
-                          <p class="text-body-2 text-medium-emphasis">
+                          <p class="text-sm text-medium-emphasis">
                             No cards scanned yet
                           </p>
                         </div>
@@ -199,20 +188,20 @@
                   </div>
 
                   <!-- Summary Section -->
-                  <v-card class="summary-card elevation-0 mb-6" color="grey-lighten-4" rounded="lg">
+                  <v-card v-if="items.length > 0" class="summary-card elevation-0 mb-6" color="grey-lighten-4" rounded="lg">
                     <div class="pa-4">
                       <div class="d-flex align-center justify-space-between mb-3">
-                        <span class="text-body-1 font-weight-medium">Covered by Cards:</span>
-                        <span class="text-h6 font-weight-bold text-success">
+                        <span class="text-sm font-weight-medium">Covered by Cards:</span>
+                        <span class="text-lg font-weight-bold text-success">
                           {{ formatCurrency(totalCovered) }}
                         </span>
                       </div>
                       <v-divider class="my-3"></v-divider>
                       <div class="d-flex align-center justify-space-between">
-                        <span class="text-h6 font-weight-bold text-indigo-darken-4">
+                        <span class="text-sm font-weight-bold text-indigo-darken-4">
                           Amount Due:
                         </span>
-                        <span class="text-h5 font-weight-bold text-error">
+                        <span class="text-lg font-weight-bold text-error">
                           {{ formatCurrency(cashNeeded) }}
                         </span>
                       </div>
@@ -221,22 +210,21 @@
 
                   <!-- Payment Method Selection -->
                   <div class="payment-method-section mb-6">
-                    <h4 class="text-subtitle-1 font-weight-bold text-indigo-darken-4 mb-3">
-                      <v-icon class="mr-2">mdi-wallet</v-icon>
+                    <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">
                       Select Payment Method
                     </h4>
 
                     <v-card class="payment-options elevation-0" rounded="lg" variant="outlined">
-                      <v-radio-group v-model="paymentMethod" :disabled="disAbledPayment" hide-details>
-                        <v-radio value="cash" class="payment-option-radio">
+                      <v-radio-group v-model="paymentMethod" :disabled="disAbledPayment" hide-details density="compact">
+                        <v-radio value="cash" class="payment-option-radio" density="compact">
                           <template v-slot:label>
-                            <div class="d-flex align-center pa-3 w-100">
-                              <v-avatar color="green-lighten-4" size="48" class="mr-4">
-                                <v-icon color="green-darken-2" size="28">mdi-cash</v-icon>
+                            <div class="d-flex align-center pa-2 w-100">
+                              <v-avatar color="green-lighten-4" size="28" class="mr-3">
+                                <v-icon color="green-darken-2" size="16">mdi-cash</v-icon>
                               </v-avatar>
                               <div>
-                                <p class="text-subtitle-1 font-weight-bold mb-0">Cash Payment</p>
-                                <p class="text-caption text-medium-emphasis mb-0">Pay with physical cash</p>
+                                <p class="text-xs font-weight-bold mb-0">Cash Payment</p>
+                                <p class="text-xs text-medium-emphasis mb-0">Pay with physical cash</p>
                               </div>
                             </div>
                           </template>
@@ -244,15 +232,15 @@
                         
                         <v-divider></v-divider>
                         
-                        <v-radio value="gcash" class="payment-option-radio">
+                        <v-radio value="gcash" class="payment-option-radio" density="compact">
                           <template v-slot:label>
-                            <div class="d-flex align-center pa-3 w-100">
-                              <v-avatar color="blue-lighten-4" size="48" class="mr-4">
-                                <v-icon color="blue-darken-2" size="28">mdi-cellphone</v-icon>
+                            <div class="d-flex align-center pa-2 w-100">
+                              <v-avatar color="blue-lighten-4" size="28" class="mr-3">
+                                <v-icon color="blue-darken-2" size="16">mdi-cellphone</v-icon>
                               </v-avatar>
                               <div>
-                                <p class="text-subtitle-1 font-weight-bold mb-0">GCash</p>
-                                <p class="text-caption text-medium-emphasis mb-0">Pay via GCash mobile wallet</p>
+                                <p class="text-xs font-weight-bold mb-0">GCash</p>
+                                <p class="text-xs text-medium-emphasis mb-0">Pay via GCash mobile wallet</p>
                               </div>
                             </div>
                           </template>
@@ -264,13 +252,12 @@
                   <!-- Cash Payment Section -->
                   <v-expand-transition>
                     <div v-if="paymentMethod === 'cash'" class="cash-section">
-                      <h4 class="text-subtitle-1 font-weight-bold text-indigo-darken-4 mb-3">
-                        <v-icon class="mr-2">mdi-cash</v-icon>
+                      <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">
                         Cash Amount
                       </h4>
 
                       <v-text-field
-                        v-model="cashAmount"
+                        v-model.number="cashAmount"
                         label="Enter Cash Amount"
                         variant="outlined"
                         type="number"
@@ -280,6 +267,8 @@
                         hide-details="auto"
                         :hint="disAbledPayment ? 'Payment fully covered by cards' : ''"
                         persistent-hint
+                        min="0"
+                        step="0.01"
                       >
                         <template v-slot:prepend-inner>
                           <v-icon color="green-darken-2">mdi-cash</v-icon>
@@ -297,8 +286,8 @@
                         >
                           <div class="d-flex align-center justify-space-between">
                             <span class="font-weight-medium">Change:</span>
-                            <span class="text-h6 font-weight-bold">
-                              {{ formatCurrency(Number(cashAmount) - cashNeeded) }}
+                            <span class="text-sm font-weight-bold">
+                              {{ formatCurrency(cashAmount - cashNeeded) }}
                             </span>
                           </div>
                         </v-alert>
@@ -316,7 +305,7 @@
                           <div class="d-flex align-center justify-space-between">
                             <span class="font-weight-medium">Insufficient Amount:</span>
                             <span class="text-subtitle-2 font-weight-bold">
-                              Need {{ formatCurrency(cashNeeded - Number(cashAmount)) }} more
+                              Need {{ formatCurrency(cashNeeded - cashAmount) }} more
                             </span>
                           </div>
                         </v-alert>
@@ -327,13 +316,12 @@
                   <!-- GCash Payment Section -->
                   <v-expand-transition>
                     <div v-if="paymentMethod === 'gcash'" class="gcash-section">
-                      <h4 class="text-subtitle-1 font-weight-bold text-indigo-darken-4 mb-3">
-                        <v-icon class="mr-2">mdi-cellphone</v-icon>
+                      <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">
                         GCash Details
                       </h4>
 
                       <v-text-field
-                        v-model="gcash_amount"
+                        v-model.number="gcash_amount"
                         label="GCash Amount Paid"
                         variant="outlined"
                         type="number"
@@ -342,28 +330,13 @@
                         density="comfortable"
                         hide-details="auto"
                         placeholder="0.00"
+                        min="0"
+                        step="0.01"
                       >
                         <template v-slot:prepend-inner>
                           <v-icon color="blue-darken-2">mdi-cash</v-icon>
                         </template>
                       </v-text-field>
-
-                      <!-- <v-text-field
-                        v-model="gcashNumber"
-                        label="GCash Mobile Number"
-                        variant="outlined"
-                        type="tel"
-                        :disabled="disAbledPayment"
-                        prefix="+63"
-                        density="comfortable"
-                        hide-details="auto"
-                        placeholder="9XX XXX XXXX"
-                        class="mt-4"
-                      >
-                        <template v-slot:prepend-inner>
-                          <v-icon color="blue-darken-2">mdi-cellphone</v-icon>
-                        </template>
-                      </v-text-field> -->
 
                       <v-text-field
                         v-model="gcashReferenceNumber"
@@ -377,7 +350,7 @@
                         placeholder="Enter GCash reference number"
                       >
                         <template v-slot:prepend-inner>
-                          <v-icon color="blue-darken-2">mdi-pound</v-icon>
+                          <v-icon size="small" color="blue-darken-2">mdi-pound</v-icon>
                         </template>
                       </v-text-field>
 
@@ -391,9 +364,9 @@
                           density="compact"
                         >
                           <div class="d-flex align-center justify-space-between">
-                            <span class="font-weight-medium">Change:</span>
-                            <span class="text-h6 font-weight-bold">
-                              {{ formatCurrency(Number(gcash_amount) - cashNeeded) }}
+                            <span class="text-sm font-weight-medium">Change:</span>
+                            <span class="text-sm font-weight-bold">
+                              {{ formatCurrency(gcash_amount - cashNeeded) }}
                             </span>
                           </div>
                         </v-alert>
@@ -411,7 +384,7 @@
                           <div class="d-flex align-center justify-space-between">
                             <span class="font-weight-medium">Insufficient Amount:</span>
                             <span class="text-subtitle-2 font-weight-bold">
-                              Need {{ formatCurrency(cashNeeded - Number(gcash_amount)) }} more
+                              Need {{ formatCurrency(cashNeeded - gcash_amount) }} more
                             </span>
                           </div>
                         </v-alert>
@@ -423,7 +396,7 @@
                         class="mt-4"
                         density="compact"
                       >
-                        <div class="text-body-2">
+                        <div class="text-sm">
                           <strong>Amount to pay:</strong> {{ formatCurrency(cashNeeded) }}
                         </div>
                       </v-alert>
@@ -434,17 +407,17 @@
                 <v-divider></v-divider>
 
                 <!-- Action Button -->
-                <div class="pa-6">
+                <div class="pa-4">
                   <v-btn
                     :disabled="!isPaymentValid"
+                    :loading="isSubmitting"
                     block
-                    size="x-large"
+                    size="large"
                     @click="submitPayment"
                     color="indigo-darken-4"
                     class="pay-button"
                   >
-                    <v-icon start size="28">mdi-check-circle</v-icon>
-                    <span class="text-h6 font-weight-bold">Complete Payment</span>
+                    <span class="text-sm">Complete Payment</span>
                   </v-btn>
                 </div>
               </v-card>
@@ -475,10 +448,10 @@ const isScanQR = ref(false)
 const html5QrCode = ref(null)
 const paymentMethod = ref('cash')
 const cashAmount = ref(null)
-
-const gcash_amount = ref(null)  
-const gcashNumber = ref('')
+const gcash_amount = ref(null)
 const gcashReferenceNumber = ref('')
+const isSubmitting = ref(false)
+
 const scannedCards = computed(() => props.scannedCards || [])
 const totalCovered = computed(() => props.totalCovered || 0)
 const cashNeeded = computed(() => props.cashNeeded || 0)
@@ -500,10 +473,7 @@ const parkoutTime = computed(() => {
 })
 
 const disAbledPayment = computed(() => {
-  if (totalCovered.value === props.ticket.data.park_fee) {
-    return true
-  }
-  else return false
+  return totalCovered.value === props.ticket.data.park_fee
 })
 
 const isPaymentValid = computed(() => {
@@ -514,15 +484,13 @@ const isPaymentValid = computed(() => {
 
   // If using cash
   if (paymentMethod.value === 'cash') {
-    return (scannedCards.value.length > 0 || cashAmount.value) && 
-           (!cashAmount.value || Number(cashAmount.value) >= cashNeeded.value)
+    return cashAmount.value && cashAmount.value >= cashNeeded.value
   }
 
-  // If using GCash
+  // If using GCash - check amount and reference number
   if (paymentMethod.value === 'gcash') {
-    console.log('gcash_amount', gcash_amount.value);
-    return (scannedCards.value.length > 0 ||  gcashReferenceNumber.value) &&
-        //    gcashNumber.value.length >= 10 && 
+    return gcash_amount.value && 
+           gcash_amount.value >= cashNeeded.value &&
            gcashReferenceNumber.value.trim() !== ''
   }
 
@@ -548,10 +516,11 @@ const formatDate = (date) => {
   return date ? dayjs(date).format('MM/DD/YYYY') : 'N/A'
 }
 
-
 const submitPayment = () => {
-    
-    
+  if (isSubmitting.value) return
+  
+  isSubmitting.value = true
+  
   const form = useForm({
     ticket_id: props.ticket.data.id,
     hours_parked: props.ticket.data.hours_parked,
@@ -559,21 +528,18 @@ const submitPayment = () => {
     payment_method: paymentMethod.value,
     cash_amount: paymentMethod.value === 'cash' ? cashAmount.value : null,
     gcash_amount: paymentMethod.value === 'gcash' ? gcash_amount.value : null,
-    // gcash_number: paymentMethod.value === 'gcash' ? gcashNumber.value : null,
     gcash_reference: paymentMethod.value === 'gcash' ? gcashReferenceNumber.value : null,
     cards: scannedCards.value.map(c => c.id),
   })
 
-
   form.post(route('store.payment'), {
     onSuccess: () => {
-      // Success handling
+      isSubmitting.value = false
+    },
+    onError: () => {
+      isSubmitting.value = false
     },
   })
-}
-
-const cancelPayment = () => {
-  router.get(route('parkout'))
 }
 
 const scanQR = async () => {
@@ -628,10 +594,6 @@ onBeforeUnmount(() => {
 .payment-wrapper {
   background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
   min-height: 100vh;
-}
-
-.text-white-70 {
-  color: rgba(255, 255, 255, 0.7);
 }
 
 .page-header {
@@ -712,7 +674,8 @@ onBeforeUnmount(() => {
 }
 
 .payment-option-radio :deep(.v-selection-control__wrapper) {
-  margin-right: 12px;
+  margin-right: 8px;
+  transform: scale(0.85);
 }
 
 .cash-section :deep(.v-field),
