@@ -165,7 +165,8 @@
           :headers="headers"
           :items="filteredUsers"
           class="custom-data-table"
-          :items-per-page="10"
+            hide-default-footer
+   
         >
           <template v-slot:item.fullname="{ item }">
             <div class="d-flex align-center py-3">

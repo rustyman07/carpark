@@ -226,7 +226,7 @@
                   mandatory
                   class="payment-method-toggle"
                 >
-                  <v-btn value="cash" class="payment-method-btn">
+                  <v-btn value="Cash" class="payment-method-btn">
                     <v-icon start>mdi-cash</v-icon>
                     Cash
                   </v-btn>
@@ -317,7 +317,7 @@
                   density="compact"
                 >
                   <div class="d-flex align-center">
-                    <v-icon start color="success">mdi-check-circle</v-icon>
+               
                     <span class="font-weight-medium">GCash payment amount is correct</span>
                   </div>
                 </v-alert>

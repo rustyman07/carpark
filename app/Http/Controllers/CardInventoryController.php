@@ -348,11 +348,13 @@ public function scan_qr_cards(Request $request)
 
 public function sell_card_payment(Request $request)
 {
+
+    // dd( $request->payment_method);
     $data = $request->validate([
         'customer'      => 'required|string',
         'cash_amount' => 'required|numeric',
         'cards'       => 'nullable|array',
-        'Gcash_reference' => 'required_with:gcash_amount|regex:/^[A-Za-z0-9]{10,15}$/',
+    'Gcash_reference' => 'required_if:payment_method,Gcash|regex:/^[A-Za-z0-9]{10,15}$/',
         'payment_method'      => 'required|string',
         'cards.*'     => 'integer|exists:card_inventory_details,id',
     ]);

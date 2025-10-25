@@ -43,10 +43,10 @@
                   {{ activeParkings }}
                 </h2>
                 <p class="kpi-label text-medium-emphasis mb-3">Active Parkings</p>
-                <div class="d-flex align-center">
+                <!-- <div class="d-flex align-center">
                   <v-icon size="16" color="success" class="mr-1">mdi-trending-up</v-icon>
                   <span class="text-caption text-success font-weight-medium">12% from yesterday</span>
-                </div>
+                </div> -->
               </div>
             </div>
             <div class="kpi-card-footer">
@@ -87,11 +87,11 @@
       {{ totalCards.toLocaleString() }}
     </h2>
     <p class="kpi-label text-medium-emphasis mb-3">Cards Confirmed</p>
-    <div class="d-flex align-center">
+    <!-- <div class="d-flex align-center">
       <v-icon size="16" color="info" class="mr-1">mdi-plus-circle</v-icon>
       <span class="text-caption text-info font-weight-medium">{{ newCardsToday }} new today</span>
             <span class="text-caption text-info font-weight-medium">{{ newCardsToday }} sold today</span>
-    </div>
+    </div> -->
   </div>
 
   <!-- Cards Sold -->
