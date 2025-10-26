@@ -37,5 +37,12 @@ public function cardInventory(){
     return $this->belongsTo(CardInventory::class);
 }
 
+public function paymentDetails()
+{
+    return $this->hasMany(PaymentDetail::class, 'card_id');
+}
+
+
+
 
 }

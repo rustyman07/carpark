@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('payments', function (Blueprint $table) {
             //
 
-            $table->string('Gcash_reference')
+            $table->string('gcash_reference')
             ->nullable()
             ->after('payment_method');
         });
@@ -26,7 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('payments', function (Blueprint $table) {
-         $table->dropColumn('Gcash_reference');
+         $table->dropColumn('gcash_reference');
         });
     }
 };

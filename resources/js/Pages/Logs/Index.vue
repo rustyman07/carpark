@@ -304,8 +304,8 @@ const previeReport = () => {
 
 function fetchLogs({ url = "/logs", append = false } = {}) {
   const params = {
-    dateFrom: dateFrom.value,
-    dateTo: dateTo.value,
+    dateFrom: dayjs(dateFrom.value).format("YYYY-MM-DD"),
+    dateTo: dayjs(dateTo.value).format("YYYY-MM-DD"),
     type: selectedType.value,
      staff: selectedStaff.value.value,
   }

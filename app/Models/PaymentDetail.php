@@ -19,9 +19,14 @@ class PaymentDetail extends Model
 
     ];
 
-    public function payment()
+public function payment()
 {
     return $this->belongsTo(Payment::class,'payment_id');
 }
+public function card(){
+    return $this->belongsTo(CardInventoryDetail::class,'card_id');
+}
+
+
 }
 

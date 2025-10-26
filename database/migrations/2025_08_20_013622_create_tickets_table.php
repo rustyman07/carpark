@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('ticket_no', 20);
             $table->string('plate_no', 20);
             $table->string ('mode_of_payment',100)->nullable();
+            $table->string('gcash_reference')->nullable();
             $table->integer ('days_parked')->nullable();    
             $table->integer('hours_parked')->nullable();
             $table->string('qr_code', 255)->nullable();

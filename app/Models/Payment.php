@@ -17,6 +17,7 @@ class Payment extends Model
         'days_deducted',
         'payment_type',
         'payment_method',
+        'gcash_reference',
         'status',
         'processed_by',
         'paid_at',

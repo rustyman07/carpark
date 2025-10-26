@@ -55,6 +55,7 @@
                 color="indigo-darken-4" 
                 size="small"
                 append-icon="mdi-arrow-right"
+                 :href="route('logs')"
               >
                 View Details
               </v-btn>
@@ -87,36 +88,7 @@
       {{ totalCards.toLocaleString() }}
     </h2>
     <p class="kpi-label text-medium-emphasis mb-3">Cards Confirmed</p>
-    <!-- <div class="d-flex align-center">
-      <v-icon size="16" color="info" class="mr-1">mdi-plus-circle</v-icon>
-      <span class="text-caption text-info font-weight-medium">{{ newCardsToday }} new today</span>
-            <span class="text-caption text-info font-weight-medium">{{ newCardsToday }} sold today</span>
-    </div> -->
   </div>
-
-  <!-- Cards Sold -->
-  <!-- <div class="kpi-value-section mr-6">
-    <h2 class="kpi-value text-teal-darken-3 mb-1">
-      {{ 1280 }}
-    </h2>
-    <p class="kpi-label text-medium-emphasis mb-3">Cards Sold</p>
-    <div class="d-flex align-center">
-      <v-icon size="16" color="success" class="mr-1">mdi-cash-multiple</v-icon>
-      <span class="text-caption text-success font-weight-medium">+25 today</span>
-    </div>
-  </div> -->
-
-  <!-- Cards Confirmed -->
-  <!-- <div class="kpi-value-section">
-    <h2 class="kpi-value text-purple-darken-3 mb-1">
-      {{ 1125 }}
-    </h2>
-    <p class="kpi-label text-medium-emphasis mb-3">Cards Confirmed</p>
-    <div class="d-flex align-center">
-      <v-icon size="16" color="deep-purple-accent-2" class="mr-1">mdi-check-circle</v-icon>
-      <span class="text-caption text-deep-purple-accent-2 font-weight-medium">+10 today</span>
-    </div>
-  </div> -->
 </div>
 
             </div>
@@ -126,7 +98,9 @@
                 color="indigo-darken-4" 
                 size="small"
                 append-icon="mdi-arrow-right"
+                :href="route('card-inventory.index')"
               >
+              
                 Manage Cards
               </v-btn>
             </div>
@@ -319,7 +293,16 @@
                   </v-avatar>
                   <div class="flex-grow-1">
                     <p class="text-body-2 font-weight-medium mb-0">New card issued</p>
-                    <p class="text-caption text-medium-emphasis">Card #1234 • 15 mins ago</p>
+                    <p class="text-caption text-medium-emphasis">
+                        {{ props.newestCardSold?.card_number }}
+                        •
+                        <span v-if="props.newestCardSold?.paid_at">
+                            {{ timeAgo(props.newestCardSold.paid_at) }}
+                        </span>
+                        <span v-else>
+                            None
+                        </span>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -348,6 +331,7 @@ const props = defineProps({
   averageDurationToday: Number,
   averageDurationFormatted: String, 
   peakHourData: Object,
+  newestCardSold: Object,
 })
 
 

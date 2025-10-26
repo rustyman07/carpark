@@ -26,7 +26,7 @@ class DashboardController extends Controller
             //     return CardInventoryDetail::where('status','Confirmed')->count();
             // });
 
-  $totalCards = Cache::remember('dashboard.totalCards', now()->addSeconds(5), function () {
+         $totalCards = Cache::remember('dashboard.totalCards', now()->addSeconds(5), function () {
                 return CardInventoryDetail::where('status','Confirmed')->count();
             });
 
@@ -87,6 +87,20 @@ class DashboardController extends Controller
                 ];
             });
 
+            $newestCardSold = Cache::remember('dashboard.newestCardSold', now()->addSeconds(30), function () {
+                return CardInventoryDetail::select(
+                        'card_inventory_details.card_number',
+                        'card_inventory_details.card_name',
+                        'payments.paid_at'
+                    )
+                    ->join('payment_details', 'payment_details.card_id', '=', 'card_inventory_details.id')
+                    ->join('payments', 'payments.id', '=', 'payment_details.payment_id')
+                    ->where('card_inventory_details.status', 'Confirmed')
+                    ->orderByDesc('payments.paid_at')
+                    ->first();
+            });
+
+       
 
                 return Inertia::render('Dashboard/Index', [
             'activeParkings'       => $activeParkings,
@@ -97,6 +111,7 @@ class DashboardController extends Controller
             'latestParkout'        => $latestParkout,
             'averageDurationToday' => round($averageDurationToday, 2),
             'peakHourData'         => $peakHourData,
+            'newestCardSold'       => $newestCardSold
             ]);
 
         } catch (\Throwable $e) {
@@ -115,6 +130,8 @@ class DashboardController extends Controller
                 'revenueData' => [],
                 'latestParkin' => null,
                 'latestParkout' => null,
+                 'newestCardSold' => null
+
             ]);
         }
     }

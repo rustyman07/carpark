@@ -745,10 +745,13 @@ public function show_payment(string $uuid)
 
 public function submit_payment(Request $request)
 {
+  
     $data = $request->validate([
         'ticket_id'   => 'required|exists:tickets,id',
         'cash_amount' => 'nullable|numeric|min:0', 
         'gcash_amount' => 'nullable|numeric|min:0',
+        'gcash_reference' => 'nullable|regex:/^[A-Za-z0-9]{8,15}$/',
+        'payment_method'      => 'required|string',
         'cards'       => 'nullable|array',         
     ]);
 
@@ -789,15 +792,17 @@ public function submit_payment(Request $request)
         } else {
             $ticket->mode_of_payment = 'Cash';
         }
-
+            $ticket->gcash_reference =    $data['gcash_reference'];
             $ticket->save();
           
+    
             $payment = Payment::create([
                 'ticket_id'      => $ticket->id,
                 'ticket_no'      => $ticket->ticket_no,
                 'days_deducted'  => $ticket->days_parked ?? 0,
                 'payment_type'   => 'ticket',
                 'payment_method' => $ticket->mode_of_payment,
+                'gcash_reference' => $data['gcash_reference'],
                 'status'         => 'paid',
                 'processed_by'    => Auth::id(),
                 'paid_at'        => now(),
@@ -848,7 +853,6 @@ public function submit_payment(Request $request)
                 $payment->update([
                     'amount'          => $cashAmount + $gcashAmount,
                     'total_amount'    => $totalPaid + $appliedAmount,
-                    'Gcash_reference' => $data['Gcash_reference'] ?? null,
                     'change'          => $change,
                 ]);
 

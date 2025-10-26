@@ -1,5 +1,38 @@
 <template>
   <div class="receipt-wrapper">
+    <!-- PDF Viewer Dialog -->
+    <v-dialog v-model="showPrintDialog" max-width="1000px" width="90%" scrollable>
+      <v-card class="dialog-card">
+        <v-card-title class="d-flex justify-space-between align-center pa-4 bg-indigo-darken-4">
+          <span class="text-h6 text-white">Receipt Preview</span>
+          <v-btn 
+            icon 
+            variant="text" 
+            @click="showPrintDialog = false" 
+            color="white"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-0 pdf-container">
+          <iframe
+            v-if="pdfUrl"
+            :src="pdfUrl"
+            class="pdf-iframe"
+            title="Receipt PDF Preview"
+          />
+          <div v-else class="d-flex align-center justify-center loading-container">
+            <v-progress-circular
+              indeterminate
+              color="indigo-darken-4"
+              size="64"
+            />
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <v-container fluid class="py-8">
       <v-row justify="center">
         <v-col cols="12" md="8" lg="6">
@@ -8,178 +41,175 @@
             <v-avatar color="success" size="80" class="mb-4 success-avatar">
               <v-icon size="50" color="white">mdi-check-circle</v-icon>
             </v-avatar>
-            <h1  color="success" class="text-h4 font-weight-bold text-white mb-2 text-success">
+            <h1 color="success" class="text-h4 font-weight-bold text-white mb-2 text-success">
               Payment Successful!
             </h1>
-            <!-- <p class="text-white-70 text-h6">
-              Thank you for parking with us
-            </p> -->
           </div>
 
           <!-- Receipt Card -->
-          <v-card ref="receiptContent" class="receipt-card elevation-2" rounded="sm">
-            <!-- Company Header -->
-            <!-- <div class="company-header pa-6 text-center">
-              <v-icon size="48" color="white" class="mb-3">mdi-parking</v-icon>
-              <h2 class="text-h6 font-weight-bold text-white mb-1">
-                {{ company.name }}
-              </h2>
-              <p class="text-body-2 text-white mb-1">{{ company.address }}</p>
-              <p class="text-body-2 text-white">{{ company.contact }}</p>
-            </div> -->
+          <v-row class="receipt-cards">
+            <!-- Parking Details Card -->
+            <v-col cols="12" md="6">
+              <v-card ref="receiptContent" class="receipt-card elevation-2" rounded="sm">
+                <v-divider></v-divider>
 
-            <v-divider></v-divider>
+                <!-- Receipt Body -->
+                <div class="receipt-body pa-6 text-sm text-indigo-darken-4">
+                  <!-- Ticket Information Section -->
+                  <div class="section mb-6">
+                    <h3 class="section-title mb-4">
+                      <v-icon size="20" class="mr-2">mdi-information-outline</v-icon>
+                      Parking Details
+                    </h3>
 
-            <!-- Receipt Body -->
-            <div class="receipt-body pa-6 text-sm text-indigo-darken-4">
-              <!-- Ticket Information Section -->
-              <div class="section  mb-6">
-                <h3 class="section-title mb-4 ">
-                  <v-icon size="20" class="mr-2">mdi-information-outline</v-icon>
-                  Parking Details
-                </h3>
-
-                <v-card class="info-card elevation-0" color="grey-lighten-5" rounded="lg">
-                  <div class="pa-4">
-                    <div class="info-row mb-3 flex w-full justify-between">
-                      <div class="d-flex align-center">
-   
-                        <span class="label">Ticket No.</span>
-                      </div>
-                      <span class="value">{{ props.ticket.ticket_no }}</span>
-                    </div>
-
-                    <div class="info-row mb-3 flex w-full justify-between">
-                      <div class="d-flex align-center">
-                        <span class="label">Plate No.</span>
-                      </div>
-                      <span class="value">{{ props.ticket.plate_no }}</span>
-                    </div>
-
-                    <v-divider class="my-3"></v-divider>
-
-                    <div class="info-row mb-3 flex w-full justify-between">
-                      <div class="d-flex align-center">
-
-                        <span class="label">From</span>
-                      </div>
-                      <div class="text-right">
-                        <div class="value">{{ parkinDate }}</div>
-                        <div class="time-badge success">{{ parkinTime }}</div>
-                      </div>
-                    </div>
-
-                    <div class="info-row mb-3 flex w-full justify-between">
-                      <div class="d-flex align-center">
-                        <span class="label">To</span>
-                      </div>
-                      <div class="text-right">
-                        <div class="value">{{ parkoutDate }}</div>
-                        <div class="time-badge error">{{ parkoutTime }}</div>
-                      </div>
-                    </div>
-
-                    <v-divider class="my-3"></v-divider>
-
-                    <div class="info-row flex w-full justify-between" >
-                      <div class="d-flex align-center ">
-        
-                        <span class="label">Duration</span>
-                      </div>
-                      <span class="value font-weight-bold">{{ duration }}</span>
-                    </div>
-                  </div>
-                </v-card>
-              </div>
-
-              <!-- Payment Breakdown Section -->
-              <div class="section mb-6">
-                <h3 class="section-title mb-4 text-indigo-darken-4">
-                  <v-icon size="20" class="mr-2">mdi-receipt-text</v-icon>
-                  Payment Breakdown
-                </h3>
-
-                <v-card class="payment-card elevation-0" color="grey-lighten-5" rounded="lg">
-                  <div class="pa-4">
-                    <div class="info-row mb-3 flex w-full justify-between">
-                      <span class="label">Parking Fee</span>
-                      <span class="value">{{ formatCurrency(props.ticket.park_fee) }}</span>
-                    </div>
-
-                    <!-- Cards Used -->
-                    <div v-if="filteredCard.length" class="cards-section my-4">
-                      <v-divider class="mb-3"></v-divider>
-                      <p class="text-caption text-medium-emphasis mb-3">Cards Used:</p>
-                      <v-card
-                        v-for="card in filteredCard"
-                        :key="card.id"
-                        class="card-item elevation-1 mb-2"
-                        rounded="lg"
-                      >
-                        <div class="pa-3">
-                          <div class="d-flex align-center justify-space-between mb-2">
-                            <div class="d-flex align-center">
-                              <span class="text-body-2 font-weight-medium">{{ card.card_number }}</span>
-                            </div>
-                            <v-chip color="success" variant="flat" size="x-small">Used</v-chip>
-                          </div>
-                          <div class="d-flex justify-space-between">
-                            <span class="text-caption text-medium-emphasis">Remaining Balance:</span>
-                            <span class="text-caption font-weight-bold">{{ formatCurrency(card.balance) }}</span>
-                          </div>
-                        </div>
-                      </v-card>
-                    </div>
-
-                    <!-- Cash Payment -->
-                    <div v-if="filteredCash.length" class="cash-section my-4">
-                      <v-divider class="mb-3"></v-divider>
-                      <div v-for="item in filteredCash" :key="item.id" class="info-row mb-2">
-                        <div class="d-flex align-center">
-                          <span class="label">Paid in Cash</span>
-                        </div>
-                        <span class="value">{{ formatCurrency(item.amount) }}</span>
-                      </div>
-                    </div>
-
-                    <v-divider class="my-3"></v-divider>
-
-                    <!-- Amount if applicable -->
-                    <div v-if="props.payment.amount !== 0" class="info-row mb-3 flex w-full justify-between">
-                      <span class="label">Amount Received</span>
-                      <span class="value">{{ formatCurrency(props.payment.amount) }}</span>
-                    </div>
-
-                    <!-- Total Amount -->
-                    <div class="info-row mb-3 flex w-full justify-between">
-                      <span class="label font-weight-bold">Total Amount</span>
-                      <span class="value font-weight-bold ">
-                        {{ formatCurrency(props.payment.total_amount) }}
-                      </span>
-                    </div>
-
-                    <v-divider class="my-3"></v-divider>
-
-                    <!-- Change -->
-                    <v-card class="change-card elevation-0" color="success-lighten-5" rounded="lg">
-                      <div class="pa-3">
-                        <div class="d-flex align-center justify-space-between">
+                    <v-card class="info-card elevation-0" color="grey-lighten-5" rounded="lg">
+                      <div class="pa-4">
+                        <div class="info-row mb-3 flex w-full justify-between">
                           <div class="d-flex align-center">
-                            <span class="font-weight-bold text-success">Change</span>
+                            <span class="label">Ticket No.</span>
                           </div>
-                          <span class="text-h6 font-weight-bold text-success">
-                            {{ formatCurrency(props.payment.change) }}
-                          </span>
+                          <span class="value">{{ props.ticket.ticket_no }}</span>
+                        </div>
+
+                        <div class="info-row mb-3 flex w-full justify-between">
+                          <div class="d-flex align-center">
+                            <span class="label">Plate No.</span>
+                          </div>
+                          <span class="value">{{ props.ticket.plate_no }}</span>
+                        </div>
+
+                        <v-divider class="my-3"></v-divider>
+
+                        <div class="info-row mb-3 flex w-full justify-between">
+                          <div class="d-flex align-center">
+                            <span class="label">From</span>
+                          </div>
+                          <div class="text-right">
+                            <div class="value">{{ parkinDate }}</div>
+                            <div class="time-badge success">{{ parkinTime }}</div>
+                          </div>
+                        </div>
+
+                        <div class="info-row mb-3 flex w-full justify-between">
+                          <div class="d-flex align-center">
+                            <span class="label">To</span>
+                          </div>
+                          <div class="text-right">
+                            <div class="value">{{ parkoutDate }}</div>
+                            <div class="time-badge error">{{ parkoutTime }}</div>
+                          </div>
+                        </div>
+
+                        <v-divider class="my-3"></v-divider>
+
+                        <div class="info-row flex w-full justify-between">
+                          <div class="d-flex align-center">
+                            <span class="label">Duration</span>
+                          </div>
+                          <span class="value font-weight-bold">{{ duration }}</span>
                         </div>
                       </div>
                     </v-card>
                   </div>
-                </v-card>
-              </div>
+                </div>
+              </v-card>
+            </v-col>
 
-            </div>
+            <!-- Payment Breakdown Card -->
+            <v-col cols="12" md="6">
+              <v-card class="receipt-card elevation-2" rounded="sm">
+                <v-divider></v-divider>
 
-          </v-card>
+                <!-- Receipt Body -->
+                <div class="receipt-body pa-6 text-sm text-indigo-darken-4">
+                  <!-- Payment Breakdown Section -->
+                  <div class="section mb-6">
+                    <h3 class="section-title mb-4 text-indigo-darken-4">
+                      <v-icon size="20" class="mr-2">mdi-receipt-text</v-icon>
+                      Payment Breakdown
+                    </h3>
+
+                    <v-card class="payment-card elevation-0" color="grey-lighten-5" rounded="lg">
+                      <div class="pa-4">
+                        <div class="info-row mb-3 flex w-full justify-between">
+                          <span class="label">Parking Fee</span>
+                          <span class="value">{{ formatCurrency(props.ticket.park_fee) }}</span>
+                        </div>
+
+                        <!-- Cards Used -->
+                        <div v-if="filteredCard.length" class="cards-section my-4">
+                          <v-divider class="mb-3"></v-divider>
+                          <p class="text-caption text-medium-emphasis mb-3">Cards Used:</p>
+                          <v-card
+                            v-for="card in filteredCard"
+                            :key="card.id"
+                            class="card-item elevation-1 mb-2"
+                            rounded="lg"
+                          >
+                            <div class="pa-3">
+                              <div class="d-flex align-center justify-space-between mb-2">
+                                <div class="d-flex align-center">
+                                  <span class="text-body-2 font-weight-medium">{{ card.card_number }}</span>
+                                </div>
+                                <v-chip color="success" variant="flat" size="x-small">Used</v-chip>
+                              </div>
+                              <div class="d-flex justify-space-between">
+                                <span class="text-caption text-medium-emphasis">Remaining Balance:</span>
+                                <span class="text-caption font-weight-bold">{{ formatCurrency(card.balance) }}</span>
+                              </div>
+                            </div>
+                          </v-card>
+                        </div>
+
+                        <!-- Cash Payment -->
+                        <div v-if="filteredCash.length" class="cash-section my-4">
+                          <v-divider class="mb-3"></v-divider>
+                          <div v-for="item in filteredCash" :key="item.id" class="info-row mb-2">
+                            <div class="d-flex align-center">
+                              <span class="label">Paid in Cash</span>
+                            </div>
+                            <span class="value">{{ formatCurrency(item.amount) }}</span>
+                          </div>
+                        </div>
+
+                        <v-divider class="my-3"></v-divider>
+
+                        <!-- Amount if applicable -->
+                        <div v-if="props.payment.amount !== 0" class="info-row mb-3 flex w-full justify-between">
+                          <span class="label">Amount Received</span>
+                          <span class="value">{{ formatCurrency(props.payment.amount) }}</span>
+                        </div>
+
+                        <!-- Total Amount -->
+                        <div class="info-row mb-3 flex w-full justify-between">
+                          <span class="label font-weight-bold">Total Amount</span>
+                          <span class="value font-weight-bold">
+                            {{ formatCurrency(props.payment.total_amount) }}
+                          </span>
+                        </div>
+
+                        <v-divider class="my-3"></v-divider>
+
+                        <!-- Change -->
+                        <v-card class="change-card elevation-0" color="success-lighten-5" rounded="lg">
+                          <div class="pa-3">
+                            <div class="d-flex align-center justify-space-between">
+                              <div class="d-flex align-center">
+                                <span class="font-weight-bold text-success">Change</span>
+                              </div>
+                              <span class="text-h6 font-weight-bold text-success">
+                                {{ formatCurrency(props.payment.change) }}
+                              </span>
+                            </div>
+                          </div>
+                        </v-card>
+                      </div>
+                    </v-card>
+                  </div>
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
 
           <!-- Action Buttons -->
           <div class="action-buttons mt-6">
@@ -218,8 +248,7 @@
 
 <script setup>
 import { ref, computed } from "vue"
-import html2pdf from "html2pdf.js"
-import { usePage, router } from "@inertiajs/vue3"
+import { router } from "@inertiajs/vue3"
 import dayjs from 'dayjs'
 import { formatCurrency } from '@/utils/utility'
 import { route } from 'ziggy-js'
@@ -238,8 +267,15 @@ const props = defineProps({
   payment: Object,
 })
 
-const page = usePage()
 const receiptContent = ref(null)
+const showPrintDialog = ref(false)
+
+const pdfUrl = computed(() => {
+  if (showPrintDialog.value && props.ticket.uuid) {
+    return route('receipt.print', { uuid: props.ticket.uuid })
+  }
+  return null
+})
 
 const filteredCard = computed(() => {
   return props.details.filter((a) => a.card_id !== null)
@@ -279,29 +315,24 @@ const duration = computed(() => {
   const start = dayjs(props.ticket.park_datetime)
   const end = dayjs(props.ticket.park_out_datetime)
 
+  const diffSeconds = end.diff(start, 'second')
 
-const diffSeconds = end.diff(start, 'second');
+  const days = Math.floor(diffSeconds / (60 * 60 * 24))
+  const hours = Math.floor((diffSeconds % (60 * 60 * 24)) / 3600)
+  const minutes = Math.ceil((diffSeconds % 3600) / 60)
 
-const days = Math.floor(diffSeconds / (60 * 60 * 24));
-const hours = Math.floor((diffSeconds % (60 * 60 * 24)) / 3600);
-const minutes = Math.ceil((diffSeconds % 3600) / 60);
-
-    if (days > 0) {
-    return `${days} ${days === 1 ? 'day' : 'days'}${hours > 0 ? ` ${hours} ${hours === 1 ? 'hour' : 'hours'}` : ''}${minutes > 0 ? ` ${minutes} ${minutes === 1 ? 'min' : 'mins'}` : ''}`;
-    } else if (hours > 0) {
-    return `${hours} ${hours === 1 ? 'hour' : 'hours'}${minutes > 0 ? ` ${minutes} ${minutes === 1 ? 'min' : 'mins'}` : ''}`;
-    } else {
-    return `${minutes} ${minutes === 1 ? 'min' : 'mins'}`;
-    }
-
+  if (days > 0) {
+    return `${days} ${days === 1 ? 'day' : 'days'}${hours > 0 ? ` ${hours} ${hours === 1 ? 'hour' : 'hours'}` : ''}${minutes > 0 ? ` ${minutes} ${minutes === 1 ? 'min' : 'mins'}` : ''}`
+  } else if (hours > 0) {
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'}${minutes > 0 ? ` ${minutes} ${minutes === 1 ? 'min' : 'mins'}` : ''}`
+  } else {
+    return `${minutes} ${minutes === 1 ? 'min' : 'mins'}`
+  }
 })
 
-
 const printReceipt = () => {
-//   window.print()
-   window.open(route('receipt.print', { uuid: props.ticket.uuid }), '_blank')
+  showPrintDialog.value = true
 }
-
 
 const goToDashboard = () => {
   router.visit(route('dashboard'))
@@ -309,8 +340,6 @@ const goToDashboard = () => {
 </script>
 
 <style scoped>
-
-
 @keyframes successPulse {
   0%, 100% {
     transform: scale(1);
@@ -352,7 +381,6 @@ const goToDashboard = () => {
   }
 }
 
-
 /* Action Buttons */
 .action-buttons {
   animation: fadeIn 1s ease-out;
@@ -393,5 +421,28 @@ const goToDashboard = () => {
   .success-header p {
     font-size: 1rem;
   }
+}
+
+/* Dialog Styles */
+.dialog-card {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.pdf-container {
+  height: 80vh;
+  overflow: hidden;
+}
+
+.pdf-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.loading-container {
+  height: 100%;
 }
 </style>

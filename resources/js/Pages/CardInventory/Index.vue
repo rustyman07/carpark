@@ -510,7 +510,7 @@ id="download-card"
 
 
 
-<div 
+<!-- <div 
   v-if="cardToDownload"
   id="download-card"
   class="w-[250px] flex  border border-gray-300 rounded-lg p-4 bg-white"
@@ -527,7 +527,7 @@ id="download-card"
         <span class="value">{{ formatCurrency(cardToDownload.amount) }}</span>
       </div>
     </div>
-</div>
+</div> -->
 
 
 
@@ -550,7 +550,6 @@ import html2canvas from 'html2canvas';
 const showDialog = ref(false);
 const showLoadingDialog = ref(false);
 const showTransactionsDialog = ref(false);
-const sellCardPassinfo = reactive({});
 const selectedCard = ref({});
 const cardToDownload = ref(null);
 const progress = ref(0);
@@ -565,11 +564,13 @@ const cardTemplate = computed(() => page.props.cardTemplate);
 const cardDetail = computed(() => page.props.cardDetail);
 const user = computed(() => page.props.auth?.user || {});
 
+const today = dayjs().format('YYYY-MM-DD')
+const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD')
 // Date filters
 const filters = ref({
   cardNumber: '',
-  startDate: new Date(),
-  endDate: new Date(),
+  startDate: startOfMonth,
+  endDate: today,
   status: 'All'
 });
 const pageNumber = ref(cardDetail.value.current_page);
@@ -734,26 +735,58 @@ const confirmStatusChange = () => {
 };
 
 const downloadQRCode = async (item) => {
-
-  // window.open(route('print.card', { uuid: item.uuid }), '_blank')
-
-
-  cardToDownload.value = item;
-  await nextTick();
-
-  const cardElement = document.getElementById('download-card');
-  if (!cardElement) {
-    console.error('❌ Card element not found');
-    return;
-  }
-
   try {
+    // 1️⃣ Assign selected card to render
+    cardToDownload.value = item;
+
+    // 2️⃣ Ensure QR code is generated
+    if (!qrCodeMap.value[item.id]) {
+      qrCodeMap.value[item.id] = await QRCode.toDataURL(item.qr_code_hash);
+    }
+
+    // 3️⃣ Wait for Vue to update the DOM
+    await nextTick();
+
+    const cardElement = document.getElementById('download-card');
+    if (!cardElement) {
+      console.error('❌ Card element not found');
+      return;
+    }
+
+    // 4️⃣ Wait for QR image and logo to fully load
+    const imgs = cardElement.querySelectorAll('img');
+    await Promise.all(
+      Array.from(imgs).map((img) => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      })
+    );
+
+    // 5️⃣ Temporarily hide the card off-screen (no flicker)
+    const prevStyle = cardElement.style.cssText;
+    cardElement.style.cssText = `
+      position: fixed;
+      top: -10000px;
+      left: -10000px;
+      opacity: 1;
+      display: block;
+      z-index: -1;
+    `;
+
+    // 6️⃣ Capture the card as an image
     const canvas = await html2canvas(cardElement, {
       backgroundColor: '#ffffff',
       scale: 2,
       useCORS: true,
     });
 
+    // 7️⃣ Restore styles
+    cardElement.style.cssText = prevStyle;
+
+    // 8️⃣ Convert to PNG and trigger download
     const imageURL = canvas.toDataURL('image/png');
     const link = document.createElement('a');
     link.href = imageURL;
@@ -761,10 +794,11 @@ const downloadQRCode = async (item) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    cardToDownload.value = null;
   } catch (err) {
     console.error('⚠️ Failed to download card:', err);
+  } finally {
+    // 9️⃣ Reset reactive card
+    cardToDownload.value = null;
   }
 };
 

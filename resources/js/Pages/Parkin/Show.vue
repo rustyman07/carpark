@@ -1,12 +1,40 @@
 <template>
   <div class="ticket-wrapper">
+    <!-- PDF Viewer Dialog -->
+    <v-dialog v-model="showPrintDialog" max-width="1000px" width="90%" scrollable>
+      <v-card class="dialog-card">
+        <v-card-title class="d-flex justify-space-between align-center 
+        bg-indigo-darken-4">
+          <span class="text-h6 text-white">Ticket Preview</span>
+          <v-btn 
+            icon 
+            variant="text" 
+            @click="showPrintDialog = false" 
+            color="white"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-0 pdf-container">
+          <iframe
+            v-if="pdfUrl"
+            :src="pdfUrl"
+            class="pdf-iframe"
+            title="Ticket PDF Preview"
+          />
+          <div v-else class="d-flex align-center justify-center loading-container">
+            <v-progress-circular
+              indeterminate
+              color="indigo-darken-4"
+              size="64"
+            />
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <v-container fluid class="py-8">
-
-
-
-
-
-
       <v-row justify="center" align="center" class="fill-height">
         <v-col cols="12" md="6" lg="5">
           <!-- Success Header -->
@@ -15,43 +43,43 @@
               <v-icon size="50" color="white">mdi-check-circle</v-icon>
             </v-avatar>
             <h1 class="text-h4 font-weight-bold mb-2 text-success">
-            Entry Successful!
+              Entry Successful!
             </h1>
-
-            <p class="text-indigo-darken-4 text-h6 ">
-            Your parking ticket has been generated
+            <p class="text-indigo-darken-4 text-h6">
+              Your parking ticket has been generated
             </p>
-                    </div>
+          </div>
 
-          <!-- Ticket Card -->
-               <div class="actions-section pa-6">
-              <v-row dense>
-                <v-col cols="12" sm="6">
-                  <v-btn
-                    color="indigo-darken-4"
-                    size="large"
-                    block
-                    variant="flat"
-                    prepend-icon="mdi-printer"
-                    @click="printTicket"
-                  >
-                    Print Ticket
-                  </v-btn>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <v-btn
-                    color="white"
-                    size="large"
-                    block
-                    variant="flat"
-                    prepend-icon="mdi-home"
-                    @click="goToDashboard"
-                  >
-                    Back to Dashboard
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </div>
+          <!-- Actions Section -->
+          <div class="actions-section pa-6">
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <v-btn
+                  color="indigo-darken-4"
+                  size="large"
+                  block
+                  variant="flat"
+                  prepend-icon="mdi-printer"
+                  @click="printTicket"
+                >
+                  Print Ticket
+                </v-btn>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-btn
+                  color="white"
+                  size="large"
+                  block
+                  variant="flat"
+                  prepend-icon="mdi-home"
+                  @click="goToDashboard"
+                >
+                  Back to Dashboard
+                </v-btn>
+              </v-col>
+            </v-row>
+          </div>
+
           <!-- Footer Note -->
           <div class="footer-note text-center mt-6">
             <p class="text-body-2 text-white-70">
@@ -69,10 +97,13 @@ import QrcodeVue from 'qrcode.vue'
 import dayjs from 'dayjs'
 import { router } from '@inertiajs/vue3'
 import { route } from 'ziggy-js'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   ticket: Object
 })
+
+const showPrintDialog = ref(false)
 
 const qrValue = props.ticket.qr_code
 
@@ -84,8 +115,15 @@ const formattedTime = dayjs(
   `${props.ticket.park_year}-${props.ticket.park_month}-${props.ticket.park_day} ${props.ticket.park_hour}:${props.ticket.park_minute}:${props.ticket.park_second}`
 ).format('h:mm A')
 
+const pdfUrl = computed(() => {
+  if (showPrintDialog.value && props.ticket.uuid) {
+    return route('print.ticket', { uuid: props.ticket.uuid })
+  }
+  return null
+})
+
 const printTicket = () => {
-   window.open(route('print.ticket', { uuid: props.ticket.uuid }), '_blank')
+  showPrintDialog.value = true
 }
 
 const goToDashboard = () => {
@@ -95,7 +133,6 @@ const goToDashboard = () => {
 
 <style scoped>
 .ticket-wrapper {
-
   min-height: 100vh;
   padding: 2rem 0;
 }
@@ -235,5 +272,28 @@ const goToDashboard = () => {
   .qr-wrapper {
     padding: 12px;
   }
+}
+
+/* Dialog Styles */
+.dialog-card {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.pdf-container {
+  height: 80vh;
+  overflow: hidden;
+}
+
+.pdf-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.loading-container {
+  height: 100%;
 }
 </style>

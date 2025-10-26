@@ -46,6 +46,7 @@ class Ticket extends Model
         'cancelled',
         'cancelled_by',
         'cancelled_datetime',
+        'gcash_reference',
         'slip_no',
         'park_in_by',
         'park_out_by',

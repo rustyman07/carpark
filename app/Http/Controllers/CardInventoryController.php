@@ -24,15 +24,16 @@ class CardInventoryController extends Controller
 public function index(Request $request)
 {
 
-    $dateFrom    =  $request->input('dateFrom', now()->toDateString());
+    $dateFrom   = $request->input('dateFrom', now()->startOfMonth()->toDateString());
     $dateTo      =  $request->input('dateTo', now()->toDateString());;
     $cardNumber  =  $request->input('card_number');
-    $status      =  $request->input('status','Available');
+    $status      =  $request->input('status','All');
 
     $cardTemplate = CardTemplate::where('cancelled', 0)->get();
 
     $cardDetailQuery = CardInventoryDetail::where('cancelled', 0)
-        ->orderBy('created_at', 'desc');
+        ->orderBy('created_at', 'desc')
+        ->orderBy('card_number', 'desc');
 
     // ✅ Add search by card number
     if (!empty($cardNumber)) {
@@ -160,26 +161,17 @@ public function scan_qr_cards(Request $request)
             ->where('status', 'Available')
             ->first();
 
-
-
-
-    // ❌ Invalid QR
         if (!$card) {
             return redirect()->back()->with(
                 'error' , 'Invalid QR Code'
             );
-        }
-
-    
+        }  
 
     } else {
-        $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->first();
+     $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)
+        ->orWhere('card_number',  $request->qr_code)
+        ->first();
 
-
-         
-  
-
-    // ❌ Invalid QR
         if (!$card) {
             return redirect()->back()->with(
                 'error' , 'Invalid QR Code'
@@ -207,14 +199,12 @@ public function scan_qr_cards(Request $request)
 
 
 
-    // ❌ No balance
     if ($card->balance <= 0) {
         return redirect()->back()->with(
             'error', 'Insufficient balance',
         );
     }
 
-    // ✅ If not selling card
     if (!$request->is_sell_card) {
         $ticketId = $request->ticket_id;
         $scanned = session()->get("scanned_cards.$ticketId", []);
@@ -252,14 +242,6 @@ public function scan_qr_cards(Request $request)
 
     session()->put("scanned_cards_payment", $scanned);
 
-//   return Inertia::render('SellCards/Create', [
-//         'scannedCards' =>  $scanned[$card->id]
-//     ]);
-
-//    return back()->with(
-//     ['success' => 'Card scanned successfully!',
-//     'scannedCards' =>  $scanned[$card->id]
-//     ]);
 
     return redirect()
         ->route('sell-card.create')
@@ -354,7 +336,7 @@ public function sell_card_payment(Request $request)
         'customer'      => 'required|string',
         'cash_amount' => 'required|numeric',
         'cards'       => 'nullable|array',
-    'Gcash_reference' => 'required_if:payment_method,Gcash|regex:/^[A-Za-z0-9]{10,15}$/',
+        'gcash_reference' => 'required|regex:/^[A-Za-z0-9]{8,15}$/',
         'payment_method'      => 'required|string',
         'cards.*'     => 'integer|exists:card_inventory_details,id',
     ]);
@@ -397,7 +379,7 @@ public function sell_card_payment(Request $request)
                 'status'        => 'Paid',
                 'payment_type'  => 'Card',
                 'payment_method' => $data['payment_method'],
-                'Gcash_reference' => $data['Gcash_reference'] ?? null,
+                'gcash_reference' => $data['gcash_reference'] ?? null,
                 'processed_by'   => Auth::id(),
                 'paid_at'       => now(),
             ]);

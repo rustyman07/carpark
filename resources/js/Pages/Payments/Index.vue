@@ -288,7 +288,7 @@
       <!-- Payment Details Dialog -->
       <v-dialog v-model="detailsDialog" max-width="800px" scrollable>
         <v-card>
-          <v-card-title class="pa-4 bg-indigo-darken-4 text-white">
+          <v-card-title class=" bg-indigo-darken-4 text-white">
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center">
                 <v-icon class="mr-2">mdi-receipt-text</v-icon>
@@ -340,22 +340,7 @@
                     <span class="detail-value font-weight-bold">{{ formatCurrency(selectedPayment.amount) }}</span>
                   </div>
                 </v-col>
-                <v-col cols="12" sm="6">
-                  <div class="detail-item">
-                    <span class="detail-label">Total Amount:</span>
-                    <span class="detail-value font-weight-bold text-indigo-darken-4">
-                      {{ formatCurrency(selectedPayment.total_amount) }}
-                    </span>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="6">
-                  <div class="detail-item">
-                    <span class="detail-label">Change:</span>
-                    <span class="detail-value text-success font-weight-bold">
-                      {{ formatCurrency(selectedPayment.change) }}
-                    </span>
-                  </div>
-                </v-col>
+           
                 <v-col cols="12" sm="6">
                   <div class="detail-item">
                     <span class="detail-label">Payment Method:</span>
@@ -370,10 +355,27 @@
                 </v-col>
                 <v-col cols="12" sm="6">
                   <div class="detail-item">
-                    <span class="detail-label">Days Deducted:</span>
-                    <span class="detail-value">{{ selectedPayment.days_deducted || 0 }} days</span>
+                    <span class="detail-label">Change:</span>
+                    <span class="detail-value text-success font-weight-bold">
+                      {{ formatCurrency(selectedPayment.change) }}
+                    </span>
                   </div>
                 </v-col>
+                  <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Gcash Reference Number:</span>
+                    <span class="detail-value">{{ selectedPayment.gcash_reference || ''}} </span>
+                  </div>
+                </v-col>
+                            <v-col cols="12" sm="6">
+                  <div class="detail-item">
+                    <span class="detail-label">Total Amount:</span>
+                    <span class="detail-value font-weight-bold text-indigo-darken-4">
+                      {{ formatCurrency(selectedPayment.total_amount) }}
+                    </span>
+                  </div>
+                </v-col>
+         
                 <v-col cols="12" sm="6">
                   <div class="detail-item">
                     <span class="detail-label">Status:</span>
@@ -439,7 +441,7 @@
 
             <div v-else>
               <v-alert type="info" variant="tonal" class="mt-4">
-                <v-icon class="mr-2">mdi-information</v-icon>
+              
                 No additional card payment details available for this transaction.
               </v-alert>
             </div>
@@ -538,23 +540,20 @@ const selectedPayment = ref(null)
 // }
 
 
-const dateFrom = ref(props.filters.dateFrom)
-const dateTo = ref(props.filters.dateTo)
-const filterType = ref(props.filters.type)
-
+const dateFrom = ref(props.filters?.dateFrom || today)
+const dateTo = ref(props.filters?.dateTo || today)
+const filterType = ref(props.filters?.type || 'All')
 
 const searchTransactions = () => {
   router.get(route('payments.index'), {
-    dateFrom: dateFrom.value,
-    dateTo: dateTo.value,
+    dateFrom: dayjs(dateFrom.value).format('YYYY-MM-DD'),
+    dateTo: dayjs(dateTo.value).format('YYYY-MM-DD'),
     type: filterType.value,
   }, {
-    preserveState: true, // keep component state
-    replace: true,       // don’t push history entries
+    preserveState: true,
+    replace: true,
   })
 }
-
-
 
 const previewReport = () => {
   const params = new URLSearchParams({

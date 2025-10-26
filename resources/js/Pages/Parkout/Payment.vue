@@ -146,19 +146,53 @@
 
                 <v-divider></v-divider>
 
+
                 <div class="pa-6">
-                  <!-- Scan Card Button -->
-                <v-btn
-                color="indigo-darken-4"
-                size="large"
-                block
-                @click="scanQR"
-                class="mb-6 scan-card-btn text-xs"
-                style="text-transform: none;"
-                >
-                <v-icon start size="24">mdi-qrcode-scan</v-icon>
-                Scan Card
-                </v-btn>
+
+<!-- Card Number Input + Search -->
+<div class="d-flex align-center mb-4">
+  <v-text-field
+    v-model.trim="card_number"
+    label="Card Number"
+    variant="outlined"
+    type="text"
+    density="compact"
+    hide-details="auto"
+    clearable
+    placeholder="Enter or scan card number"
+    class="flex-grow-1 mr-3"
+    @keyup.enter="searchCard"
+  >
+    <template v-slot:prepend-inner>
+      <v-icon color="indigo-darken-4">mdi-card-account-details-outline</v-icon>
+    </template>
+  </v-text-field>
+
+    <v-btn
+        color="indigo-darken-4"
+        variant="flat"
+        @click="searchCard"
+        :disabled="!card_number"
+        
+    >
+        <v-icon start size="20">mdi-magnify</v-icon>
+        Search
+    </v-btn>
+    </div>
+
+    <!-- Scan Card Button -->
+    <v-btn
+    color="indigo-darken-4"
+    size="large"
+    block
+    @click="scanQR"
+    class="my-6 scan-card-btn text-xs"
+    style="text-transform: none;"
+    >
+    <v-icon start size="24">mdi-qrcode-scan</v-icon>
+    Scan Card
+    </v-btn>
+
                                 <!-- Scanned Cards Table -->
                   <div v-if="items.length > 0" class="cards-section mb-6">
                     <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">
@@ -258,7 +292,6 @@
 
                       <v-text-field
                         v-model.number="cashAmount"
-                        label="Enter Cash Amount"
                         variant="outlined"
                         type="number"
                         :disabled="disAbledPayment"
@@ -451,6 +484,8 @@ const cashAmount = ref(null)
 const gcash_amount = ref(null)
 const gcashReferenceNumber = ref('')
 const isSubmitting = ref(false)
+const card_number = ref('')
+
 
 const scannedCards = computed(() => props.scannedCards || [])
 const totalCovered = computed(() => props.totalCovered || 0)
@@ -482,6 +517,7 @@ const isPaymentValid = computed(() => {
     return scannedCards.value.length > 0
   }
 
+
   // If using cash
   if (paymentMethod.value === 'cash') {
     return cashAmount.value && cashAmount.value >= cashNeeded.value
@@ -496,6 +532,25 @@ const isPaymentValid = computed(() => {
 
   return false
 })
+
+
+
+const searchCard = async () => {
+  if (!card_number.value) return
+
+  try {
+    isSubmitting.value = true
+    await router.post(route('scan.qr.cards'), {
+      qr_code: card_number.value, // reuse same backend route
+      ticket_id: props.ticket.data.id,
+      ticket_uuid: props.ticket.data.uuid,
+    })
+  } catch (err) {
+    console.error('Card search failed:', err)
+  } finally {
+    isSubmitting.value = false
+  }
+}
 
 const headers = [
   { key: 'card_number', title: 'Card Number' },

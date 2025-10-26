@@ -13,26 +13,21 @@ use Inertia\Inertia;
 class PaymentController extends Controller
 {
 
+
+
 public function index(Request $request)
 {
-    // Get filters (or default to today)
 
     $dateFrom = $request->input('dateFrom', now()->toDateString());
     $dateTo   = $request->input('dateTo', now()->toDateString());
-
-
     $type     = $request->input('type', 'All');
 
-    // Convert to full-day range
-   // $from = Carbon::parse($dateFrom)->startOfDay();
-    //$to   = Carbon::parse($dateTo)->endOfDay();
+    $from = Carbon::parse($dateFrom)->startOfDay();
+    $to   = Carbon::parse($dateTo)->endOfDay();
 
-
-    // Build query
+    // ✅ Query includes all times in that range
     $query = Payment::with(['ticket', 'details', 'user'])
-        ->whereDate('paid_at', '>=', $dateFrom)
-        ->whereDate('paid_at', '<=', $dateTo);
-    
+        ->whereBetween('paid_at', [$from, $to]);
 
     if ($type !== 'All') {
         $query->where('payment_type', $type);
@@ -49,13 +44,6 @@ public function index(Request $request)
         ],
     ]);
 }
-
-
-
-//     public function index(){
-// return Inertia('Payments/Index');
-
-//     }
 
 
 

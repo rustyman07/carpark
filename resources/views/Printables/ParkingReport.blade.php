@@ -141,6 +141,7 @@
                             <th>Park Out</th>
                             <th>Duration</th>
                             <th>Payment</th>
+                            <th>Reference No</th>
                             <th class='text-right'>Amount</th>
                         </tr>
                     </thead>
@@ -173,13 +174,14 @@
                                 <td>{{ $parkOut }}</td>
                                 <td>{{ $duration }}</td>
                                 <td>{{ $ticket->mode_of_payment ?? 'Cash' }}</td>
+                                <td>{{ $ticket->gcash_reference ?? 'N/A' }}</td>
                                 <td class='text-right font-weight-500'>{{ number_format($ticket->park_fee, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan='6' class='text-right'>SUBTOTAL:</td>
+                            <td colspan='7' class='text-right'>SUBTOTAL:</td>
                             <td class='text-right'>{{ number_format($group['total'], 2) }}</td>
                         </tr>
                     </tfoot>
