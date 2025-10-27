@@ -402,7 +402,7 @@
               <td></td>
               <!-- <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalPrice) }}</td>
               <td class="font-weight-bold text-success">{{ formatCurrency(totalDiscount) }}</td> -->
-              <td class="font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalAmount) }}</td>
+              <td class="text-right font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalAmount) }}</td>
               <!-- <td class="font-weight-bold text-warning">{{ formatCurrency(totalBalance) }}</td> -->
               <td></td>
               <td></td>

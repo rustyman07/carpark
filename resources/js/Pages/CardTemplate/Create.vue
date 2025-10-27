@@ -41,15 +41,16 @@
                   Card Name
                 </label>
                 <v-text-field
-                  v-model="form.card_name"
-                  placeholder="Enter card name (e.g., Weekly Pass)"
-                  variant="outlined"
-                  density="comfortable"
-                  :error-messages="form.errors.card_name"
-                  hide-details="auto"
-                      bg-color="indigo-lighten-5"
-                  color="indigo-darken-4"
-                />
+                    class="uppercase-input"
+                    v-model="form.card_name"
+                    placeholder="Enter card name (e.g., Weekly Pass)"
+                    variant="outlined"
+                    density="comfortable"
+                    :error-messages="form.errors.card_name"
+                    hide-details="auto"
+                        bg-color="indigo-lighten-5"
+                    color="indigo-darken-4"
+                 />
               </div>
             </v-col>
 
@@ -247,6 +248,11 @@ const update = () => form.put(route('card-template.update', props.selectedTempla
 </script>
 
 <style scoped>
+
+.uppercase-input :deep(input) {
+  text-transform: uppercase;
+}
+
 .template-form-card {
   overflow: hidden;
 }

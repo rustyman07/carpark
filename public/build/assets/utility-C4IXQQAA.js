@@ -1,0 +1,1 @@
+import{d as n}from"./dayjs.min-Do_9EaZr.js";function f(r,t="MM/DD/YYYY hh:mm A"){return r?n(r).format(t):null}function o(r,t="MMMM DD, YYYY"){return r?n(r).format(t):null}function a(r){return typeof r!="number"&&(r=parseFloat(r)||0),new Intl.NumberFormat("en-PH",{style:"currency",currency:"PHP"}).format(r)}export{o as W,f as a,a as f};

@@ -136,8 +136,8 @@
       </v-dialog>
 
       <!-- Users Data Table -->
-      <v-card class="data-table-card elevation-12" rounded="lg">
-        <div class="card-header pa-6 pb-4">
+      <v-card class="data-table-card elevation-4" rounded="lg">
+        <div class="card-header pa-4 pb-4">
           <div class="d-flex align-center justify-space-between flex-wrap ">
             
                 <h3 class="text-h6 font-weight-bold text-indigo-darken-4">     
@@ -170,15 +170,10 @@
         >
           <template v-slot:item.fullname="{ item }">
             <div class="d-flex align-center py-3">
-              <v-avatar color="indigo-lighten-5" size="48" class="mr-4 elevation-2">
-                <v-icon color="indigo-darken-4" size="24">mdi-account</v-icon>
-              </v-avatar>
+
               <div>
                 <div class="font-weight-bold text-indigo-darken-4 text-body-1">{{ item.name }}</div>
-                <div class="text-caption text-grey-darken-1">
-                  <v-icon size="14" class="mr-1">mdi-at</v-icon>
-                  {{ item.username }}
-                </div>
+        
               </div>
             </div>
           </template>
@@ -217,11 +212,11 @@
           </template>
 
           <template v-slot:item.actions="{ item }">
-            <div class="d-flex ga-2">
+            <div class="d-flex ga-2 ">
               <v-btn 
                 icon="mdi-pencil" 
                 color="indigo-darken-4" 
-                size="default" 
+                size="small" 
                 variant="tonal" 
                 @click="editItem(item)"
                 class="elevation-2"
@@ -229,7 +224,7 @@
               <v-btn 
                 icon="mdi-delete" 
                 color="red-darken-2" 
-                size="default" 
+                size="small" 
                 variant="tonal" 
                 @click="deleteItem(item)"
                 class="elevation-2"
@@ -412,4 +407,22 @@ const confirmDelete = () => {
     width: 100%;
   }
 }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.v-card {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+
+
 </style>

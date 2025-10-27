@@ -1,0 +1,1 @@
+import{g as t,o as s,r}from"./app-NUBUC0vD.js";const o={class:"relative bg-center bg-cover flex flex-col min-h-screen items-center pt-6 sm:justify-center sm:pt-0"},l={__name:"GuestLayout",setup(c){return(e,n)=>(s(),t("div",o,[r(e.$slots,"default")]))}};export{l as _};

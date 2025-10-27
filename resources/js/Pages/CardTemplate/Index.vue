@@ -56,7 +56,7 @@
       </v-dialog>
 
       <!-- Main Data Table Card -->
-      <v-card class="data-table-card elevation-8" rounded="lg">
+      <v-card class="data-table-card elevation-4" rounded="lg">
         <div class="card-header pa-6 pb-4">
           <div class="d-flex align-center justify-space-between">
             <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
