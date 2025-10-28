@@ -1,0 +1,97 @@
+[33m7cc70bbb[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix composer
+[33m178ea57e[m Remove node_modules from tracking and update .gitignore
+[33m0814304c[m upd
+[33mc0030914[m[33m ([m[1;31mwork/main[m[33m)[m update trans
+[33mf66e26cf[m upd
+[33me8fab5f7[m update table ui
+[33m83aa8d1d[m update payment ui
+[33md0099f58[m update filter
+[33macf38d95[m update filtering
+[33me0ae9012[m update card
+[33m4748d48e[m update payment report
+[33m90d6dd1c[m update transactions
+[33m57866557[m add paymenthod gcash w/cash
+[33mb967f21d[m upd dashboard
+[33m7c4ff13a[m update payment
+[33m8f790ea4[m update logs
+[33m4c8b2617[m fix receipt
+[33m0ba1aa49[m fix card
+[33m10bdecab[m adding reports
+[33md018b424[m update reports
+[33me25302ac[m adding reports
+[33m1fd6e41a[m fixing logs
+[33mc5d60198[m adding shifts
+[33m9329e3e6[m update shift
+[33m720f27b4[m adding shift
+[33m08aa05a8[m add checkbox confirmation
+[33m7744cd3a[m update  user password
+[33m4ac9c904[m test
+[33m999ba86d[m enhancing ui design
+[33m10aa306e[m updating UI
+[33m99ea71ab[m adding dashbaord
+[33mbe58c53d[m update card
+[33m6bd4a026[m refactoring ticket controller
+[33m445e71df[m update design qrcode
+[33m8907cfa1[m update card trans
+[33m2e511518[m deleting some unnecessary folder
+[33mad4895a2[m fix delete user
+[33mc0c3cd0c[m add user
+[33mc255d397[m adding user
+[33mdafc8474[m update comp
+[33md05fc4da[m test
+[33m648398f2[m test
+[33mab41753b[m bg
+[33mc88531a9[m add tailwind
+[33mf94534ab[m auth
+[33m08109021[m 9/23 10am
+[33m6f09703b[m fixing sellcard
+[33ma1bbdfb4[m test
+[33m5d762a77[m adding trans history
+[33m2e5eb821[m test
+[33m6b7ef29d[m test
+[33m1533eb75[m adding selling card
+[33m77f2b195[m fix receipt
+[33m02782adf[m test
+[33m896c33e0[m fixing rate
+[33me1dc2b8d[m update payment
+[33m61a6a06f[m update company
+[33m9b8541a4[m update
+[33m74f08224[m fixing payment
+[33me590853a[m update payment
+[33m4683eee5[m test
+[33mbe48047c[m fixing payment
+[33m735468b5[m ffix payment
+[33m02409e9f[m fixing toast
+[33m42483434[m update payment
+[33mb1fc45e8[m update payment
+[33m3e0289c8[m adding python
+[33m78a6c48d[m fixing payment
+[33mb792c991[m adding filter on some tables
+[33maaf07721[m adding void
+[33m7d3e94ec[m updating
+[33m8113208f[m adding transacton
+[33mb25586dc[m adding sales person
+[33m7aeb7577[m update parkout
+[33m210997da[m debuggubg
+[33mbe1d05e4[m updating payments
+[33mdc540681[m updating payments
+[33ma9def4f8[m adding company form
+[33m9b261d46[m update sidebar
+[33m605ff888[m adding sedders
+[33mdee3c757[m adding receipt
+[33mb05307c1[m update qr
+[33mb8f47f34[m adding qr card payment
+[33m4d572f9a[m adding qr
+[33m49ad6164[m test
+[33m79b54288[m adding inventory detail
+[33mf163d770[m adding inventory
+[33m4dcc4926[m update card
+[33mf96f0071[m vola
+[33maad2c21e[m adding cardtemplate
+[33ma561f634[m adding a qrcode
+[33m9aebffed[m adding models
+[33me2d73491[m adding payments
+[33m702e233a[m updating
+[33mb049636c[m adding parklogs
+[33m98dbe0e8[m storing data
+[33mc8399a39[m first commit

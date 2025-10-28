@@ -273,8 +273,8 @@
                                 <v-icon color="blue-darken-2" size="16">mdi-cellphone</v-icon>
                               </v-avatar>
                               <div>
-                                <p class="text-xs font-weight-bold mb-0">GCash</p>
-                                <p class="text-xs text-medium-emphasis mb-0">Pay via GCash mobile wallet</p>
+                                <p class="text-xs font-weight-bold mb-0">E-wallet</p>
+                                <p class="text-xs text-medium-emphasis mb-0">Pay via E-wallet</p>
                               </div>
                             </div>
                           </template>
@@ -350,12 +350,12 @@
                   <v-expand-transition>
                     <div v-if="paymentMethod === 'gcash'" class="gcash-section">
                       <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">
-                        GCash Details
+                        E-wallet Details
                       </h4>
 
                       <v-text-field
                         v-model.number="gcash_amount"
-                        label="GCash Amount Paid"
+                        label="E-wallet Amount Paid"
                         variant="outlined"
                         type="number"
                         :disabled="disAbledPayment"
