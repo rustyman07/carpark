@@ -16,13 +16,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// 👇 Default home page (guests land here)
-
-
-// 👇 Authenticated dashboard (only for logged-in users)
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 
 
@@ -73,15 +66,6 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     // Route::post('/shiftlogs/end', [ShiftLogController::class, 'endShift'])->name('shiftlogs.end');
 
     Route::get('transaction', [PaymentController::class, 'index'])->name('payments.index');
-
-
-
-    // Route::get('/reports/parkout', [ReportController::class, 'todayParkout'])
-    // ->name('reports.parkout');
-    
-// Route::get('/reports/parkout/pdf', [ReportController::class, 'generatePDF'])
-//     ->name('reports.parkout.pdf');
-
 
     Route::get('/reports/parkout/preview', [ReportController::class, 'previewPDF'])
     ->name('reports.parkout.preview');

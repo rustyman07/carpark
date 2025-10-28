@@ -10,7 +10,6 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\PaymentDetail;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -113,7 +112,7 @@ public function index(Request $request)
                     'balance'      => $data['price'],
                     'created_at'   => now(),
                     'created_by'   => Auth::id(),
-                    'uuid'         => (string) Str::uuid()
+                    'uuid' => bin2hex(random_bytes(16)),
 
 
                     // 'updated_at'   => now(),
