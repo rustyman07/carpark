@@ -774,6 +774,7 @@ const downloadQRCode = async (item) => {
       opacity: 1;
       display: block;
       z-index: -1;
+      
     `;
 
     // 6️⃣ Capture the card as an image

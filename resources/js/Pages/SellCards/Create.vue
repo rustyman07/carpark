@@ -211,13 +211,13 @@
             <div class="payment-form-section pa-6 pt-0">
               <h4 class="text-subtitle-1 font-weight-bold text-indigo-darken-4 mb-4">
                 <v-icon size="20" class="mr-1">mdi-cellphone</v-icon>
-                GCash Payment Details
+                E-wallet Payment Details
               </h4>
 
               <!-- GCash Amount Input -->
               <v-text-field
                 v-model="form.cash_amount"
-                label="GCash Amount"
+                label="E-wallet Amount"
                 type="number"
                 variant="outlined"
                 density="comfortable"
@@ -242,7 +242,7 @@
               <!-- GCash Reference Number -->
               <v-text-field
                 v-model="form.gcash_reference"
-                label="GCash Reference Number"
+                label="Reference Number"
                 variant="outlined"
                 density="comfortable"
                 prepend-inner-icon="mdi-pound"
