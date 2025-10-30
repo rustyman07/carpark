@@ -413,7 +413,7 @@ watch(search, (val) => {
 });
 
 const total = computed(() => {
-  return cards.value.reduce((acc, curr) => acc + Number(curr.price || 0), 0);
+  return cards.value.reduce((acc, curr) => acc + Number((curr.price - curr.discount)|| 0), 0);
 });
 
 watch(selected, (val) => {

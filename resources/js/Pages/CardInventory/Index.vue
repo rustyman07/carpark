@@ -196,6 +196,80 @@
         </v-card>
       </v-dialog>
 
+      <!-- Delete Confirmation Dialog -->
+      <v-dialog v-model="showDeleteDialog" max-width="500" persistent>
+        <v-card rounded="lg" class="delete-card">
+          <!-- Header -->
+          <div class="form-header pa-6 pb-4">
+            <div class="d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <v-avatar color="error" size="48" class="mr-3">
+                  <v-icon size="28" color="white">mdi-delete-alert</v-icon>
+                </v-avatar>
+                <div>
+                  <h2 class="text-h6 font-weight-bold text-error">
+                    Delete Card
+                  </h2>
+                  <p class="text-caption text-medium-emphasis mb-0">
+                    This action cannot be undone
+                  </p>
+                </div>
+              </div>
+              <v-btn
+                icon="mdi-close"
+                variant="text"
+                @click="cancelDelete"
+              ></v-btn>
+            </div>
+          </div>
+
+          <v-divider></v-divider>
+
+          <!-- Content -->
+          <v-card-text class="pa-6">
+            <v-alert
+              type="error"
+              variant="tonal"
+              density="comfortable"
+              class="delete-alert mb-0"
+            >
+              <div class="text-body-2">
+                Are you sure you want to delete card 
+                <span class="font-weight-bold text-error">{{ selectedCardToDelete?.card_number }}</span>?
+              </div>
+              <div class="text-caption text-medium-emphasis mt-2">
+                <v-icon size="16" class="mr-1">mdi-alert-circle-outline</v-icon>
+                This will permanently remove the card and all associated data.
+              </div>
+            </v-alert>
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <!-- Actions -->
+          <v-card-actions class="pa-6">
+            <v-spacer />
+            <v-btn
+              variant="outlined"
+              size="large"
+              @click="cancelDelete"
+              prepend-icon="mdi-close"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="error"
+              variant="flat"
+              size="large"
+              @click="confirmDelete"
+              prepend-icon="mdi-delete"
+            >
+              Delete Card
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
       <!-- Main Data Table Card -->
       <v-card class="data-table-card elevation-4" rounded="lg">
         <!-- Filters Section -->
@@ -391,6 +465,17 @@
             ></v-checkbox>
           </template>
 
+          <template v-if="page.props.auth?.user.role === 1" v-slot:item.actions="{ item }">
+            <v-btn
+              color="error"
+              icon="mdi-delete"
+              variant="tonal"
+              size="small"
+              @click="handleDelete(item)"
+              :disabled="item.status === 'Confirmed'"
+            ></v-btn>
+          </template>
+
           <!-- Summary Footer -->
           <template v-slot:body.append>
             <tr class="summary-row">
@@ -408,6 +493,8 @@
               <td></td>
               <td></td>
               <td></td>
+              <td v-if="user.role === 1"></td>
+              <td v-if="user.role === 1"></td>
             </tr>
           </template>
         </v-data-table>
@@ -510,27 +597,6 @@ id="download-card"
 
 
 
-<!-- <div 
-  v-if="cardToDownload"
-  id="download-card"
-  class="w-[250px] flex  border border-gray-300 rounded-lg p-4 bg-white"
-  
->
-    <div class="w-50">
-        <div class="qr-section">
-            <img :src="qrCodeMap[cardToDownload.id]" alt="QR Code" class="qr-image" />
-        </div>
-    </div>
-    <div class="w-50">
-            <div class="detail-row">
-        <span class="label">Amount</span>
-        <span class="value">{{ formatCurrency(cardToDownload.amount) }}</span>
-      </div>
-    </div>
-</div> -->
-
-
-
 
     </v-container>
   </div>
@@ -556,6 +622,9 @@ const progress = ref(0);
 
 const showConfirmDialog = ref(false);
 const selectedCardToConfirm = ref(null);
+
+const showDeleteDialog = ref(false);
+const selectedCardToDelete = ref(null);
 
 
 // Inertia props
@@ -596,6 +665,7 @@ const headers = [
 
 if (user.value.role == 1) { // admin
   headers.push({ key: 'confirmation', title: 'Confirm', align: 'center' });
+  headers.push({ key: 'actions', title: 'Actions', align: 'center', sortable: false });
 }
 // Computed totals
 const totalAmount = computed(() => {
@@ -734,6 +804,36 @@ const confirmStatusChange = () => {
   );
 };
 
+// Delete functions
+const handleDelete = (item) => {
+  selectedCardToDelete.value = item;
+  showDeleteDialog.value = true;
+};
+
+const cancelDelete = () => {
+  selectedCardToDelete.value = null;
+  showDeleteDialog.value = false;
+};
+
+const confirmDelete = () => {
+  if (!selectedCardToDelete.value) return;
+
+  router.delete(
+    route('card-inventory.destroy', selectedCardToDelete.value.id),
+    {
+      onSuccess: () => {
+        showDeleteDialog.value = false;
+        selectedCardToDelete.value = null;
+      },
+      onError: (err) => {
+        console.error('Failed to delete card:', err);
+        showDeleteDialog.value = false;
+        selectedCardToDelete.value = null;
+      },
+    }
+  );
+};
+
 const downloadQRCode = async (item) => {
   try {
     // 1️⃣ Assign selected card to render
@@ -744,7 +844,7 @@ const downloadQRCode = async (item) => {
       qrCodeMap.value[item.id] = await QRCode.toDataURL(item.qr_code_hash);
     }
 
-    // 3️⃣ Wait for Vue to update the DOM
+    // 3️⃣ Wait for Vue to update the DOM with the new data
     await nextTick();
 
     const cardElement = document.getElementById('download-card');
@@ -753,40 +853,39 @@ const downloadQRCode = async (item) => {
       return;
     }
 
-    // 4️⃣ Wait for QR image and logo to fully load
+    // 4️⃣ Manually override computed style to ensure it's off-screen but ready to be captured
+    // Importantly, we want to ensure no flicker, so we keep it off-screen but visible to html2canvas
+    cardElement.style.position = 'fixed';
+    cardElement.style.top = '-10000px';
+    cardElement.style.left = '-10000px';
+    cardElement.style.display = 'flex'; // Ensure flex layout is respected for capture
+    cardElement.style.zIndex = '-1';
+    cardElement.style.opacity = '1';
+
+    // 5️⃣ Wait for QR image and logo to fully load (Crucial for capture accuracy)
     const imgs = cardElement.querySelectorAll('img');
     await Promise.all(
       Array.from(imgs).map((img) => {
         if (img.complete) return Promise.resolve();
         return new Promise((resolve) => {
           img.onload = resolve;
-          img.onerror = resolve;
+          img.onerror = resolve; // Resolve even on error to prevent indefinite hang
         });
       })
     );
-
-    // 5️⃣ Temporarily hide the card off-screen (no flicker)
-    const prevStyle = cardElement.style.cssText;
-    cardElement.style.cssText = `
-      position: fixed;
-      top: -10000px;
-      left: -10000px;
-      opacity: 1;
-      display: block;
-      z-index: -1;
-      
-    `;
 
     // 6️⃣ Capture the card as an image
     const canvas = await html2canvas(cardElement, {
       backgroundColor: '#ffffff',
       scale: 2,
       useCORS: true,
+      // width: 270, // optional: enforce a specific width based on the template class
+      // height: cardElement.offsetHeight, // optional: capture full height
     });
 
-    // 7️⃣ Restore styles
-    cardElement.style.cssText = prevStyle;
-
+    // 7️⃣ Restore original computed styles (moves it off-screen completely)
+    cardElement.style.cssText = '';
+    
     // 8️⃣ Convert to PNG and trigger download
     const imageURL = canvas.toDataURL('image/png');
     const link = document.createElement('a');
@@ -795,14 +894,14 @@ const downloadQRCode = async (item) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
   } catch (err) {
     console.error('⚠️ Failed to download card:', err);
   } finally {
-    // 9️⃣ Reset reactive card
+    // 9️⃣ Reset reactive card *after* the download logic is complete
     cardToDownload.value = null;
   }
 };
-
 const viewTransactions = (item) => {
   showTransactionsDialog.value = true;
   selectedCard.value = item;
@@ -921,6 +1020,15 @@ const exportData = (format) => {
   border-left: 4px solid #1a237e;
 }
 
+.delete-alert {
+  border-left: 4px solid #f44336;
+}
+
+.delete-card {
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-out;
+}
+
 /* Animation */
 @keyframes fadeIn {
   from {
@@ -938,15 +1046,6 @@ const exportData = (format) => {
 }
 
 
-
-
-.download-card-template {
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-  width: 400px;
-  background: white;
-}
 
 .card-template-inner {
   background: #ffffff;
@@ -1061,9 +1160,4 @@ const exportData = (format) => {
 .v-card {
   animation: fadeInUp 0.5s ease-out;
 }
-
-
-
-
-
 </style>

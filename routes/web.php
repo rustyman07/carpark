@@ -51,6 +51,9 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('card-inventory', [CardInventoryController::class, 'index'])->name('card-inventory.index');
     Route::post('card-inventory', [CardInventoryController::class, 'store'])->name('card-inventory.store');
+    Route::delete('card-inventory/{id}',[CardInventoryController::class,'destroy'])->name('card-inventory.destroy');
+
+    
     Route::post('scan-qr-cards', [CardInventoryController::class, 'scan_qr_cards'])->name('scan.qr.cards');
     Route::get('/card/print/{uuid}', [CardInventoryController::class, 'print_card'])->name('print.card');
     Route::get('sell-card', [CardInventoryController::class, 'sell_card'])->name('sell-card.create');

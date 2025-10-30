@@ -16,6 +16,7 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class CardInventoryController extends Controller
 {
@@ -28,9 +29,9 @@ public function index(Request $request)
     $cardNumber  =  $request->input('card_number');
     $status      =  $request->input('status','All');
 
-    $cardTemplate = CardTemplate::where('cancelled', 0)->get();
+    $cardTemplate = CardTemplate::whereNull('deleted_at')->get();
 
-    $cardDetailQuery = CardInventoryDetail::where('cancelled', 0)
+    $cardDetailQuery = CardInventoryDetail::whereNull('deleted_at')
         ->orderBy('created_at', 'desc')
         ->orderBy('card_number', 'desc');
 
@@ -213,7 +214,8 @@ public function scan_qr_cards(Request $request)
                 'id'          => $card->id,
                 'card_number' => $card->card_number,
                 'balance'     => $card->balance,
-                'price'       => $card->price ?? 0,
+                'discount'     => $card->discount,
+                 'price'       => $card->price ?? 0,
                 'no_of_days'  => $card->no_of_days ?? 0,
             ];
         }
@@ -253,80 +255,6 @@ public function scan_qr_cards(Request $request)
 
 
 
-// public function scan_qr_cards(Request $request)
-// {
-//     if ($request->is_sell_card) {
-//         // 🟢 Selling card — must be Available
-//         $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)
-//             ->where('status', 'Available')
-//             ->first();
-
-//         if (!$card) {
-//             return back()->with('error', 'Invalid QR Code');
-//         }
-//     } else {
-//         // 🟢 Normal parking payment card — must be Confirmed
-//         $card = CardInventoryDetail::where('qr_code_hash', $request->qr_code)->first();
-
-//         if (!$card) {
-//             return back()->with('error', 'Invalid QR Code');
-//         }
-
-//         if ($card->status !== 'Confirmed') {
-//             return back()->with('error', 'This card is not yet confirmed. Please contact the administrator.');
-//         }
-//     }
-
-//     // ❌ Insufficient balance
-//     if ($card->balance <= 0) {
-//         return back()->with('error', 'Insufficient balance');
-//     }
-
-//     if (!$request->is_sell_card) {
-//         $ticketId = $request->ticket_id;
-        
-//      $scanned = session()->get('scanned_card');
-
-//         // Replace any previously scanned card in session (single card only)
-//         session()->put("scanned_card", [
-//             'id'          => $card->id,
-//             'card_number' => $card->card_number,
-//             'balance'     => $card->balance,
-//             'price'       => $card->price ?? 0,
-//             'no_of_days'  => $card->no_of_days ?? 0,
-//         ]);
-
-
-
-//         return redirect()
-//             ->route('show.payment', ['uuid' => $request->ticket_uuid])
-//             ->with('success', 'Card linked successfully');
-//     }
-
-
-//     // ✅ If selling card
-//     $scanned = session()->get("scanned_cards_payment", []);
-
-//         $scanned = [
-//             'id'          => $card->id,
-//             'card_name'   => $card->card_name,
-//             'card_number' => $card->card_number,
-//             'balance'     => $card->balance,
-//             'price'       => $card->price ?? 0,
-//             'no_of_days'  => $card->no_of_days ?? 0,
-//         ];
-    
-
-//     session()->put("scanned_cards_payment", $scanned);
- 
-//     return back()->with('success', 'Card scanned successfully!');
-
-
-// }
-
-
-
-
 public function sell_card_payment(Request $request)
 {
 
@@ -357,7 +285,10 @@ public function sell_card_payment(Request $request)
     }
 
     //  Calculate total price
-    $total_amount = $validCards->sum('price');
+
+    $total_amount = $validCards->sum(function ($card){
+      return  $card->price - ($card->discount ?? 0);
+    });
 
     //  Check cash amount
     if (!empty($data['cash_amount']) && $total_amount > $data['cash_amount']) {
@@ -393,7 +324,7 @@ public function sell_card_payment(Request $request)
                     'card_id'     => $cardInventory->id,
                     'card_number' => $cardInventory->card_number,
                     'qr_code'     => $cardInventory->qr_code,
-                    'amount'      => $cardInventory->price,
+                    'amount'      => $cardInventory->price - ($cardInventory->discount ?? 0) ,
                     'balance'     => $cardInventory->balance,
                     'card_name'   => $cardInventory->card_name,
                     'discount'    => $cardInventory->discount ?? 0,
@@ -496,6 +427,26 @@ public function print_card($uuid)
         ->stream('card-' . $card->card_number . '.pdf');
 }
 
+
+public function destroy($id){
+
+    $card = CardInventoryDetail::find($id);
+
+    if (!$card){
+        Log::warning("Attempted to delete non-existent card with ID: {$id}");
+        return back()->with('error','Card not found.');
+
+
+    }
+
+    try{
+        $card->delete();
+        return back()->with('success', 'Card deleted successfully.');
+    }catch (\Exception $e){
+        Log::error("Failed to delete card ID {$id}: " . $e->getMessage());
+        return back()->with('error', 'Failed to delete card due to a system error.');
+        }
+    }
 
 
 
