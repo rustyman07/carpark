@@ -37,7 +37,7 @@
 
             <v-divider></v-divider>
 
-            <div class="pa-6">
+            <div class="pa-6 bg-indigo-lighten-5">
               <!-- Search Autocomplete -->
               <div class="search-section mb-4">
                 <v-autocomplete
@@ -111,33 +111,41 @@
                 </div>
 
                 <v-expand-transition>
-                  <div v-if="cards.length" class="cards-container">
+<div class="px-16 ">
+                      <div v-if="cards.length" class="cards-container d-flex flex-col ga-3 ">
                     <v-card
                       v-for="card in cards"
                       :key="card.id"
-                      class="card-item elevation-2 mb-3"
+                      class="card-item p-2 "
                       rounded="lg"
                     >
-                      <div class="pa-4 d-flex align-center justify-space-between">
+                      <div class="pa-4 d-flex align-center justify-space-between text-indigo-darken-4">
                         <!-- Left Side -->
                         <div class="d-flex align-center flex-grow-1">
-                          <v-avatar color="indigo-lighten-5" size="48" class="mr-3">
+                        
                             <v-icon size="28" color="indigo-darken-4">mdi-qrcode</v-icon>
-                          </v-avatar>
-                          <div>
+                       
+                          <div class="ml-4">
                             <div class="text-subtitle-2 font-weight-bold">
                               {{ card.card_number }}
                             </div>
-                            <div class="text-caption text-medium-emphasis">
+                            <div class="text-caption italic">
                               {{ card.card_name }}
                             </div>
                           </div>
                         </div>
 
                         <!-- Price -->
-                        <div class="price-section mr-3">
+                        <div class="price-section d-flex flex-col mr-3">
                           <div class="text-h6 font-weight-bold text-indigo-darken-4">
-                            ₱{{ Number(card.price).toLocaleString() }}
+                            ₱{{ Number(card.price).toLocaleString() }} 
+                          </div>
+                                Discount   {{ Number(card.discount).toLocaleString() }}
+                        </div>
+
+                           <div class="price-section mr-3">
+                          <div class="text-h6 font-weight-bold text-indigo-darken-4">
+                       
                           </div>
                         </div>
 
@@ -154,6 +162,7 @@
                       </div>
                     </v-card>
                   </div>
+</div>
                 </v-expand-transition>
 
                 <!-- Empty State -->
@@ -274,7 +283,7 @@
                 >
                   <div class="d-flex align-center">
                   
-                    <span class="font-weight-medium">GCash payment amount is correct</span>
+                    <span class="font-weight-medium">E-wallet payment amount is correct</span>
                   </div>
                 </v-alert>
               </v-expand-transition>
@@ -604,11 +613,11 @@ onBeforeUnmount(() => {
 }
 
 /* Cards List */
-.cards-container {
+/* .cards-container {
   max-height: 400px;
   overflow-y: auto;
-  padding-right: 8px;
-}
+
+} */
 
 .cards-container::-webkit-scrollbar {
   width: 6px;
@@ -624,16 +633,16 @@ onBeforeUnmount(() => {
   border-radius: 10px;
 }
 
-.card-item {
-  background: white;
+/* .card-item {
+
   border: 1px solid rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease;
-}
+} */
 
-.card-item:hover {
+/* .card-item:hover {
   transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-}
+} */
 
 /* Empty State */
 .empty-state {

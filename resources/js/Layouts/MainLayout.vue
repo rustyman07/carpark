@@ -12,9 +12,12 @@
         class="nav-icon"
       ></v-app-bar-nav-icon>
       
-      <v-toolbar-title class="d-flex align-center">
-        <v-icon size="32" class="mr-2">mdi-parking</v-icon>
+      <v-toolbar-title class="d-flex ">
+<div class="d-flex">
+    <v-icon size="28" class="mr-2 d-none d-sm-inline">mdi-parking</v-icon>
         <span class="toolbar-title">Carpark </span>
+</div>
+    
       </v-toolbar-title>
       
       <v-spacer></v-spacer>

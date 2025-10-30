@@ -60,7 +60,7 @@ public function index(Request $request)
 }
 
 
- public function store(Request $request)
+ public function store(Request $request) //generate card
     {
         $data = $request->validate([
             'card_template_id' =>'required|integer',
@@ -90,13 +90,16 @@ public function index(Request $request)
             $details = [];
         
             $year = now()->year;
-            $lastDetailId = CardInventoryDetail::max('id') ?? 0;
-            
+            $lastDetailId = CardInventoryDetail::withTrashed()->max('id');
+
+           
             for ($i = 0; $i < $request->no_of_cards; $i++) {
 
 
                 $cardId = $lastDetailId + 1 + $i;
                 $card_number = $year . sprintf('%05d', $cardId);
+
+                      // dd($request->no_of_cards,   $card_number,$lastDetailId);
                 $hashedCode = Hash::make($card_number);
 
                 $details[] = [

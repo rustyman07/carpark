@@ -1,7 +1,6 @@
 <?php
 
 namespace Database\Seeders;
-use App\Models\SalesPerson;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -23,7 +22,5 @@ class DatabaseSeeder extends Seeder
         ]);
 
              $this->call(CompanySeeder::class);
-             $this->call(SalesPersonSeeder::class);
-             $this->call(ShiftSeeder::class);
     }
 }

@@ -276,192 +276,6 @@ public function store(Request $request)
 
 
 
-//     public function showLogs(Request $request)
-
-// {
-//     $type     = $request->input('type', 'PARK-IN'); // default type
-//     $dateFrom = $request->input('dateFrom', now()->toDateString()); // default = today
-//     $dateTo   = $request->input('dateTo', now()->toDateString());   // default = today
-
-
-
-
-//     $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
-
-//     $tickets = Ticket::whereNull('deleted_at')
-//         ->where('is_park_out', $type === 'PARK-IN' ? 0 : 1)
-//         ->select('id', 'ticket_no', 'plate_no', 'park_datetime', 'park_out_datetime', 'remarks', 'park_fee')
-//         ->whereBetween(DB::raw("DATE($dateColumn)"), [$dateFrom, $dateTo])
-//         ->orderByDesc('created_at')
-//         ->get(); // ✅ No pagination — load all records
-
-
-//     $user = auth()->user();
-//     $isAdmin = $user->role == 1;
-
-//     // ✅ Default values
-//     $shiftStart = now()->startOfDay();
-//     $shiftEnd = now()->endOfDay();
-//     $userShift = 'FULL DAY';
-
-//     // ✅ If not admin → use actual shift log
-//     if (!$isAdmin) {
-//         $shiftLog = ShiftLog::where('user_id', $user->id)
-//             ->where(function ($q) {
-//                 // ✅ Still active shift (no end yet)
-//                 $q->whereNull('ended_at')
-//                 // ✅ OR ended today
-//                 ->orWhereDate('ended_at', now()->toDateString())
-//                 // ✅ OR started today (for normal daytime shifts)
-//                 ->orWhereDate('started_at', now()->toDateString());
-//             })
-//             ->latest()
-//             ->first();
-
-//         if ($shiftLog) {
-//             $shiftStart = $shiftLog->started_at;
-//             $shiftEnd = $shiftLog->ended_at ?? now();
-//             $userShift = $shiftLog->shift_name ?? 'CURRENT SHIFT';
-//         } else {
-//             $userShift = 'NO ACTIVE SHIFT';
-//         }
-//     }
-
-//         if ($isAdmin) {
-//             // Admin sees total for whole day
-//             $totalParkFee = Ticket::whereNull('deleted_at')
-//                 ->where('remarks', 'Paid')
-//                 ->whereNotNull('park_out_datetime')
-//                 ->whereBetween('park_out_datetime', [
-//                     now()->startOfDay(),
-//                     now()->endOfDay(),
-//                 ])
-//                 ->sum('park_fee');
-//         } else {
-//             // Staff sees total only for their current shift
-//             $totalParkFee = Ticket::whereNull('deleted_at')
-//                 ->where('remarks', 'Paid')
-//                 ->where('park_out_by', $user->id)
-//                 ->whereNotNull('park_out_datetime')
-//                 ->whereBetween('park_out_datetime', [$shiftStart, $shiftEnd])
-//                 ->sum('park_fee');
-//         }
-
-
-//         return inertia('Logs/Index', [
-//             'Tickets' => $tickets,
-//             'totalParkFee' => $totalParkFee,
-//             'filters' => [
-//                 'type' => $type,
-//                 'dateFrom' => $dateFrom,
-//                 'dateTo' => $dateTo,
-//                 'shift' => $userShift,
-//                 'shiftStart' => $shiftStart,
-//                 'shiftEnd' => $shiftEnd
-//             ]
-//         ]);
-// }
-
-// public function showLogs(Request $request)
-// {
-//     $type     = $request->input('type', 'PARK-IN');
-//     $dateFrom = $request->input('dateFrom', now()->toDateString());
-//     $dateTo   = $request->input('dateTo', now()->toDateString());
-
-//     $user = auth()->user();
-//     $isAdmin = $user->role == 1;
-
-//     // ✅ Default values
-//     $shiftStart = now()->startOfDay();
-//     $shiftEnd = now()->endOfDay();
-//     $userShift = 'FULL DAY';
-
-//     // ✅ If not admin → use actual shift log
-//     if (!$isAdmin) {
-
-        
-//         $shiftLog = ShiftLog::where('user_id', $user->id)
-//             ->whereDate('started_at', now()->toDateString())
-//             ->latest()
-//             ->first();
-
-//         if ($shiftLog) {
-//             $shiftStart = $shiftLog->started_at;
-//             $shiftEnd = $shiftLog->ended_at ?? now();
-//             $userShift = $shiftLog->shift_name ?? 'CURRENT SHIFT';
-//         } else {
-//             $userShift = 'NO ACTIVE SHIFT';
-//         }
-//     }
-
-//     $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
-
-//     // ✅ Build query
-//     $query = Ticket::whereNull('deleted_at')
-//         ->where('is_park_out', $type === 'PARK-IN' ? 0 : 1)
-//         ->whereBetween($dateColumn, [$shiftStart, $shiftEnd]);
-
-//     if ($type === 'PARK-IN') {
-//         $query->where(function ($q) use ($dateColumn, $shiftStart, $shiftEnd) {
-//             // ✅ Always include active cars (still parked), no matter when they entered
-//             $q->whereNull('park_out_datetime')
-//             // ✅ Also include PARK-INs during this shift
-//             ->orWhere(function ($q2) use ($dateColumn, $shiftStart, $shiftEnd) {
-//                 $q2->whereTime($dateColumn, '>=', $shiftStart)
-//                     ->whereTime($dateColumn, '<=', $shiftEnd);
-//             });
-//         });
-//     }
-//     else {
-//         $query->whereNotNull('park_out_datetime');
-//     }
-
-//     $tickets = $query->select(
-//         'id',
-//         'ticket_no',
-//         'plate_no',
-//         'park_datetime',
-//         'park_out_datetime',
-//         'remarks',
-//         'park_fee'
-//     )->orderByDesc('created_at')->get();
-
-//     // ✅ Total park fee calculation based on role
-//     if ($isAdmin) {
-//         // Admin sees total for whole day
-//         $totalParkFee = Ticket::whereNull('deleted_at')
-//             ->where('remarks', 'Paid')
-//             ->whereNotNull('park_out_datetime')
-//             ->whereBetween('park_out_datetime', [
-//                 now()->startOfDay(),
-//                 now()->endOfDay(),
-//             ])
-//             ->sum('park_fee');
-//     } else {
-//         // Staff sees total only for their current shift
-//         $totalParkFee = Ticket::whereNull('deleted_at')
-//             ->where('remarks', 'Paid')
-//             ->whereNotNull('park_out_datetime')
-//             ->whereBetween('park_out_datetime', [$shiftStart, $shiftEnd])
-//             ->sum('park_fee');
-//     }
-
-//     return inertia('Logs/Index', [
-//         'Tickets' => $tickets,
-//         'totalParkFee' => $totalParkFee,
-//         'filters' => [
-//             'type' => $type,
-//             'dateFrom' => $dateFrom,
-//             'dateTo' => $dateTo,
-//             'shift' => $userShift,
-//             'shiftStart' => $shiftStart,
-//             'shiftEnd' => $shiftEnd
-//         ]
-//     ]);
-// }
-
-
-
 public function park_out()
 {
 
@@ -503,7 +317,7 @@ public function submit_park_out(Request $request)
     
 
 
-    // 2️⃣ Compute park_out_datetime (use provided or fallback to now)
+  
   $park_out_datetime = isset($data['park_out_year'], $data['park_out_month'], $data['park_out_day'])
     ? Carbon::create(
         $data['park_out_year'],
@@ -591,14 +405,13 @@ public function submit_park_out(Request $request)
     $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
     $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
 
-    // ✅ Use seconds for precise calculation, then round up to the next full minute
     $minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
 
     $ratePerHour = (float) $company->rate_perhour;
     $ratePerDay  = (float) $company->rate_perday;
 
-    $hourly_limit = (int) $company->hourly_billing_limit * 60; // e.g., 10 hours * 60
-    $freeMinutes  = (int) $company->grace_minutes;             // e.g., 20
+    $hourly_limit = (int) $company->hourly_billing_limit * 60; //  10 hours * 60
+    $freeMinutes  = (int) $company->grace_minutes;             
 
     $rate = 0;
     $daysParked = 0;
