@@ -151,22 +151,23 @@
 
 <!-- Card Number Input + Search -->
 <div class="d-flex align-center mb-4">
-  <v-text-field
-    v-model.trim="card_number"
-    label="Card Number"
-    variant="outlined"
-    type="text"
-    density="compact"
-    hide-details="auto"
-    clearable
-    placeholder="Enter or scan card number"
-    class="flex-grow-1 mr-3"
-    @keyup.enter="searchCard"
-  >
-    <template v-slot:prepend-inner>
-      <v-icon color="indigo-darken-4">mdi-card-account-details-outline</v-icon>
-    </template>
-  </v-text-field>
+<v-text-field
+  v-model.trim="card_number"
+  label="Card Number"
+  variant="outlined"
+  type="text"
+  density="compact"
+  color="indigo-darken-4"
+  hide-details="auto"
+  clearable
+  placeholder="Enter or scan card number"
+  class="flex-grow-1 mr-3"
+  @keyup.enter="searchCard"
+>
+  <template v-slot:prepend-inner>
+    <v-icon color="indigo-darken-4">mdi-card-account-details-outline</v-icon>
+  </template>
+</v-text-field>
 
     <v-btn
         color="indigo-darken-4"
@@ -249,37 +250,43 @@
                     </h4>
 
                     <v-card class="payment-options elevation-0" rounded="lg" variant="outlined">
-                      <v-radio-group v-model="paymentMethod" :disabled="disAbledPayment" hide-details density="compact">
-                        <v-radio value="cash" class="payment-option-radio" density="compact">
-                          <template v-slot:label>
-                            <div class="d-flex align-center pa-2 w-100">
-                              <v-avatar color="green-lighten-4" size="28" class="mr-3">
-                                <v-icon color="green-darken-2" size="16">mdi-cash</v-icon>
-                              </v-avatar>
-                              <div>
-                                <p class="text-xs font-weight-bold mb-0">Cash Payment</p>
-                                <p class="text-xs text-medium-emphasis mb-0">Pay with physical cash</p>
-                              </div>
+                    <v-radio-group 
+                    v-model="paymentMethod" 
+                    :disabled="disAbledPayment" 
+                    hide-details 
+                    density="compact"
+                    color="indigo-darken-4"
+                    >
+                    <v-radio value="cash" class="payment-option-radio" density="compact" color="indigo-darken-4">
+                        <template v-slot:label>
+                        <div class="d-flex align-center pa-2 w-100">
+                            <v-avatar color="green-lighten-4" size="28" class="mr-3">
+                            <v-icon color="green-darken-2" size="16">mdi-cash</v-icon>
+                            </v-avatar>
+                            <div>
+                            <p class="text-xs text-indigo-darken-4 font-weight-bold mb-0">Cash Payment</p>
+                            <p class="text-xs text-indigo-darken-4 mb-0">Pay with physical cash</p>
                             </div>
-                          </template>
-                        </v-radio>
-                        
-                        <v-divider></v-divider>
-                        
-                        <v-radio value="gcash" class="payment-option-radio" density="compact">
-                          <template v-slot:label>
-                            <div class="d-flex align-center pa-2 w-100">
-                              <v-avatar color="blue-lighten-4" size="28" class="mr-3">
-                                <v-icon color="blue-darken-2" size="16">mdi-cellphone</v-icon>
-                              </v-avatar>
-                              <div>
-                                <p class="text-xs font-weight-bold mb-0">E-wallet</p>
-                                <p class="text-xs text-medium-emphasis mb-0">Pay via E-wallet</p>
-                              </div>
+                        </div>
+                        </template>
+                    </v-radio>
+                    
+                    <v-divider></v-divider>
+                    
+                    <v-radio value="gcash" class="payment-option-radio" density="compact" color="indigo-darken-4">
+                        <template v-slot:label>
+                        <div class="d-flex align-center pa-2 w-100">
+                            <v-avatar color="blue-lighten-4" size="28" class="mr-3">
+                            <v-icon color="blue-darken-2" size="16">mdi-cellphone</v-icon>
+                            </v-avatar>
+                            <div>
+                            <p class="text-xs text-indigo-darken-4 font-weight-bold mb-0">E-wallet</p>
+                            <p class="text-xs text-indigo-darken-4 mb-0">Pay via E-wallet</p>
                             </div>
-                          </template>
-                        </v-radio>
-                      </v-radio-group>
+                        </div>
+                        </template>
+                    </v-radio>
+                    </v-radio-group>
                     </v-card>
                   </div>
 
@@ -289,6 +296,7 @@
                       <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">
                         Cash Amount
                       </h4>
+
 
                       <v-text-field
                         v-model.number="cashAmount"
@@ -302,11 +310,12 @@
                         persistent-hint
                         min="0"
                         step="0.01"
-                      >
+                        color="indigo-darken-4"
+                        >
                         <template v-slot:prepend-inner>
-                          <v-icon color="green-darken-2">mdi-cash</v-icon>
+                            <v-icon color="green-darken-2">mdi-cash</v-icon>
                         </template>
-                      </v-text-field>
+                        </v-text-field>
 
                       <!-- Change Display -->
                       <v-expand-transition>
@@ -353,7 +362,7 @@
                         E-wallet Details
                       </h4>
 
-                      <v-text-field
+                        <v-text-field
                         v-model.number="gcash_amount"
                         label="E-wallet Amount Paid"
                         variant="outlined"
@@ -365,13 +374,14 @@
                         placeholder="0.00"
                         min="0"
                         step="0.01"
-                      >
+                        color="indigo-darken-4"
+                        >
                         <template v-slot:prepend-inner>
-                          <v-icon color="blue-darken-2">mdi-cash</v-icon>
+                            <v-icon color="blue-darken-2">mdi-cash</v-icon>
                         </template>
-                      </v-text-field>
+                        </v-text-field>
 
-                      <v-text-field
+                        <v-text-field
                         v-model="gcashReferenceNumber"
                         label="Reference Number"
                         variant="outlined"
@@ -381,11 +391,12 @@
                         hide-details="auto"
                         class="mt-4"
                         placeholder="Enter GCash reference number"
-                      >
+                        color="indigo-darken-4"
+                        >
                         <template v-slot:prepend-inner>
-                          <v-icon size="small" color="blue-darken-2">mdi-pound</v-icon>
+                            <v-icon size="small" color="blue-darken-2">mdi-pound</v-icon>
                         </template>
-                      </v-text-field>
+                        </v-text-field>
 
                       <!-- Change Display for GCash -->
                       <v-expand-transition>
@@ -723,28 +734,44 @@ onBeforeUnmount(() => {
   transition: all 0.3s ease;
 }
 
-.payment-option-radio :deep(.v-label) {
-  width: 100%;
-  opacity: 1 !important;
+/* Highlight the card border when a radio is selected */
+.payment-options:has(.v-selection-control--dirty) {
+  border-color: #1a237e !important;
+  background-color: rgba(26, 35, 126, 0.02);
 }
 
-.payment-option-radio :deep(.v-selection-control__wrapper) {
-  margin-right: 8px;
-  transform: scale(0.85);
+/* Style individual radio option when selected */
+.payment-option-radio:has(.v-selection-control--dirty) {
+  background-color: rgba(26, 35, 126, 0.05);
 }
 
-.cash-section :deep(.v-field),
-.gcash-section :deep(.v-field) {
-  border: 2px solid #e0e0e0;
-  transition: all 0.3s ease;
+/* Change text color when selected */
+.payment-option-radio:has(.v-selection-control--dirty) .text-xs {
+  color: #1a237e !important;
 }
 
-.cash-section :deep(.v-field--focused),
-.gcash-section :deep(.v-field--focused) {
-  border-color: #1a237e;
-  box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.1);
+.payment-option-radio:has(.v-selection-control--dirty) .font-weight-bold {
+  color: #1a237e !important;
+}
+.gcash-section :deep(.v-field-label) {
+  background: white;
+  padding: 0 4px;
 }
 
+.gcash-section :deep(.v-field--focused .v-field-label),
+.gcash-section :deep(.v-field--active .v-field-label) {
+  background: white;
+}
+
+.cash-section :deep(.v-field-label) {
+  background: white;
+  padding: 0 4px;
+}
+
+.cash-section :deep(.v-field--focused .v-field-label),
+.cash-section :deep(.v-field--active .v-field-label) {
+  background: white;
+}
 .pay-button {
   background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
   transition: all 0.3s ease;

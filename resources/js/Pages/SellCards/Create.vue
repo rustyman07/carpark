@@ -19,7 +19,7 @@
 
           <!-- Main Payment Card -->
           <v-card class="payment-card elevation-12" rounded="sm">
-            <div class="card-header pa-6 pb-4">
+            <div class="card-header bg-indigo-lighten-5 pa-6 pb-4">
               <div class="d-flex align-center justify-space-between">
                 <h3 class="text-h6 font-weight-bold text-indigo-darken-4">
                   <v-icon class="mr-2">mdi-credit-card-search</v-icon>
@@ -111,58 +111,59 @@
                 </div>
 
                 <v-expand-transition>
-<div class="px-16 ">
-                      <div v-if="cards.length" class="cards-container d-flex flex-col ga-3 ">
-                    <v-card
-                      v-for="card in cards"
-                      :key="card.id"
-                      class="card-item p-2 "
-                      rounded="lg"
-                    >
-                      <div class="pa-4 d-flex align-center justify-space-between text-indigo-darken-4">
-                        <!-- Left Side -->
-                        <div class="d-flex align-center flex-grow-1">
-                        
-                            <v-icon size="28" color="indigo-darken-4">mdi-qrcode</v-icon>
-                       
-                          <div class="ml-4">
-                            <div class="text-subtitle-2 font-weight-bold">
-                              {{ card.card_number }}
-                            </div>
-                            <div class="text-caption italic">
-                              {{ card.card_name }}
-                            </div>
-                          </div>
-                        </div>
 
-                        <!-- Price -->
-                        <div class="price-section d-flex flex-col mr-3">
-                          <div class="text-h6 font-weight-bold text-indigo-darken-4">
-                            ₱{{ Number(card.price).toLocaleString() }} 
-                          </div>
-                                Discount   {{ Number(card.discount).toLocaleString() }}
-                        </div>
+<div v-if="cards.length" class="cards-container d-flex flex-col ga-3 ">
+  <v-card
+    v-for="card in cards"
+    :key="card.id"
+    class="card-item p-2 "
+    rounded="lg"
+    style="position: relative;"
+  >
+    <div class="pa-4 d-flex text-indigo-darken-4 gap-5">
+      <!-- Left Side -->
+      <div class="d-flex  ">
+        <v-icon size="42" color="indigo-darken-4">mdi-qrcode</v-icon>
 
-                           <div class="price-section mr-3">
-                          <div class="text-h6 font-weight-bold text-indigo-darken-4">
-                       
-                          </div>
-                        </div>
-
-                        <!-- Remove Button -->
-                        <v-btn
-                          icon
-                          size="small"
-                          color="error"
-                          variant="text"
-                          @click="removeCard(card.id)"
-                        >
-                          <v-icon size="20">mdi-close-circle</v-icon>
-                        </v-btn>
-                      </div>
-                    </v-card>
-                  </div>
+        <div class="ml-4 ">
+         <div class="d-flex flex-column flex-sm-row align-sm-center">
+            <span class="text-xs">Card No. :</span> <span class="text-subtitle-2 font-weight-bold ml-sm-2"> {{ card.card_number }}</span>
+          </div>
+<div class="d-flex flex-column flex-sm-row align-sm-center">
+  <span class="text-xs">Card Name:</span> 
+  <span class="text-subtitle-2 font-weight-bold ml-sm-2">{{ card.card_name }}</span>
 </div>
+        <div class="d-flex flex-column flex-sm-row align-sm-center">
+            <span class="text-xs">No of Days :</span> <span class="text-subtitle-2 font-weight-bold ml-sm-2"> {{ card.no_of_days }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="price-section d-flex flex-col mr-3">
+       <div class="d-flex flex-column flex-sm-row align-sm-center">
+          <span class="text-xs">Price :</span> <span class="text-subtitle-2 font-weight-bold ml-sm-2"> {{ Number(card.price).toLocaleString() }} </span>
+        </div>
+        <div class="d-flex flex-column flex-sm-row align-sm-center">
+          <span class="text-xs">Discount :</span> <span class="text-subtitle-2 font-weight-bold ml-sm-2"> {{ Number(card.discount).toLocaleString() }} </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remove Button - Absolute Position -->
+    <v-btn
+      icon
+      size="small"
+      color="error"
+      variant="text"
+      @click="removeCard(card.id)"
+      style="position: absolute; top: 8px; right: 8px;"
+    >
+      <v-icon size="20">mdi-close-circle</v-icon>
+    </v-btn>
+  </v-card>
+</div>
+
                 </v-expand-transition>
 
                 <!-- Empty State -->
@@ -331,7 +332,7 @@
                   <v-btn
                     block
                     size="x-large"
-                    color="grey-darken-2"
+                    color="indigo-darken-4"
                     variant="outlined"
                     @click="cancelPayment"
                     :disabled="form.processing"
@@ -561,9 +562,6 @@ onBeforeUnmount(() => {
   }
 }
 
-.card-header {
-  background: linear-gradient(135deg, rgba(26, 35, 126, 0.05) 0%, rgba(26, 35, 126, 0.02) 100%);
-}
 
 /* Search Input */
 .search-input :deep(.v-field) {
@@ -688,13 +686,13 @@ onBeforeUnmount(() => {
 }
 
 .cancel-btn {
-  border: 2px solid #616161;
+
   transition: all 0.3s ease;
 }
 
 .cancel-btn:hover {
   transform: translateY(-2px);
-  background: #616161;
+
   color: white;
 }
 

@@ -95,69 +95,6 @@
               </div>
             </div>
 
-            <!-- Recent Activity Footer -->
-            <div class="activity-footer pa-4">
-              <div class="d-flex align-center justify-space-between">
-                <div class="d-flex align-center">
-                  <v-avatar color="success" size="32" class="mr-3">
-                    <v-icon size="20">mdi-car-multiple</v-icon>
-                  </v-avatar>
-                  <div>
-                    <p class="text-caption text-medium-emphasis mb-0">Active Vehicles</p>
-                    <p class="text-subtitle-2 font-weight-bold mb-0">24 parked</p>
-                  </div>
-                </div>
-
-                <v-divider vertical class="mx-4"></v-divider>
-
-                <div class="d-flex align-center">
-                  <v-avatar color="info" size="32" class="mr-3">
-                    <v-icon size="20">mdi-clock-fast</v-icon>
-                  </v-avatar>
-                  <div>
-                    <p class="text-caption text-medium-emphasis mb-0">Avg. Duration</p>
-                    <p class="text-subtitle-2 font-weight-bold mb-0">2.5 hours</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-        
-
-          <!-- Quick Tips Card -->
-          <!-- <v-card class="tips-card elevation-8 mt-6" rounded="lg">
-            <div class="pa-4">
-              <div class="d-flex align-center mb-3">
-                <v-icon color="indigo-darken-4" class="mr-2">mdi-help-circle</v-icon>
-                <h4 class="text-subtitle-1 font-weight-bold">Quick Tips</h4>
-              </div>
-              <v-list density="compact" class="bg-transparent">
-                <v-list-item>
-                  <template v-slot:prepend>
-                    <v-icon size="20" color="success">mdi-check-circle</v-icon>
-                  </template>
-                  <v-list-item-title class="text-body-2">
-                    Enter plate number without spaces or dashes
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item>
-                  <template v-slot:prepend>
-                    <v-icon size="20" color="success">mdi-check-circle</v-icon>
-                  </template>
-                  <v-list-item-title class="text-body-2">
-                    Ticket will be generated automatically upon submission
-                  </v-list-item-title>
-                </v-list-item>
-                <v-list-item>
-                  <template v-slot:prepend>
-                    <v-icon size="20" color="success">mdi-check-circle</v-icon>
-                  </template>
-                  <v-list-item-title class="text-body-2">
-                    Keep the ticket safe for exit processing
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </div>
-          </v-card> -->
         </v-col>
       </v-row>
     </v-container>

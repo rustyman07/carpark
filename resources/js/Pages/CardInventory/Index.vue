@@ -6,7 +6,7 @@
         <div>
           <h1 class="text-h4 font-weight-bold text-indigo-darken-4 mb-2">
             <v-icon size="32" class="mr-2">mdi-card-account-details</v-icon>
-            Card Inventory
+            Card Inventoryssds
           </h1>
           <p class="text-body-1 text-medium-emphasis">
             Manage and track all parking cards
@@ -373,6 +373,7 @@
         <v-data-table
           :headers="headers"
           :items="cardDetail"
+         :items-per-page="-1" 
            hide-default-footer
           class="custom-data-table"
           @update:page="goToPage"
@@ -767,6 +768,9 @@ const goToPage = (pageNumber) => {
   );
 };
 
+console.log('cardDetail count:', cardDetail.value.length);
+console.log('test');
+
 
 // Handle checkbox change
 const handleCheckboxChange = (item, value) => {
@@ -911,6 +915,8 @@ const exportData = (format) => {
   console.log(`Exporting data as ${format}`);
   // Add export functionality here
 };
+
+
 </script>
 
 <style scoped>
