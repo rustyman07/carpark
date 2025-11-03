@@ -6,10 +6,10 @@
         <div>
           <h1 class="text-h4 font-weight-bold text-indigo-darken-4 mb-2">
             <v-icon size="32" class="mr-2">mdi-card-account-details</v-icon>
-            Card Inventoryasss
+            Card Inventory
           </h1>
           <p class="text-body-1 text-medium-emphasis">
-            Manage and track all parking cards
+            Manage and track all cards
           </p>
         </div>
 
