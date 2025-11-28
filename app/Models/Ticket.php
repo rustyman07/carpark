@@ -57,4 +57,9 @@ public function parkOutUser()
     {
         return $this->belongsTo(User::class, 'park_out_by');
     }
+
+    public function payment()
+{
+    return $this->hasOne(Payment::class, 'ticket_id'); 
+}
 }

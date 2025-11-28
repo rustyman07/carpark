@@ -175,7 +175,8 @@
                                 <td>{{ $duration }}</td>
                                 <td>{{ $ticket->mode_of_payment ?? 'Cash' }}</td>
                                 <td>{{ $ticket->gcash_reference ?? 'N/A' }}</td>
-                                <td class='text-right font-weight-500'>{{ number_format($ticket->park_fee, 2) }}</td>
+                          <td class='text-right font-weight-500'>{{ number_format($ticket->payment->total_amount ?? 0, 2) }}</td>
+
                             </tr>
                         @endforeach
                     </tbody>

@@ -646,7 +646,12 @@ public function submit_payment(Request $request)
                 ]);
 
                 $amountToPay -= $deduct;
-                $totalPaid += $deduct;
+                 if ($cardInventory->discount && $cardInventory->no_of_days && $cardInventory->balance > $amountToPay) {
+                    $totalPaid += $deduct - ($cardInventory->discount / $cardInventory->no_of_days);
+                } else {
+                    $totalPaid += $deduct;
+                }
+
             }
 
 
@@ -662,13 +667,12 @@ public function submit_payment(Request $request)
                 // Change only from cash overpayment
                 $change = max(0, $cashAmount - $appliedAmount);
 
-                // Update Payment table
+  
                 $payment->update([
                     'amount'          => $cashAmount + $gcashAmount,
                     'total_amount'    => $totalPaid + $appliedAmount,
                     'change'          => $change,
                 ]);
-
 
 
            
