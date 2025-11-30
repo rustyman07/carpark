@@ -258,6 +258,8 @@ public function scan_qr_cards(Request $request)
 
 
 
+
+
 public function sell_card_payment(Request $request)
 {
 
@@ -451,7 +453,28 @@ public function destroy($id){
         }
     }
 
+public function deleteScannedCard(Request $request, $id)
+{
+    $ticketId = $request->ticket_id ?? null;
 
+    if ($id) {
+   
+        //session()->forget("scanned_cards.$ticketId");
+        
+                $scanned = session()->get("scanned_cards.$ticketId", []);
+        unset($scanned[$id]); // Remove specific card from the array
+        session()->put("scanned_cards.$ticketId", $scanned);
+        // dd('After deletion:', session()->get("scanned_cards"));
+        
+    } else {
+        // Removing from selling card session list
+        $scanned = session()->get("scanned_cards_payment", []);
+        unset($scanned[$id]);
+        session()->put("scanned_cards_payment", $scanned);
+    }
+
+    return back()->with('success', 'Card removed successfully');
+}
 
 }
 

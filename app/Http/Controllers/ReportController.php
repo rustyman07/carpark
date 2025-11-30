@@ -22,7 +22,7 @@ class ReportController extends Controller
         $from = Carbon::parse($dateFrom)->startOfDay();
         $to = Carbon::parse($dateTo)->endOfDay();
 
-$query = Ticket::whereBetween('tickets.park_out_datetime', [$from, $to]) // prefix here
+$query = Ticket::whereBetween('tickets.park_out_datetime', [$from, $to]) 
     ->where('tickets.is_park_out', 1)
     ->where('tickets.remarks', 'Paid')
     ->whereNull('tickets.deleted_at')

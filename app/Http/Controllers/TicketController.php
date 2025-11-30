@@ -221,6 +221,8 @@ public function store(Request $request)
 
     public function showLogs(Request $request)
 {   
+
+    
     $user = Auth::user();
 
 
@@ -233,20 +235,12 @@ public function store(Request $request)
     $dateTo   = $request->input('dateTo', now()->toDateString());
     $request->input('staff', 'All');
 
-    $tickets = Ticket::whereNull('deleted_at')
-        ->where('is_park_out', $type === 'PARK-IN' ? 0 : 1)
+    $tickets = Ticket::whereNull('tickets.deleted_at')
+        ->where('tickets.is_park_out', $type === 'PARK-IN' ? 0 : 1)
         ->with('parkOutUser:id,name') // 👈 eager load only needed fields
-        ->select(
-            'id',
-            'ticket_no',
-            'plate_no',
-            'park_datetime',
-            'park_out_datetime',
-            'remarks',
-            'park_fee',
-            'park_out_by'
-        );
-    $dateColumn = $type === 'PARK-IN' ? 'park_datetime' : 'park_out_datetime';
+        ->leftJoin('payments', 'payments.ticket_id', '=', 'tickets.id')
+          ->select('tickets.*', 'payments.total_amount');
+    $dateColumn = $type === 'PARK-IN' ? 'tickets.park_datetime' : 'tickets.park_out_datetime';
 
     if ($dateFrom && $dateTo) {
         $tickets->whereDate($dateColumn, '>=', $dateFrom)
@@ -255,16 +249,16 @@ public function store(Request $request)
 
 
     if ($type === 'PARK-OUT' && $user->role == 2) {
-        $tickets->where('park_out_by', $user->id);
+        $tickets->where('tickets.park_out_by', $user->id);
     }
     
     if ($type === 'PARK-OUT' && $user->role != 2 && $request->filled('staff') && $request->input('staff') != 'All') {
-        $tickets->where('park_out_by',(int) $request->input('staff'));
+        $tickets->where('tickets.park_out_by',(int) $request->input('staff'));
     }
     
 
     return inertia('Logs/Index', [
-        'Tickets' => $tickets->orderByDesc('created_at')->get(),
+        'Tickets' => $tickets->orderByDesc('tickets.created_at')->get(),
         'filters' => [
             'type' => $type,
             'dateFrom' => $dateFrom,
@@ -646,7 +640,7 @@ public function submit_payment(Request $request)
                 ]);
 
                 $amountToPay -= $deduct;
-                 if ($cardInventory->discount && $cardInventory->no_of_days && $cardInventory->balance > $amountToPay) {
+                 if ($cardInventory->discount && $cardInventory->no_of_days) {
                     $totalPaid += $deduct - ($cardInventory->discount / $cardInventory->no_of_days);
                 } else {
                     $totalPaid += $deduct;

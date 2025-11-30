@@ -14,10 +14,6 @@
         </div>
       </div>
 
-    
-
-
-
       <!-- Main Data Table Card -->
       <v-card class="data-table-card elevation-8" rounded="lg">
         <!-- Filters Section -->
@@ -172,6 +168,7 @@
                     <td></td>
                     <td></td>
                     <td class="  font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalParkFee) }}</td>
+                     <td class="  font-weight-bold text-indigo-darken-4">{{ formatCurrency(totalPaid) }}</td>
                     <td></td>
                     <td></td>
                     <td >
@@ -236,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref,computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { formatCurrency, formatDate } from '../../utils/utility'
 import dayjs from 'dayjs'
@@ -244,14 +241,7 @@ import dayjs from 'dayjs'
 const props = defineProps({
   Tickets: { type: Array, default: () => [] },
   filters: { type: Object, default: () => ({}) },
-//  totalParkFee: { type: Number, default: 0 },
 })
-
-
-
-//const totalParkFee = ref(props.totalParkFee)
-
-//testing
 
 const items = ref(formatTickets(props.Tickets))
 const nextPageUrl = ref(props.Tickets.next_page_url)
@@ -269,9 +259,10 @@ const headers = [
   { key: 'plate_no', title: 'Plate No' },
   { key: 'park_datetime', title: 'Park In', sortable: true },
   { key: 'park_out_datetime', title: 'Park Out', sortable: true },
-    { key: 'park_fee', title: 'Park Fee', align: 'center' },
+  { key: 'park_fee', title: 'Park Fee', align: 'center' },
+  { key: 'total_amount', title: 'Total Paid', align: 'center' },
   { key: 'remarks', title: 'Remarks', align: 'center' },
-  {key: 'park_out_user.name', title: 'Parked Out By', align: 'center' },
+  { key: 'park_out_user.name', title: 'Parked Out By', align: 'center' },
   { key: 'action', title: 'Action', align: 'center', sortable: false }
 ]
 
@@ -280,8 +271,15 @@ const types = [
   { label: 'Park Out Records', value: 'PARK-OUT' }
 ]
 
+// Watch for dialog close and reset ticketToVoid
+watch(showVoidDialog, (newVal) => {
+  if (!newVal) {
+    ticketToVoid.value = null
+  }
+})
+
 function formatTickets(tickets) {
-    console.log(tickets)
+
   return (tickets || []).map((ticket) => ({
     ...ticket,
     park_datetime: formatDate(ticket.park_datetime),
@@ -299,22 +297,20 @@ const previeReport = () => {
   window.open(`${route("reports.parkout.preview")}?${params}`, "_blank");
 };
 
-
-
-
 function fetchLogs({ url = "/logs", append = false } = {}) {
   const params = {
     dateFrom: dayjs(dateFrom.value).format("YYYY-MM-DD"),
     dateTo: dayjs(dateTo.value).format("YYYY-MM-DD"),
     type: selectedType.value,
-     staff: selectedStaff.value.value,
+    staff: selectedStaff.value.value,
   }
 
   router.get(url, params, {
+    
     preserveState: true,
     preserveScroll: true,
     replace: !append,
-   only: ["Tickets", "totalParkFee", "filters"],
+    only: ["Tickets", "totalParkFee", "filters"],
     onSuccess: (page) => {
       const formatted = formatTickets(page.props.Tickets)
       if (append) {
@@ -322,33 +318,42 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
       } else {
         items.value = formatted
       }
-      nextPageUrl.value = page.props.Tickets.next_page_url
-        // totalParkFee.value = page.props.totalParkFee
-
     },
   })
+
 }
 
-function applyFilter() {
+
+
+function applyFilter(e) {
+  if (e) e.preventDefault();
   fetchLogs({ append: false })
-}
 
+}
 
 const totalParkFee = computed(() => {
   if (!items.value.length) return 0;
   return items.value
-    .filter(ticket => ticket.remarks === 'Paid')  // <-- Only Paid tickets
+    .filter(ticket => ticket.remarks === 'Paid')
     .reduce((sum, ticket) => sum + Number(ticket.park_fee || 0), 0);
 });
 
-// function loadMore() {
-//   if (nextPageUrl.value) {
-//     fetchLogs({ url: nextPageUrl.value, append: true })
-//   }
-// }
-
+const totalPaid = computed(() => {
+  if (!items.value.length) return 0;
+  return items.value
+    .filter(ticket => ticket.remarks === 'Paid')
+    .reduce((sum, ticket) => sum + Number(ticket.total_amount || 0), 0);
+});
 
 const deleteTicket = (id) => {
+  // Find the ticket to check if it's already voided
+  const ticket = items.value.find(t => t.id === id)
+  
+  // Prevent opening dialog if already voided
+  if (ticket && ticket.remarks === 'VOIDED') {
+    return
+  }
+  
   ticketToVoid.value = id
   showVoidDialog.value = true
 }
@@ -356,18 +361,17 @@ const deleteTicket = (id) => {
 const confirmVoid = () => {
   const id = ticketToVoid.value
   
-  items.value = items.value.map(ticket => 
-    ticket.id === id ? { ...ticket, remarks: 'VOIDED' } : ticket
-  )
-
+  // Close dialog immediately to prevent re-triggers
+  showVoidDialog.value = false
+  
   router.delete(route('logs.delete', { id }), {
     onSuccess: () => {
-      showVoidDialog.value = false
-      ticketToVoid.value = null
+      ticketToVoid.value = null  // Reset the ticket ID
       fetchLogs({ append: false })
     },
     onError: (errors) => {
       console.error(errors)
+      ticketToVoid.value = null  // Reset even on error
       fetchLogs({ append: false })
     }
   })
@@ -392,7 +396,7 @@ const confirmVoid = () => {
 .stat-card {
   background: white;
   border-left: 4px solid transparent;
- border-left-color: #1A237E;
+  border-left-color: #1A237E;
   transition: all 0.3s ease;
 }
 
@@ -400,8 +404,6 @@ const confirmVoid = () => {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
 }
-
-
 
 /* Data Table Card */
 .data-table-card {

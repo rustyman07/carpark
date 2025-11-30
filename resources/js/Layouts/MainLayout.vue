@@ -285,6 +285,8 @@ const props = defineProps({ auth: Object });
 //   });
 // };
 
+console.log('layout');
+
 
 const allItems = [
   { title: 'Dashboard', value: 'dashboard', route: 'dashboard', icon: 'mdi-view-dashboard' },
@@ -367,6 +369,7 @@ watch(() => page.props.flash.success, val => {
   if (val) {
     showSuccess.value = true;
     successMessage.value = val;
+    console.log(val);
   }
 }, { deep: true, immediate: true });
 
@@ -389,6 +392,8 @@ watch(() => page.props.errors, val => {
       errorCardMsg.value = val.cards;
     }
   }
+
+    page.props.flash.success = null;
 }, { immediate: true });
 
 watch(() => page.props.flash?.error, val => {
@@ -400,6 +405,7 @@ watch(() => page.props.flash?.error, val => {
     showErrorCard.value = true;
     errorCardMsg.value = val;
   }
+    page.props.flash.error = null;
 }, { deep: true, immediate: true });
 </script>
 <style scoped>
