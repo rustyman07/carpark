@@ -67,6 +67,7 @@ public function index(Request $request)
 
     $payments = Payment::with(['ticket', 'details'])
         ->whereBetween('paid_at', [$startDate, $endDate])
+        ->where('payment_type',$type)
         ->where('status', 'paid') 
         ->orderBy('paid_at', 'asc')
         ->get();

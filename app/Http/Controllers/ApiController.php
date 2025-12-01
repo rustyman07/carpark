@@ -20,7 +20,7 @@ class ApiController extends Controller
                     ->where('status','AVAILABLE')
                     ->orderBy('card_number', 'desc')
                     ->limit(50)
-                    ->get(['id', 'card_number','card_name','price','discount']); 
+                    ->get(['id', 'card_number','card_name','price','discount','no_of_days']); 
 
         return response()->json($cards);
 
