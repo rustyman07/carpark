@@ -24,6 +24,8 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('logs', [TicketController::class, 'showLogs'])->name('logs');
     Route::delete('logs/{id}', [TicketController::class, 'destroy'])->name('logs.delete');
+    Route::put('logs/{id}', [TicketController::class, 'update_parkindatetime'])->name('logs.update_parkindatetime');
+    
 
     Route::get('parkin', [TicketController::class, 'index'])->name('parkin.index');
     Route::post('parkin', [TicketController::class, 'store'])->name('parkin.store');

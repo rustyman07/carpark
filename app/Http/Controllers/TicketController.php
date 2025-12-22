@@ -133,18 +133,18 @@ public function store(Request $request)
 
 
         return redirect()->route('parkin.show',['uuid' => $uuid]);
-    }
+}
 
 
-    public function show(string $uuid)
-    {
+public function show(string $uuid)
+{
 
-        
-        $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
-        return inertia('Parkin/Show', [
-            'ticket' => $ticket
-        ]);
-    }
+    
+    $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+    return inertia('Parkin/Show', [
+        'ticket' => $ticket
+    ]);
+}
 
 
     public function print_ticket($uuid)
@@ -268,6 +268,45 @@ public function store(Request $request)
     ]);
 }
 
+
+
+
+public function update_parkindatetime(Request $request, $id)
+{
+    $data = $request->validate([
+        'park_year'   => 'required|integer',
+        'park_month'  => 'required|integer',
+        'park_day'    => 'required|integer',
+        'park_hour'   => 'required|integer',
+        'park_minute' => 'required|integer',
+        'park_second' => 'required|integer',
+    ]);
+
+    $ticket = Ticket::findOrFail($id);
+    
+    // Build park_datetime from inputs
+    $park_datetime = Carbon::create(
+        $data['park_year'],
+        $data['park_month'],
+        $data['park_day'],
+        $data['park_hour'],
+        $data['park_minute'],
+        $data['park_second']
+    );
+    
+    // Update all fields
+    $ticket->update([
+        'park_year'     => $data['park_year'],
+        'park_month'    => $data['park_month'],
+        'park_day'      => $data['park_day'],
+        'park_hour'     => $data['park_hour'],
+        'park_minute'   => $data['park_minute'],
+        'park_second'   => $data['park_second'],
+        'park_datetime' => $park_datetime,
+    ]);
+
+    return back()->with('success', 'Park-in time updated successfully');
+}
 
 
 public function park_out()

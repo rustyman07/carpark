@@ -145,19 +145,30 @@
           </template>
 
           <template v-slot:item.action="{ item }">
-            <v-btn
-              v-if="item.remarks !== 'VOIDED'"
-              color="error"
-              size="small"
-              variant="outlined"
-              @click="deleteTicket(item.id)"
-            >
-              <v-icon start size="18">mdi-cancel</v-icon>
-              Void
-            </v-btn>
-            <v-chip v-else color="error" variant="flat" size="small" disabled>
-              Already Voided
-            </v-chip>
+            <div class="d-flex gap-2">
+              <v-btn
+                color="primary"
+                size="small"
+                variant="outlined"
+                @click="editParkIn(item)"
+              >
+                <v-icon start size="18">mdi-pencil</v-icon>
+                Edit
+              </v-btn>
+              <v-btn
+                v-if="item.remarks !== 'VOIDED'"
+                color="error"
+                size="small"
+                variant="outlined"
+                @click="deleteTicket(item.id)"
+              >
+                <v-icon start size="18">mdi-cancel</v-icon>
+                Void
+              </v-btn>
+              <v-chip v-else color="error" variant="flat" size="small" disabled>
+                Already Voided
+              </v-chip>
+            </div>
           </template>
           <template v-slot:body.append>
                 <tr class="summary-row">
@@ -229,6 +240,83 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Edit Park-In Dialog -->
+    <v-dialog v-model="showEditDialog" max-width="600" persistent>
+      <v-card rounded="lg">
+        <v-card-title class="pa-6 pb-4">
+          <div class="d-flex align-center">
+            <v-icon size="32" color="primary" class="mr-3">mdi-pencil-circle</v-icon>
+            <span class="text-h6 font-weight-bold">Edit Park-In Time</span>
+          </div>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text class="pa-6">
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="editForm.ticket_no"
+                label="Ticket No"
+                variant="outlined"
+                readonly
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                v-model="editForm.plate_no"
+                label="Plate No"
+                variant="outlined"
+                readonly
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="editForm.date"
+                label="Date"
+                type="date"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-calendar"
+                :max="maxDate"
+                :error-messages="dateTimeError"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="editForm.time"
+                label="Time"
+                type="time"
+                variant="outlined"
+                density="comfortable"
+                prepend-inner-icon="mdi-clock-outline"
+                :error-messages="dateTimeError"
+              />
+            </v-col>
+            <v-col cols="12" v-if="dateTimeError">
+              <v-alert type="error" variant="tonal" density="compact">
+                {{ dateTimeError }}
+              </v-alert>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions class="pa-4 justify-end">
+          <v-btn variant="outlined" @click="showEditDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn 
+            color="primary" 
+            variant="flat" 
+            @click="confirmUpdate"
+            :disabled="!!dateTimeError"
+          >
+            Update Park-In
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -246,10 +334,20 @@ const props = defineProps({
 const items = ref(formatTickets(props.Tickets))
 const nextPageUrl = ref(props.Tickets.next_page_url)
 const showVoidDialog = ref(false)
+const showEditDialog = ref(false)
 const ticketToVoid = ref(null)
 const selectedStaff = ref({ label: 'All', value: 'All' })
+const dateTimeError = ref('')
+const editForm = ref({
+  id: null,
+  ticket_no: '',
+  plate_no: '',
+  date: '',
+  time: ''
+})
 
 const today = dayjs().format('YYYY-MM-DD')
+const maxDate = dayjs().format('YYYY-MM-DD')
 const dateFrom = ref(today)
 const dateTo = ref(today)
 const selectedType = ref('PARK-IN')
@@ -277,6 +375,29 @@ watch(showVoidDialog, (newVal) => {
     ticketToVoid.value = null
   }
 })
+
+// Watch for changes in date and time to validate
+watch([() => editForm.value.date, () => editForm.value.time], () => {
+  validateDateTime()
+})
+
+function validateDateTime() {
+  const { date, time } = editForm.value
+  
+  if (!date || !time) {
+    dateTimeError.value = ''
+    return
+  }
+  
+  const selectedDateTime = dayjs(`${date} ${time}`)
+  const now = dayjs()
+  
+  if (selectedDateTime.isAfter(now)) {
+    dateTimeError.value = 'Park-in time cannot be in the future'
+  } else {
+    dateTimeError.value = ''
+  }
+}
 
 function formatTickets(tickets) {
 
@@ -372,6 +493,57 @@ const confirmVoid = () => {
     onError: (errors) => {
       console.error(errors)
       ticketToVoid.value = null  // Reset even on error
+      fetchLogs({ append: false })
+    }
+  })
+}
+
+const editParkIn = (item) => {
+  const parkDateTime = dayjs(item.park_datetime, 'MM/DD/YYYY hh:mm A')
+  
+  editForm.value = {
+    id: item.id,
+    ticket_no: item.ticket_no,
+    plate_no: item.plate_no,
+    date: parkDateTime.format('YYYY-MM-DD'),
+    time: parkDateTime.format('HH:mm')
+  }
+  
+  dateTimeError.value = ''
+  showEditDialog.value = true
+}
+
+const confirmUpdate = () => {
+  const { id, date, time } = editForm.value
+  
+  // Validate one more time before submitting
+  validateDateTime()
+  
+  if (dateTimeError.value) {
+    return
+  }
+  
+  // Create dayjs object from date and time
+  const parkDateTime = dayjs(`${date} ${time}`)
+  
+  // Slice the datetime into individual components
+  const updateData = {
+    park_year: parkDateTime.year(),
+    park_month: parkDateTime.month() + 1,
+    park_day: parkDateTime.date(),
+    park_hour: parkDateTime.hour(),
+    park_minute: parkDateTime.minute(),
+    park_second: parkDateTime.second()
+  }
+  
+  showEditDialog.value = false
+  
+  router.put(route('logs.update_parkindatetime', { id }), updateData, {
+    onSuccess: () => {
+      fetchLogs({ append: false })
+    },
+    onError: (errors) => {
+      console.error(errors)
       fetchLogs({ append: false })
     }
   })
