@@ -38,7 +38,11 @@ class ReceiptController extends Controller
 
 public function printReceipt($uuid)
 {
+    
+
     $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+
+
     $payment = Payment::where('ticket_id', $ticket->id)->firstOrFail();
 
     // Decode details — single card info

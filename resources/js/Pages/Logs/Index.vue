@@ -111,16 +111,26 @@
           </template>
 
           <template v-slot:item.park_datetime="{ item }">
-            <div class="d-flex align-center">
+            <div class="d-flex align-center gap-2">
               <v-icon size="16" color="success" class="mr-2">mdi-login</v-icon>
               <span class="text-body-2">{{ item.park_datetime }}</span>
             </div>
           </template>
 
           <template v-slot:item.park_out_datetime="{ item }">
-            <div v-if="item.park_out_datetime && item.park_out_datetime !== '-'" class="d-flex align-center">
+            <div v-if="item.park_out_datetime && item.park_out_datetime !== '-'" class="d-flex align-center gap-2">
               <v-icon size="16" color="error" class="mr-2">mdi-logout</v-icon>
               <span class="text-body-2">{{ item.park_out_datetime }}</span>
+              <v-btn
+                v-if="item.uuid && item.remarks === 'Paid'"
+                icon
+                size="x-small"
+                color="success"
+                variant="text"
+                @click="printReceipt(item)"
+              >
+                <v-icon size="18">mdi-printer</v-icon>
+              </v-btn>
             </div>
             <v-chip v-else color="success" variant="flat" size="small">
               <v-icon start size="12">mdi-clock-outline</v-icon>
@@ -213,6 +223,39 @@
         </div>
       </v-card>
     </v-container>
+
+    <!-- Print Receipt Dialog -->
+    <v-dialog v-model="showPrintDialog" max-width="1000px" width="90%" scrollable>
+      <v-card class="dialog-card">
+        <v-card-title class="d-flex justify-space-between align-center pa-4 bg-indigo-darken-4">
+          <span class="text-h6 text-white">Receipt Preview</span>
+          <v-btn 
+            icon 
+            variant="text" 
+            @click="closePrintDialog" 
+            color="white"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-0 pdf-container">
+          <iframe
+            v-if="pdfUrl"
+            :src="pdfUrl"
+            class="pdf-iframe"
+            title="Receipt PDF Preview"
+          />
+          <div v-else class="d-flex align-center justify-center loading-container">
+            <v-progress-circular
+              indeterminate
+              color="indigo-darken-4"
+              size="64"
+            />
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- Void Confirmation Dialog -->
     <v-dialog v-model="showVoidDialog" max-width="500" persistent>
@@ -325,6 +368,7 @@ import { ref, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { formatCurrency, formatDate } from '../../utils/utility'
 import dayjs from 'dayjs'
+import { route } from 'ziggy-js'
 
 const props = defineProps({
   Tickets: { type: Array, default: () => [] },
@@ -335,7 +379,9 @@ const items = ref(formatTickets(props.Tickets))
 const nextPageUrl = ref(props.Tickets.next_page_url)
 const showVoidDialog = ref(false)
 const showEditDialog = ref(false)
+const showPrintDialog = ref(false)
 const ticketToVoid = ref(null)
+const selectedTicketUuid = ref(null)
 const selectedStaff = ref({ label: 'All', value: 'All' })
 const dateTimeError = ref('')
 const editForm = ref({
@@ -369,6 +415,14 @@ const types = [
   { label: 'Park Out Records', value: 'PARK-OUT' }
 ]
 
+// Computed property for PDF URL
+const pdfUrl = computed(() => {
+  if (showPrintDialog.value && selectedTicketUuid.value) {
+    return route('receipt.print', { uuid: selectedTicketUuid.value })
+  }
+  return null
+})
+
 // Watch for dialog close and reset ticketToVoid
 watch(showVoidDialog, (newVal) => {
   if (!newVal) {
@@ -400,12 +454,29 @@ function validateDateTime() {
 }
 
 function formatTickets(tickets) {
-
   return (tickets || []).map((ticket) => ({
     ...ticket,
     park_datetime: formatDate(ticket.park_datetime),
     park_out_datetime: formatDate(ticket.park_out_datetime)
   }))
+}
+
+const printReceipt = (item) => {
+  console.log('Item:', item)
+  console.log('UUID:', item.uuid)
+  
+  if (item.uuid) {
+    selectedTicketUuid.value = item.uuid
+    console.log('Generated URL:', route('receipt.print', { uuid: item.uuid }))
+    showPrintDialog.value = true
+  } else {
+    console.error('No UUID found for ticket:', item)
+  }
+}
+
+const closePrintDialog = () => {
+  showPrintDialog.value = false
+  selectedTicketUuid.value = null
 }
 
 const previeReport = () => {
@@ -427,7 +498,6 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
   }
 
   router.get(url, params, {
-    
     preserveState: true,
     preserveScroll: true,
     replace: !append,
@@ -441,15 +511,11 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
       }
     },
   })
-
 }
-
-
 
 function applyFilter(e) {
   if (e) e.preventDefault();
   fetchLogs({ append: false })
-
 }
 
 const totalParkFee = computed(() => {
@@ -467,10 +533,8 @@ const totalPaid = computed(() => {
 });
 
 const deleteTicket = (id) => {
-  // Find the ticket to check if it's already voided
   const ticket = items.value.find(t => t.id === id)
   
-  // Prevent opening dialog if already voided
   if (ticket && ticket.remarks === 'VOIDED') {
     return
   }
@@ -482,17 +546,16 @@ const deleteTicket = (id) => {
 const confirmVoid = () => {
   const id = ticketToVoid.value
   
-  // Close dialog immediately to prevent re-triggers
   showVoidDialog.value = false
   
   router.delete(route('logs.delete', { id }), {
     onSuccess: () => {
-      ticketToVoid.value = null  // Reset the ticket ID
+      ticketToVoid.value = null
       fetchLogs({ append: false })
     },
     onError: (errors) => {
       console.error(errors)
-      ticketToVoid.value = null  // Reset even on error
+      ticketToVoid.value = null
       fetchLogs({ append: false })
     }
   })
@@ -516,17 +579,14 @@ const editParkIn = (item) => {
 const confirmUpdate = () => {
   const { id, date, time } = editForm.value
   
-  // Validate one more time before submitting
   validateDateTime()
   
   if (dateTimeError.value) {
     return
   }
   
-  // Create dayjs object from date and time
   const parkDateTime = dayjs(`${date} ${time}`)
   
-  // Slice the datetime into individual components
   const updateData = {
     park_year: parkDateTime.year(),
     park_month: parkDateTime.month() + 1,
@@ -564,7 +624,6 @@ const confirmUpdate = () => {
   gap: 1rem;
 }
 
-/* Stat Cards */
 .stat-card {
   background: white;
   border-left: 4px solid transparent;
@@ -577,7 +636,6 @@ const confirmUpdate = () => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* Data Table Card */
 .data-table-card {
   background: white;
   overflow: hidden;
@@ -587,7 +645,6 @@ const confirmUpdate = () => {
   background: linear-gradient(135deg, rgba(26, 35, 126, 0.03) 0%, rgba(26, 35, 126, 0.01) 100%);
 }
 
-/* Custom Data Table Styles */
 :deep(.custom-data-table) {
   background: transparent;
 }
@@ -616,12 +673,27 @@ const confirmUpdate = () => {
   background: rgba(26, 35, 126, 0.04) !important;
 }
 
-/* Load More Section */
 .load-more-section {
   background: linear-gradient(135deg, rgba(26, 35, 126, 0.02) 0%, transparent 100%);
 }
 
-/* Responsive Design */
+/* PDF Dialog Styles */
+.pdf-container {
+  height: 80vh;
+  min-height: 500px;
+}
+
+.pdf-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.loading-container {
+  height: 80vh;
+  min-height: 500px;
+}
+
 @media (max-width: 960px) {
   .page-header {
     text-align: center;
@@ -630,9 +702,14 @@ const confirmUpdate = () => {
   .page-header > div {
     width: 100%;
   }
+  
+  .pdf-container,
+  .loading-container {
+    height: 60vh;
+    min-height: 400px;
+  }
 }
 
-/* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
