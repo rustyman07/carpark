@@ -680,7 +680,7 @@ public function submit_payment(Request $request)
 
                 $amountToPay -= $deduct;
                  if ($cardInventory->discount && $cardInventory->no_of_days) {
-                    $totalPaid += $deduct - ($cardInventory->discount / $cardInventory->no_of_days);
+                    $totalPaid += $deduct - (($cardInventory->discount / $cardInventory->no_of_days)*$ticket->days_parked);
                 } else {
                     $totalPaid += $deduct;
                 }
