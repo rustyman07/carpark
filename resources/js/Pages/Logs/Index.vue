@@ -174,6 +174,7 @@
           <template v-slot:item.action="{ item }">
             <div class="d-flex gap-2">
               <v-btn
+                v-if="$page.props.auth.user.role === 1"
                 color="primary"
                 size="small"
                 variant="outlined"
