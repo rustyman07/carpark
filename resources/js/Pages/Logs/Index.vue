@@ -114,6 +114,16 @@
             <div class="d-flex align-center gap-2">
               <v-icon size="16" color="success" class="mr-2">mdi-login</v-icon>
               <span class="text-body-2">{{ item.park_datetime }}</span>
+              <v-btn
+                v-if="item.uuid"
+                icon
+                size="x-small"
+                color="success"
+                variant="text"
+                @click="printTicket(item)"
+              >
+                <v-icon size="18">mdi-printer</v-icon>
+              </v-btn>
             </div>
           </template>
 
@@ -125,7 +135,7 @@
                 v-if="item.uuid && item.remarks === 'Paid'"
                 icon
                 size="x-small"
-                color="success"
+                color="error"
                 variant="text"
                 @click="printReceipt(item)"
               >
@@ -136,6 +146,13 @@
               <v-icon start size="12">mdi-clock-outline</v-icon>
               Active
             </v-chip>
+          </template>
+          <template v-slot:item.park_fee="{ item }">
+            <span class="text-body-2">{{ formatCurrency(item.park_fee) }}</span>
+          </template>
+
+          <template v-slot:item.total_amount="{ item }">
+            <span class="text-body-2">{{ formatCurrency(item.total_amount) }}</span>
           </template>
 
           <template v-slot:item.remarks="{ item }">
@@ -224,6 +241,39 @@
       </v-card>
     </v-container>
 
+    <!-- Print Ticket Dialog -->
+    <v-dialog v-model="showTicketDialog" max-width="1000px" width="90%" scrollable>
+      <v-card class="dialog-card">
+        <v-card-title class="d-flex justify-space-between align-center pa-4 bg-indigo-darken-4">
+          <span class="text-h6 text-white">Ticket Preview</span>
+          <v-btn 
+            icon 
+            variant="text" 
+            @click="closeTicketDialog" 
+            color="white"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-0 pdf-container">
+          <iframe
+            v-if="ticketPdfUrl"
+            :src="ticketPdfUrl"
+            class="pdf-iframe"
+            title="Ticket PDF Preview"
+          />
+          <div v-else class="d-flex align-center justify-center loading-container">
+            <v-progress-circular
+              indeterminate
+              color="indigo-darken-4"
+              size="64"
+            />
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <!-- Print Receipt Dialog -->
     <v-dialog v-model="showPrintDialog" max-width="1000px" width="90%" scrollable>
       <v-card class="dialog-card">
@@ -241,8 +291,8 @@
         
         <v-card-text class="pa-0 pdf-container">
           <iframe
-            v-if="pdfUrl"
-            :src="pdfUrl"
+            v-if="receiptPdfUrl"
+            :src="receiptPdfUrl"
             class="pdf-iframe"
             title="Receipt PDF Preview"
           />
@@ -380,8 +430,10 @@ const nextPageUrl = ref(props.Tickets.next_page_url)
 const showVoidDialog = ref(false)
 const showEditDialog = ref(false)
 const showPrintDialog = ref(false)
+const showTicketDialog = ref(false)
 const ticketToVoid = ref(null)
 const selectedTicketUuid = ref(null)
+const selectedReceiptUuid = ref(null)
 const selectedStaff = ref({ label: 'All', value: 'All' })
 const dateTimeError = ref('')
 const editForm = ref({
@@ -415,10 +467,18 @@ const types = [
   { label: 'Park Out Records', value: 'PARK-OUT' }
 ]
 
-// Computed property for PDF URL
-const pdfUrl = computed(() => {
-  if (showPrintDialog.value && selectedTicketUuid.value) {
-    return route('receipt.print', { uuid: selectedTicketUuid.value })
+// Computed property for Ticket PDF URL
+const ticketPdfUrl = computed(() => {
+  if (showTicketDialog.value && selectedTicketUuid.value) {
+    return route('print.ticket', { uuid: selectedTicketUuid.value })
+  }
+  return null
+})
+
+// Computed property for Receipt PDF URL
+const receiptPdfUrl = computed(() => {
+  if (showPrintDialog.value && selectedReceiptUuid.value) {
+    return route('receipt.print', { uuid: selectedReceiptUuid.value })
   }
   return null
 })
@@ -461,22 +521,40 @@ function formatTickets(tickets) {
   }))
 }
 
-const printReceipt = (item) => {
-  console.log('Item:', item)
+const printTicket = (item) => {
+  console.log('Print Ticket - Item:', item)
   console.log('UUID:', item.uuid)
   
   if (item.uuid) {
     selectedTicketUuid.value = item.uuid
-    console.log('Generated URL:', route('receipt.print', { uuid: item.uuid }))
-    showPrintDialog.value = true
+    console.log('Generated Ticket URL:', route('print.ticket', { uuid: item.uuid }))
+    showTicketDialog.value = true
   } else {
     console.error('No UUID found for ticket:', item)
   }
 }
 
+const closeTicketDialog = () => {
+  showTicketDialog.value = false
+  selectedTicketUuid.value = null
+}
+
+const printReceipt = (item) => {
+  console.log('Print Receipt - Item:', item)
+  console.log('UUID:', item.uuid)
+  
+  if (item.uuid) {
+    selectedReceiptUuid.value = item.uuid
+    console.log('Generated Receipt URL:', route('receipt.print', { uuid: item.uuid }))
+    showPrintDialog.value = true
+  } else {
+    console.error('No UUID found for receipt:', item)
+  }
+}
+
 const closePrintDialog = () => {
   showPrintDialog.value = false
-  selectedTicketUuid.value = null
+  selectedReceiptUuid.value = null
 }
 
 const previeReport = () => {

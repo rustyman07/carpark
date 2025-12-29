@@ -654,6 +654,12 @@ public function submit_payment(Request $request)
                 'paid_at'        => now(),
             ]);
 
+                        // Daily parking rate
+            $dailyParkingRate = $ticket->days_parked > 0 
+                ? ($ticket->park_fee / $ticket->days_parked) 
+                : 0;
+            
+
             // Deduct progressively from cards
             foreach ($cards as $cardId) {
                 if ($amountToPay <= 0) break;
@@ -679,8 +685,25 @@ public function submit_payment(Request $request)
                 ]);
 
                 $amountToPay -= $deduct;
-                 if ($cardInventory->discount && $cardInventory->no_of_days) {
-                    $totalPaid += $deduct - (($cardInventory->discount / $cardInventory->no_of_days)*$ticket->days_parked);
+                //  if ($cardInventory->discount && $cardInventory->no_of_days) {
+                //     $totalPaid += $deduct - (($cardInventory->discount / $cardInventory->no_of_days)*$ticket->days_parked);
+                // } else {
+                //     $totalPaid += $deduct;
+                // }
+
+               // Calculate how many days were consumed from THIS card
+                if ($cardInventory->discount && $dailyParkingRate > 0) {
+                    // Days consumed = amount deducted / daily parking rate
+                    $daysConsumedFromThisCard = $deduct / $dailyParkingRate;
+                    
+                    // The discount field stores the discount PER DAY
+                    $discountPerDay = $cardInventory->discount / $cardInventory->no_of_days;
+                    
+                    // Total discount for days consumed from this card only
+                    $discountForThisCard = $discountPerDay * $daysConsumedFromThisCard;
+                    
+                    // Add to total paid (deducted amount minus discount)
+                    $totalPaid += $deduct - $discountForThisCard;
                 } else {
                     $totalPaid += $deduct;
                 }
