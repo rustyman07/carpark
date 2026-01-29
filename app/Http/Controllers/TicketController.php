@@ -472,37 +472,81 @@ public function submit_park_out(Request $request)
      
         $rate = $daysParked * $ratePerDay;
 
-    } else {
+    // } else { //combination
 
-        if ($minutesDiff <= $hourly_limit) {
-            // Charge hourly
-            $hoursParked = max(1, ceil($minutesDiff / 60));
-            $rate = $hoursParked * $ratePerHour;
+    //     if ($minutesDiff <= $hourly_limit) {
+    //         // Charge hourly
+    //         $hoursParked = max(1, ceil($minutesDiff / 60));
+    //         $rate = $hoursParked * $ratePerHour;
     
 
-        } elseif ($minutesDiff <= 1440) {
+    //     } elseif ($minutesDiff <= 1440) {
 
-            $daysParked = 1;
-            $hoursParked = 0;
-            $rate = $ratePerDay;
+    //         $daysParked = 1;
+    //         $hoursParked = 0;
+    //         $rate = $ratePerDay;
             
 
-        } else {
-            // More than 1 day
-            $daysParked = floor($minutesDiff / 1440);
-            $remainingMinutes = $minutesDiff % 1440;
-            $rate = $daysParked * $ratePerDay;
+    //     } else {
+    //         // More than 1 day
+    //         $daysParked = floor($minutesDiff / 1440);
+    //         $remainingMinutes = $minutesDiff % 1440;
+    //         $rate = $daysParked * $ratePerDay;
 
-            if ($remainingMinutes > $freeMinutes) {
-                // Remaining minutes exceed grace period → add 1 full day
-                $daysParked += 1;
-                $rate += $ratePerDay;
-                // $hoursParked = ceil($remainingMinutes / 60);
+    //         if ($remainingMinutes > $freeMinutes) {
+    //             // Remaining minutes exceed grace period → add 1 full day
+    //             $daysParked += 1;
+    //             $rate += $ratePerDay;
+    //             // $hoursParked = ceil($remainingMinutes / 60);
+    //         } else {
+    //             $hoursParked = 0;
+    //         }
+    //     }
+    }else { // combination
+    
+    $additionalHourBlock = (int) $company->additional_hour_block; // 3
+    $additionalRatePerBlock = (float) $company->additional_rate_per_block; // 50
+    $additionalBlockMinutes = $additionalHourBlock * 60; // 180 minutes
+    
+    if ($minutesDiff <= $hourly_limit) {
+        // First 12 hours: Charge hourly
+        $hoursParked = max(1, ceil($minutesDiff / 60));
+        $rate = $hoursParked * $ratePerHour;
+        $daysParked = 0;
+        
+    } elseif ($minutesDiff <= 1440) {
+        // 12-24 hours: Daily rate
+        $daysParked = 1;
+        $hoursParked = 0;
+        $rate = $ratePerDay; // ₱350
+        
+    } else {
+        // More than 24 hours
+        $daysParked = 1;
+        $rate = $ratePerDay; // ₱350
+        
+        $minutesAfter24h = $minutesDiff - 1440;
+        
+        if ($minutesAfter24h > $freeMinutes) {
+            $additionalMinutes = $minutesAfter24h - $freeMinutes;
+            
+            // Subtract one free block (grace period) before calculating
+            $minutesAfterGraceBlock = $additionalMinutes - $additionalBlockMinutes;
+            
+            if ($minutesAfterGraceBlock > 0) {
+                // Calculate blocks after the free grace block
+                $additionalBlocks = ceil($minutesAfterGraceBlock / $additionalBlockMinutes);
+                
+                $rate += ($additionalBlocks * $additionalRatePerBlock);
+                $hoursParked = $additionalBlocks * $additionalHourBlock;
             } else {
                 $hoursParked = 0;
             }
+        } else {
+            $hoursParked = 0;
         }
     }
+}
 
     $ticket->park_fee = $rate;
 

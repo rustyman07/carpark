@@ -177,9 +177,7 @@
         </div>
         <div class="row">
             <span>Used:</span>
-
-            <span><span class="peso">&#8369;</span>   {{ number_format(-($card['amount'] ?? 0), 2) }}</span> 
-          
+            <span><span class="peso">&#8369;</span>   {{ number_format(-($card['amount'] ?? 0), 2) }}</span>         
         </div>
         <div class="row">
             <span>Remaining:</span>

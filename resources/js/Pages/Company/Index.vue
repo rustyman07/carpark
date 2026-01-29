@@ -111,6 +111,7 @@
                     type="number"
                     :readonly="isDisabled || (form.rate !== 'perhour' && form.rate !== 'combination')"
                     bg-color="surface"
+                    prefix="₱"
                   />
                 </v-col>
 
@@ -121,10 +122,10 @@
                     density="comfortable"
                     v-model="form.rate_perday"
                     :disabled="isDisabled || (form.rate !== 'perday' && form.rate !== 'combination')"
-              
                     type="number"
                     :readonly="isDisabled || (form.rate !== 'perday' && form.rate !== 'combination')"
                     bg-color="surface"
+                    prefix="₱"
                   />
                 </v-col>
               </v-row>
@@ -143,7 +144,7 @@
                   </v-alert>
 
                   <v-row>
-                    <v-col cols="12" >
+                    <v-col cols="12" sm="6">
                       <v-text-field
                         label="Hourly Billing Limit"
                         variant="outlined"
@@ -160,15 +161,8 @@
                         bg-color="surface"
                       />
                     </v-col>
-                  </v-row>
-                </div>
-              </v-expand-transition>
 
-              <!-- Grace Period Display -->
-              <v-expand-transition>
-                <div v-if="form.rate === 'perday' || form.rate === 'combination'">
-                  <v-row>
-                    <v-col cols="12" >
+                    <v-col cols="12" sm="6">
                       <v-text-field
                         label="Grace Period"
                         variant="outlined"
@@ -179,7 +173,85 @@
                         min="0"
                         suffix="minutes"
                         prepend-inner-icon="mdi-clock-plus-outline"
-                        hint="Free minutes allowed beyond hourly or daily limit"
+                        hint="Free minutes after 24 hours"
+                        persistent-hint
+                        :readonly="isDisabled"
+                        bg-color="surface"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        label="Additional Hour Block"
+                        variant="outlined"
+                        density="comfortable"
+                        v-model="form.additional_hour_block"
+                        :disabled="isDisabled"
+                        type="number"
+                        min="1"
+                        suffix="hours"
+                        prepend-inner-icon="mdi-clock-fast"
+                        hint="Billing block size after 24 hours (e.g., 3)"
+                        persistent-hint
+                        :readonly="isDisabled"
+                        bg-color="surface"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        label="Rate per Block"
+                        variant="outlined"
+                        density="comfortable"
+                        v-model="form.additional_rate_per_block"
+                        :disabled="isDisabled"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        prefix="₱"
+                        prepend-inner-icon="mdi-cash-plus"
+                        hint="Charge per block after 24 hours (e.g., ₱50)"
+                        persistent-hint
+                        :readonly="isDisabled"
+                        bg-color="surface"
+                      />
+                    </v-col>
+                  </v-row>
+
+                  <!-- Billing Example Display -->
+                  <v-card variant="outlined" class="mt-4 pa-4 bg-grey-lighten-5">
+                    <div class="text-subtitle-2 font-weight-semibold mb-2 text-indigo-darken-4">
+                      <v-icon size="small" class="mr-1">mdi-calculator</v-icon>
+                      Billing Example
+                    </div>
+                    <div class="text-body-2">
+                      <ul class="ml-4">
+                        <li><strong>0-{{ form.hourly_billing_limit || 12 }} hours:</strong> ₱{{ form.rate_perhour || 20 }}/hour</li>
+                        <li><strong>{{ form.hourly_billing_limit || 12 }}-24 hours:</strong> ₱{{ form.rate_perday || 350 }} (daily rate)</li>
+                        <li><strong>25-{{ 24 + parseInt(form.additional_hour_block || 3) }} hours:</strong> ₱{{ form.rate_perday || 350 }} (free {{ form.additional_hour_block || 3 }}-hour grace block)</li>
+                        <li><strong>{{ 24 + parseInt(form.additional_hour_block || 3) + 1 }}+ hours:</strong> ₱{{ form.rate_perday || 350 }} + ₱{{ form.additional_rate_per_block || 50 }} per {{ form.additional_hour_block || 3 }}-hour block</li>
+                      </ul>
+                    </div>
+                  </v-card>
+                </div>
+              </v-expand-transition>
+
+              <!-- Grace Period Display for Per Day only -->
+              <v-expand-transition>
+                <div v-if="form.rate === 'perday'">
+                  <v-row>
+                    <v-col cols="12">
+                      <v-text-field
+                        label="Grace Period"
+                        variant="outlined"
+                        density="comfortable"
+                        v-model="form.grace_minutes"
+                        :disabled="isDisabled"
+                        type="number"
+                        min="0"
+                        suffix="minutes"
+                        prepend-inner-icon="mdi-clock-plus-outline"
+                        hint="Free minutes allowed beyond daily limit"
                         persistent-hint
                         :readonly="isDisabled"
                         bg-color="surface"
@@ -256,7 +328,9 @@ const originalValues = {
   rate_perhour: company.rate_perhour,
   rate_perday: company.rate_perday,
   hourly_billing_limit: company.hourly_billing_limit,
-  grace_minutes: company.grace_minutes
+  grace_minutes: company.grace_minutes,
+  additional_hour_block: company.additional_hour_block,
+  additional_rate_per_block: company.additional_rate_per_block
 };
 
 const form = useForm({
@@ -268,7 +342,9 @@ const form = useForm({
   rate_perhour: company.rate_perhour,
   rate_perday: company.rate_perday,
   hourly_billing_limit: company.hourly_billing_limit,
-  grace_minutes: company.grace_minutes
+  grace_minutes: company.grace_minutes,
+  additional_hour_block: company.additional_hour_block,
+  additional_rate_per_block: company.additional_rate_per_block
 });
 
 const types = [

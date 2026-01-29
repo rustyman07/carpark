@@ -18,6 +18,8 @@ class Company extends Model
     'rate_perhour',
     'rate_perday',
     'hourly_billing_limit',
+    'additional_hour_block',
+    'additional_rate_per_block',
     'grace_minutes'
     ];
 }

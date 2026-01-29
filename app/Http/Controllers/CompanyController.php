@@ -19,16 +19,18 @@ class CompanyController extends Controller
 public function update(Request $request, $id)
 {
     $validated = $request->validate([
-        'id'                   => 'required|integer|exists:companies,id',
-        'name'                 => 'required|string|max:255',
-        'address'              => 'required|string|max:255',
-        'contact'              => 'required|string|max:20',
-        'rate'                 => 'required|in:perhour,perday,combination',
-        'rate_perhour'         => 'nullable|numeric|min:0',
-        'rate_perday'          => 'nullable|numeric|min:0',
-        'post_paid_rate'       => 'nullable|numeric|min:0',
-        'hourly_billing_limit' => 'nullable|integer|min:1',  
-        'grace_minutes'        => 'nullable|integer|min:0',  
+        'id'                        => 'required|integer|exists:companies,id',
+        'name'                      => 'required|string|max:255',
+        'address'                   => 'required|string|max:255',
+        'contact'                   => 'required|string|max:20',
+        'rate'                      => 'required|in:perhour,perday,combination',
+        'rate_perhour'              => 'nullable|numeric|min:0',
+        'rate_perday'               => 'nullable|numeric|min:0',
+        'post_paid_rate'            => 'nullable|numeric|min:0',
+        'hourly_billing_limit'      => 'nullable|integer|min:1',  
+        'grace_minutes'             => 'nullable|integer|min:0',
+        'additional_hour_block'     => 'nullable|integer|min:1',      // New field
+        'additional_rate_per_block' => 'nullable|numeric|min:0',      // New field
     ]);
 
     $company = Company::findOrFail($id);
@@ -36,14 +38,14 @@ public function update(Request $request, $id)
     // If rate type is NOT "combination", clear those fields to avoid confusion
     if ($validated['rate'] !== 'combination') {
         $validated['hourly_billing_limit'] = null;
-
+        $validated['additional_hour_block'] = null;
+        $validated['additional_rate_per_block'] = null;
     }
 
     $company->update($validated);
 
     return redirect()->back()->with('success', 'Company updated successfully!');
 }
-
 
 
 
