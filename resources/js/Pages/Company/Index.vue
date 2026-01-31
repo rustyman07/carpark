@@ -219,7 +219,7 @@
                   </v-row>
 
                   <!-- Billing Example Display -->
-                  <v-card variant="outlined" class="mt-4 pa-4 bg-grey-lighten-5">
+                  <!-- <v-card variant="outlined" class="mt-4 pa-4 bg-grey-lighten-5">
                     <div class="text-subtitle-2 font-weight-semibold mb-2 text-indigo-darken-4">
                       <v-icon size="small" class="mr-1">mdi-calculator</v-icon>
                       Billing Example
@@ -232,7 +232,7 @@
                         <li><strong>{{ 24 + parseInt(form.additional_hour_block || 3) + 1 }}+ hours:</strong> ₱{{ form.rate_perday || 350 }} + ₱{{ form.additional_rate_per_block || 50 }} per {{ form.additional_hour_block || 3 }}-hour block</li>
                       </ul>
                     </div>
-                  </v-card>
+                  </v-card> -->
                 </div>
               </v-expand-transition>
 
