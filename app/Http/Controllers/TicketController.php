@@ -502,8 +502,57 @@ public function submit_park_out(Request $request)
     //             $hoursParked = 0;
     //         }
     //     }
-    }else { // combination
+
     
+//     }else { // combination
+    
+//     $additionalHourBlock = (int) $company->additional_hour_block; // 3
+//     $additionalRatePerBlock = (float) $company->additional_rate_per_block; // 50
+//     $additionalBlockMinutes = $additionalHourBlock * 60; // 180 minutes
+    
+//     if ($minutesDiff <= $hourly_limit) {
+//         // First 12 hours: Charge hourly
+//         $hoursParked = max(1, ceil($minutesDiff / 60));
+//         $rate = $hoursParked * $ratePerHour;
+//         $daysParked = 0;
+        
+//     } elseif ($minutesDiff <= 1440) {
+//         // 12-24 hours: Daily rate
+//         $daysParked = 1;
+//         $hoursParked = 0;
+//         $rate = $ratePerDay; // ₱350
+        
+//     } else {
+//         // More than 24 hours
+//         $daysParked = 1;
+//         $rate = $ratePerDay; // ₱350
+        
+//         $minutesAfter24h = $minutesDiff - 1440;
+        
+//         if ($minutesAfter24h > $freeMinutes) {
+//             $additionalMinutes = $minutesAfter24h - $freeMinutes;
+            
+//             // Subtract one free block (grace period) before calculating
+//             $minutesAfterGraceBlock = $additionalMinutes - $additionalBlockMinutes;
+            
+//             if ($minutesAfterGraceBlock > 0) {
+//                 // Calculate blocks after the free grace block
+//                 $additionalBlocks = ceil($minutesAfterGraceBlock / $additionalBlockMinutes);
+                
+//                 $rate += ($additionalBlocks * $additionalRatePerBlock);
+//                 $hoursParked = $additionalBlocks * $additionalHourBlock;
+//             } else {
+//                 $hoursParked = 0;
+//             }
+//         } else {
+//             $hoursParked = 0;
+//         }
+//     }
+// }
+
+
+} else { // combination
+
     $additionalHourBlock = (int) $company->additional_hour_block; // 3
     $additionalRatePerBlock = (float) $company->additional_rate_per_block; // 50
     $additionalBlockMinutes = $additionalHourBlock * 60; // 180 minutes
@@ -521,29 +570,39 @@ public function submit_park_out(Request $request)
         $rate = $ratePerDay; // ₱350
         
     } else {
-        // More than 24 hours
-        $daysParked = 1;
-        $rate = $ratePerDay; // ₱350
+        // More than 24 hours - daily-based billing
         
-        $minutesAfter24h = $minutesDiff - 1440;
+        // Calculate full days
+        $fullDays = floor($minutesDiff / 1440);
+        $daysParked = $fullDays;
         
-        if ($minutesAfter24h > $freeMinutes) {
-            $additionalMinutes = $minutesAfter24h - $freeMinutes;
+        // Charge for full days
+        $rate = $fullDays * $ratePerDay;
+        
+        // Calculate remaining minutes after full days
+        $remainingMinutes = $minutesDiff % 1440;
+        
+        // Grace period in minutes
+        // If grace_minutes is stored as hours (e.g., 3), multiply by 60
+        // If grace_minutes is stored as minutes (e.g., 180), use directly
+        $graceMinutes = $freeMinutes ;
+        
+        // Apply grace period
+        if ($remainingMinutes > $graceMinutes) {
+            // Time exceeds grace period, calculate blocks
+            $minutesBeyondGrace = $remainingMinutes - $graceMinutes;
             
-            // Subtract one free block (grace period) before calculating
-            $minutesAfterGraceBlock = $additionalMinutes - $additionalBlockMinutes;
+            // Calculate number of blocks needed (round up)
+            $additionalBlocks = ceil($minutesBeyondGrace / $additionalBlockMinutes);
             
-            if ($minutesAfterGraceBlock > 0) {
-                // Calculate blocks after the free grace block
-                $additionalBlocks = ceil($minutesAfterGraceBlock / $additionalBlockMinutes);
-                
-                $rate += ($additionalBlocks * $additionalRatePerBlock);
-                $hoursParked = $additionalBlocks * $additionalHourBlock;
-            } else {
-                $hoursParked = 0;
-            }
+            // Add block charges
+            $rate += ($additionalBlocks * $additionalRatePerBlock);
+            
+            // For display: show actual hours remaining
+            $hoursParked = floor($remainingMinutes / 60);
         } else {
-            $hoursParked = 0;
+            // Within grace period, no additional charge
+            $hoursParked = floor($remainingMinutes / 60);
         }
     }
 }
@@ -705,54 +764,103 @@ public function submit_payment(Request $request)
             
 
             // Deduct progressively from cards
-            foreach ($cards as $cardId) {
-                if ($amountToPay <= 0) break;
+            // foreach ($cards as $cardId) {
+            //     if ($amountToPay <= 0) break;
 
-                $cardInventory = CardInventoryDetail::findOrFail($cardId);
+            //     $cardInventory = CardInventoryDetail::findOrFail($cardId);
 
-                $deduct = min($cardInventory->balance, $amountToPay);
-                $cardInventory->balance -= $deduct;
-                if ($cardInventory->balance <= 0) {
-                    $cardInventory->status = 'Consumed';
-                }
-                $cardInventory->save();
+            //     $deduct = min($cardInventory->balance, $amountToPay);
+            //     $cardInventory->balance -= $deduct;
+            //     if ($cardInventory->balance <= 0) {
+            //         $cardInventory->status = 'Consumed';
+            //     }
+            //     $cardInventory->save();
 
-                $payment->details()->create([
-                    'card_id'     => $cardInventory->id,
-                    'card_number' => $cardInventory->card_number,
-                    'qr_code'     => $cardInventory->qr_code,
-                    'amount'      => $deduct,
-                    'balance'     => $cardInventory->balance,
-                    'card_name'   => $cardInventory->card_name,
-                    'discount'    => $cardInventory->discount ?? 0,
-                    'no_of_days'  => $cardInventory->no_of_days ?? 0,
-                ]);
+            //     $payment->details()->create([
+            //         'card_id'     => $cardInventory->id,
+            //         'card_number' => $cardInventory->card_number,
+            //         'qr_code'     => $cardInventory->qr_code,
+            //         'amount'      => $deduct,
+            //         'balance'     => $cardInventory->balance,
+            //         'card_name'   => $cardInventory->card_name,
+            //         'discount'    => $cardInventory->discount ?? 0,
+            //         'no_of_days'  => $cardInventory->no_of_days ?? 0,
+            //     ]);
 
-                $amountToPay -= $deduct;
-                //  if ($cardInventory->discount && $cardInventory->no_of_days) {
-                //     $totalPaid += $deduct - (($cardInventory->discount / $cardInventory->no_of_days)*$ticket->days_parked);
-                // } else {
-                //     $totalPaid += $deduct;
-                // }
+            //     $amountToPay -= $deduct;
+            //     //  if ($cardInventory->discount && $cardInventory->no_of_days) {
+            //     //     $totalPaid += $deduct - (($cardInventory->discount / $cardInventory->no_of_days)*$ticket->days_parked);
+            //     // } else {
+            //     //     $totalPaid += $deduct;
+            //     // }
 
-               // Calculate how many days were consumed from THIS card
-                if ($cardInventory->discount && $dailyParkingRate > 0) {
-                    // Days consumed = amount deducted / daily parking rate
-                    $daysConsumedFromThisCard = $deduct / $dailyParkingRate;
+            //    // Calculate how many days were consumed from THIS card
+            //     if ($cardInventory->discount && $dailyParkingRate > 0) {
+            //         // Days consumed = amount deducted / daily parking rate
+            //         $daysConsumedFromThisCard = $deduct / $dailyParkingRate;
                     
-                    // The discount field stores the discount PER DAY
-                    $discountPerDay = $cardInventory->discount / $cardInventory->no_of_days;
+            //         // The discount field stores the discount PER DAY
+            //         $discountPerDay = $cardInventory->discount / $cardInventory->no_of_days;
                     
-                    // Total discount for days consumed from this card only
-                    $discountForThisCard = $discountPerDay * $daysConsumedFromThisCard;
+            //         // Total discount for days consumed from this card only
+            //         $discountForThisCard = $discountPerDay * $daysConsumedFromThisCard;
                     
-                    // Add to total paid (deducted amount minus discount)
-                    $totalPaid += $deduct - $discountForThisCard;
-                } else {
-                    $totalPaid += $deduct;
-                }
+            //         // Add to total paid (deducted amount minus discount)
+            //         $totalPaid += $deduct - $discountForThisCard;
+            //     } else {
+            //         $totalPaid += $deduct;
+            //     }
 
-            }
+            // }
+
+
+            // Deduct progressively from cards
+foreach ($cards as $cardId) {
+    if ($amountToPay <= 0) break;
+
+    $cardInventory = CardInventoryDetail::findOrFail($cardId);
+
+    $deduct = min($cardInventory->balance, $amountToPay);
+    $cardInventory->balance -= $deduct;
+    if ($cardInventory->balance <= 0) {
+        $cardInventory->status = 'Consumed';
+    }
+    $cardInventory->save();
+
+    $payment->details()->create([
+        'card_id'     => $cardInventory->id,
+        'card_number' => $cardInventory->card_number,
+        'qr_code'     => $cardInventory->qr_code,
+        'amount'      => $deduct,
+        'balance'     => $cardInventory->balance,
+        'card_name'   => $cardInventory->card_name,
+        'discount'    => $cardInventory->discount ?? 0,
+        'no_of_days'  => $cardInventory->no_of_days ?? 0,
+    ]);
+
+    $amountToPay -= $deduct;
+
+    // Calculate discount percentage and apply to deducted amount
+    if ($cardInventory->discount && $cardInventory->no_of_days > 0) {
+        $company = Company::find(1);
+        $ratePerDay = (float) $company->rate_perday; // e.g., ₱350
+        
+        // Total discount per day
+        $discountPerDay = $cardInventory->discount / $cardInventory->no_of_days; // e.g., 217 / 7 = 31
+        
+        // Calculate discount percentage
+        // Discount % = (discount per day / rate per day) × 100
+        $discountPercentage = ($discountPerDay / $ratePerDay) * 100; // e.g., (31 / 350) × 100 = 8.857%
+        
+        // Apply discount percentage to the deducted amount 
+        $discountAmount = ($discountPercentage / 100) * $deduct; // e.g., (8.857% / 100) × 50 = 4.43
+        
+        // Add to total paid (deducted amount minus discount)
+        $totalPaid += $deduct - $discountAmount; // e.g., 50 - 4.43 = 45.57
+    } else {
+        $totalPaid += $deduct;
+    }
+}
 
 
            
