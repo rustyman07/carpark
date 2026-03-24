@@ -47,6 +47,7 @@ public function store(Request $request)
     // Validate inputs
     $data = $request->validate([
         'plate_no'    => 'required|string|min:3',
+         'vehicle_type' => 'required|in:car,motorcycle',
         'park_year'   => 'nullable|integer',
         'park_month'  => 'nullable|integer',
         'park_day'    => 'nullable|integer',

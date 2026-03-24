@@ -25,7 +25,7 @@ public function index(Request $request)
     $from = Carbon::parse($dateFrom)->startOfDay();
     $to   = Carbon::parse($dateTo)->endOfDay();
 
-    // ✅ Query includes all times in that range
+ 
     $query = Payment::with(['ticket', 'details', 'user'])
         ->whereBetween('paid_at', [$from, $to]);
 
