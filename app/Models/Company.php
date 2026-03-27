@@ -20,6 +20,13 @@ class Company extends Model
     'hourly_billing_limit',
     'additional_hour_block',
     'additional_rate_per_block',
-    'grace_minutes'
+    'grace_minutes',
+    'motor_rate',
+    'motor_rate_perhour',
+    'motor_rate_perday',
+    'motor_hourly_billing_limit',
+    'motor_grace_minutes',
+    'motor_additional_hour_block',
+    'motor_additional_rate_per_block',
     ];
 }

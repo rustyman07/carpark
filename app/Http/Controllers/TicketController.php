@@ -434,79 +434,48 @@ public function submit_park_out(Request $request)
         }
 
 
-    $company = Company::find(1);
+//     $company = Company::find(1);
 
-    $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
-    $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
+//     $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
+//     $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
 
-    $minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
+//     $minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
 
-    $ratePerHour = (float) $company->rate_perhour;
-    $ratePerDay  = (float) $company->rate_perday;
+//     $ratePerHour = (float) $company->rate_perhour;
+//     $ratePerDay  = (float) $company->rate_perday;
 
-    $hourly_limit = (int) $company->hourly_billing_limit * 60; //  10 hours * 60
-    $freeMinutes  = (int) $company->grace_minutes;             
+//     $hourly_limit = (int) $company->hourly_billing_limit * 60; //  10 hours * 60
+//     $freeMinutes  = (int) $company->grace_minutes;             
 
-    $rate = 0;
-    $daysParked = 0;
-    $hoursParked = 0;
-    $remainingMinutes = 0;
+//     $rate = 0;
+//     $daysParked = 0;
+//     $hoursParked = 0;
+//     $remainingMinutes = 0;
 
-    if ($company->rate == 'perhour') {
+//     if ($company->rate == 'perhour') {
 
-        $hoursParked = max(1, ceil($minutesDiff / 60));
-        $rate = $hoursParked * $ratePerHour;
+//         $hoursParked = max(1, ceil($minutesDiff / 60));
+//         $rate = $hoursParked * $ratePerHour;
 
-    } elseif ($company->rate == 'perday') {
+//     } elseif ($company->rate == 'perday') {
 
-        $fullDays = floor($minutesDiff / 1440);        // full 24-hour days
-        $remainingMinutes = $minutesDiff % 1440;       // leftover minutes
+//         $fullDays = floor($minutesDiff / 1440);        // full 24-hour days
+//         $remainingMinutes = $minutesDiff % 1440;       // leftover minutes
 
-        // Apply grace period
-        if ($remainingMinutes > $freeMinutes) {
-            $daysParked = $fullDays + 1;               // extra day
-        } else {
-            $daysParked = max(1, $fullDays);           // at least 1 day
-        }
+//         // Apply grace period
+//         if ($remainingMinutes > $freeMinutes) {
+//             $daysParked = $fullDays + 1;               // extra day
+//         } else {
+//             $daysParked = max(1, $fullDays);           // at least 1 day
+//         }
 
-        $hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60); // display only
+//         $hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60); // display only
      
-        $rate = $daysParked * $ratePerDay;
+//         $rate = $daysParked * $ratePerDay;
 
-    // } else { //combination
+  
+// } else { // combination
 
-    //     if ($minutesDiff <= $hourly_limit) {
-    //         // Charge hourly
-    //         $hoursParked = max(1, ceil($minutesDiff / 60));
-    //         $rate = $hoursParked * $ratePerHour;
-    
-
-    //     } elseif ($minutesDiff <= 1440) {
-
-    //         $daysParked = 1;
-    //         $hoursParked = 0;
-    //         $rate = $ratePerDay;
-            
-
-    //     } else {
-    //         // More than 1 day
-    //         $daysParked = floor($minutesDiff / 1440);
-    //         $remainingMinutes = $minutesDiff % 1440;
-    //         $rate = $daysParked * $ratePerDay;
-
-    //         if ($remainingMinutes > $freeMinutes) {
-    //             // Remaining minutes exceed grace period → add 1 full day
-    //             $daysParked += 1;
-    //             $rate += $ratePerDay;
-    //             // $hoursParked = ceil($remainingMinutes / 60);
-    //         } else {
-    //             $hoursParked = 0;
-    //         }
-    //     }
-
-    
-//     }else { // combination
-    
 //     $additionalHourBlock = (int) $company->additional_hour_block; // 3
 //     $additionalRatePerBlock = (float) $company->additional_rate_per_block; // 50
 //     $additionalBlockMinutes = $additionalHourBlock * 60; // 180 minutes
@@ -524,113 +493,166 @@ public function submit_park_out(Request $request)
 //         $rate = $ratePerDay; // ₱350
         
 //     } else {
-//         // More than 24 hours
-//         $daysParked = 1;
-//         $rate = $ratePerDay; // ₱350
+//         // More than 24 hours - daily-based billing
         
-//         $minutesAfter24h = $minutesDiff - 1440;
+//         // Calculate full days
+//         $fullDays = floor($minutesDiff / 1440);
+//         $daysParked = $fullDays;
         
-//         if ($minutesAfter24h > $freeMinutes) {
-//             $additionalMinutes = $minutesAfter24h - $freeMinutes;
+//         // Charge for full days
+//         $rate = $fullDays * $ratePerDay;
+        
+//         // Calculate remaining minutes after full days
+//         $remainingMinutes = $minutesDiff % 1440;
+        
+//         // Grace period in minutes
+//         // If grace_minutes is stored as hours (e.g., 3), multiply by 60
+//         // If grace_minutes is stored as minutes (e.g., 180), use directly
+//         $graceMinutes = $freeMinutes ;
+        
+//         // Apply grace period
+//         if ($remainingMinutes > $graceMinutes) {
+//             // Time exceeds grace period, calculate blocks
+//             $minutesBeyondGrace = $remainingMinutes - $graceMinutes;
             
-//             // Subtract one free block (grace period) before calculating
-//             $minutesAfterGraceBlock = $additionalMinutes - $additionalBlockMinutes;
+//             // Calculate number of blocks needed (round up)
+//             $additionalBlocks = ceil($minutesBeyondGrace / $additionalBlockMinutes);
             
-//             if ($minutesAfterGraceBlock > 0) {
-//                 // Calculate blocks after the free grace block
-//                 $additionalBlocks = ceil($minutesAfterGraceBlock / $additionalBlockMinutes);
-                
-//                 $rate += ($additionalBlocks * $additionalRatePerBlock);
-//                 $hoursParked = $additionalBlocks * $additionalHourBlock;
-//             } else {
-//                 $hoursParked = 0;
-//             }
+//             // Add block charges
+//             $rate += ($additionalBlocks * $additionalRatePerBlock);
+            
+//             // For display: show actual hours remaining
+//             $hoursParked = floor($remainingMinutes / 60);
 //         } else {
-//             $hoursParked = 0;
+//             // Within grace period, no additional charge
+//             $hoursParked = floor($remainingMinutes / 60);
 //         }
 //     }
 // }
 
+//     $ticket->park_fee = $rate;
 
-} else { // combination
 
-    $additionalHourBlock = (int) $company->additional_hour_block; // 3
-    $additionalRatePerBlock = (float) $company->additional_rate_per_block; // 50
-    $additionalBlockMinutes = $additionalHourBlock * 60; // 180 minutes
+//         $ticket->fill([
+//             'is_park_out'     => 1,
+//             'park_out_year'   => $data['park_out_year'],
+//             'park_out_month'  => $data['park_out_month'],
+//             'park_out_day'    => $data['park_out_day'],
+//             'park_out_hour'   => $data['park_out_hour'],
+//             'park_out_minute' => $data['park_out_minute'],
+//             'park_out_second' => $data['park_out_second'],
+//             'total_minutes'  => $minutesDiff,
+//             'days_parked'   => $daysParked,
+//             'hours_parked'  => $hoursParked,
+//             'park_out_datetime' => $end,
+//             'park_out_by'     =>  Auth::id()
+//         ])->save();
+
     
-    if ($minutesDiff <= $hourly_limit) {
-        // First 12 hours: Charge hourly
-        $hoursParked = max(1, ceil($minutesDiff / 60));
-        $rate = $hoursParked * $ratePerHour;
-        $daysParked = 0;
-        
-    } elseif ($minutesDiff <= 1440) {
-        // 12-24 hours: Daily rate
-        $daysParked = 1;
-        $hoursParked = 0;
-        $rate = $ratePerDay; // ₱350
-        
+//         Cache::forget('dashboard.latestParkout');
+//         return redirect()->route('show.payment', [
+//             'uuid' => $ticket->uuid
+//         ]);
+$company = Company::find(1);
+ 
+$start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
+$end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
+ 
+$minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
+ 
+$isMotor = $ticket->vehicle_type === 'motorcycle';
+ 
+// Pick the correct rate fields based on vehicle type
+$rateType    = $isMotor ? $company->motor_rate        : $company->rate;
+$ratePerHour = (float) ($isMotor ? $company->motor_rate_perhour              : $company->rate_perhour);
+$ratePerDay  = (float) ($isMotor ? $company->motor_rate_perday               : $company->rate_perday);
+$hourly_limit = (int)  ($isMotor ? $company->motor_hourly_billing_limit       : $company->hourly_billing_limit) * 60;
+$freeMinutes  = (int)  ($isMotor ? $company->motor_grace_minutes              : $company->grace_minutes);
+$additionalHourBlock    = (int)   ($isMotor ? $company->motor_additional_hour_block      : $company->additional_hour_block);
+$additionalRatePerBlock = (float) ($isMotor ? $company->motor_additional_rate_per_block  : $company->additional_rate_per_block);
+ 
+$rate             = 0;
+$daysParked       = 0;
+$hoursParked      = 0;
+$remainingMinutes = 0;
+ 
+if ($rateType === 'perhour') {
+ 
+    $hoursParked = max(1, ceil($minutesDiff / 60));
+    $rate = $hoursParked * $ratePerHour;
+ 
+} elseif ($rateType === 'perday') {
+ 
+    $fullDays         = floor($minutesDiff / 1440);
+    $remainingMinutes = $minutesDiff % 1440;
+ 
+    if ($remainingMinutes > $freeMinutes) {
+        $daysParked = $fullDays + 1;
     } else {
-        // More than 24 hours - daily-based billing
-        
-        // Calculate full days
-        $fullDays = floor($minutesDiff / 1440);
-        $daysParked = $fullDays;
-        
-        // Charge for full days
-        $rate = $fullDays * $ratePerDay;
-        
-        // Calculate remaining minutes after full days
+        $daysParked = max(1, $fullDays);
+    }
+ 
+    $hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60);
+ 
+    $rate = $daysParked * $ratePerDay;
+ 
+} else { // combination
+ 
+    $additionalBlockMinutes = $additionalHourBlock * 60;
+ 
+    if ($minutesDiff <= $hourly_limit) {
+        // Within hourly limit: charge per hour
+        $hoursParked = max(1, ceil($minutesDiff / 60));
+        $rate        = $hoursParked * $ratePerHour;
+        $daysParked  = 0;
+ 
+    } elseif ($minutesDiff <= 1440) {
+        // Hourly limit to 24 hours: flat daily rate
+        $daysParked  = 1;
+        $hoursParked = 0;
+        $rate        = $ratePerDay;
+ 
+    } else {
+        // Over 24 hours: daily-based billing with block charges
+        $fullDays         = floor($minutesDiff / 1440);
+        $daysParked       = $fullDays;
+        $rate             = $fullDays * $ratePerDay;
         $remainingMinutes = $minutesDiff % 1440;
-        
-        // Grace period in minutes
-        // If grace_minutes is stored as hours (e.g., 3), multiply by 60
-        // If grace_minutes is stored as minutes (e.g., 180), use directly
-        $graceMinutes = $freeMinutes ;
-        
-        // Apply grace period
-        if ($remainingMinutes > $graceMinutes) {
-            // Time exceeds grace period, calculate blocks
-            $minutesBeyondGrace = $remainingMinutes - $graceMinutes;
-            
-            // Calculate number of blocks needed (round up)
-            $additionalBlocks = ceil($minutesBeyondGrace / $additionalBlockMinutes);
-            
-            // Add block charges
-            $rate += ($additionalBlocks * $additionalRatePerBlock);
-            
-            // For display: show actual hours remaining
-            $hoursParked = floor($remainingMinutes / 60);
+ 
+        if ($remainingMinutes > $freeMinutes) {
+            $minutesBeyondGrace = $remainingMinutes - $freeMinutes;
+            $additionalBlocks   = ceil($minutesBeyondGrace / $additionalBlockMinutes);
+            $rate              += ($additionalBlocks * $additionalRatePerBlock);
+            $hoursParked        = floor($remainingMinutes / 60);
         } else {
-            // Within grace period, no additional charge
             $hoursParked = floor($remainingMinutes / 60);
         }
     }
 }
+ 
+$ticket->park_fee = $rate;
+ 
+$ticket->fill([
+    'is_park_out'       => 1,
+    'park_out_year'     => $data['park_out_year'],
+    'park_out_month'    => $data['park_out_month'],
+    'park_out_day'      => $data['park_out_day'],
+    'park_out_hour'     => $data['park_out_hour'],
+    'park_out_minute'   => $data['park_out_minute'],
+    'park_out_second'   => $data['park_out_second'],
+    'total_minutes'     => $minutesDiff,
+    'days_parked'       => $daysParked,
+    'hours_parked'      => $hoursParked,
+    'park_out_datetime' => $end,
+    'park_out_by'       => Auth::id(),
+])->save();
+ 
+Cache::forget('dashboard.latestParkout');
 
-    $ticket->park_fee = $rate;
+return redirect()->route('show.payment', [
+    'uuid' => $ticket->uuid
+]);
 
-
-        $ticket->fill([
-            'is_park_out'     => 1,
-            'park_out_year'   => $data['park_out_year'],
-            'park_out_month'  => $data['park_out_month'],
-            'park_out_day'    => $data['park_out_day'],
-            'park_out_hour'   => $data['park_out_hour'],
-            'park_out_minute' => $data['park_out_minute'],
-            'park_out_second' => $data['park_out_second'],
-            'total_minutes'  => $minutesDiff,
-            'days_parked'   => $daysParked,
-            'hours_parked'  => $hoursParked,
-            'park_out_datetime' => $end,
-            'park_out_by'     =>  Auth::id()
-        ])->save();
-
-    
-        Cache::forget('dashboard.latestParkout');
-        return redirect()->route('show.payment', [
-            'uuid' => $ticket->uuid
-        ]);
 }
 
 
@@ -727,7 +749,7 @@ public function submit_payment(Request $request)
       
              $ticket->remarks = 'Paid';
 
-            // Updated mode_of_payment logic
+          
             $cashAmount  = $data['cash_amount'] ?? 0;
             $gcashAmount = $data['gcash_amount'] ?? 0;
 

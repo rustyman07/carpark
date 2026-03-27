@@ -1,777 +1,966 @@
 <template>
-
-  <!-- QR Scanner Dialog -->
-  <v-dialog v-model="isScanQR" max-width="600" persistent>
-    <v-card rounded="lg">
-      <v-card-title class="pa-6 pb-4">
-        <div class="d-flex align-center">
-          <v-icon size="28" color="indigo-darken-4" class="mr-3">mdi-qrcode-scan</v-icon>
-          <span class="text-h6 font-weight-bold">Scan Card QR Code</span>
-        </div>
-      </v-card-title>
-
-      <v-divider></v-divider>
-
-      <v-card-text class="pa-6">
-        <div id="reader" style="width:100%; height:400px; border-radius: 12px; overflow: hidden;"></div>
-      </v-card-text>
-
-      <v-divider></v-divider>
-
-      <v-card-actions class="pa-4">
-        <v-spacer></v-spacer>
-
-        <v-btn color="error" variant="outlined" @click="closeScanner">
-          <v-icon start>mdi-close</v-icon>
-          Close
-        </v-btn>
-
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- Main Payment Page -->
-  <div class="payment-wrapper">
-    <v-container fluid class="py-8">
-      <v-row justify="center">
-        <v-col cols="12" md="10" lg="8">
-
-          <!-- HEADER -->
-          <div class="page-header mb-6 text-center">
-            <h1 class="text-h4 font-weight-bold text-white mb-2">
-              Payment Processing
-            </h1>
-          </div>
-
-          <v-row>
-
-            <!-- LEFT SIDE -->
-            <v-col cols="12" md="5">
-              <v-card class="ticket-card elevation-8" rounded="sm">
-                <div class="card-header pa-4">
-                  <h3 class="text-sm font-weight-bold text-indigo-darken-4">Ticket Details</h3>
-                </div>
-
-                <v-divider></v-divider>
-
-                <div class="pa-6">
-
-                  <!-- Ticket Number -->
-                  <div class="info-item mb-4">
-                    <div class="d-flex justify-space-between">
-                      <span class="text-caption text-indigo-darken-4">Ticket Number</span>
-                      <p class="text-xs font-weight-bold text-indigo-darken-4 mb-0">
-                        {{ ticket.data.ticket_no }}
-                      </p>
-                    </div>
-                  </div>
-
-                  <v-divider class="my-4"></v-divider>
-
-                  <!-- Park In -->
-                  <div class="info-item mb-4">
-                    <div class="d-flex justify-space-between text-indigo-darken-4">
-                      <span class="text-caption">Park In</span>
-                      <div class="d-flex flex-column align-end">
-                        <span class="text-xs font-weight-bold">{{ formatDate(ticket.data.park_datetime) }}</span>
-                        <span class="text-xs font-weight-bold">{{ parkinTime }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Park Out -->
-                  <div class="info-item mb-4">
-                    <div class="d-flex justify-space-between text-indigo-darken-4">
-                      <span class="text-caption">Park Out</span>
-                      <div class="d-flex flex-column align-end">
-                        <span class="text-xs font-weight-bold">{{ formatDate(ticket.data.park_out_datetime) }}</span>
-                        <span class="text-xs font-weight-bold">{{ parkoutTime }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <v-divider class="my-4"></v-divider>
-
-                  <!-- Days -->
-                  <div v-if="ticket.data.days_parked > 0" class="info-item mb-4">
-                    <div class="d-flex justify-space-between">
-                      <span class="text-caption text-indigo-darken-4">Number of Days</span>
-                      <span class="text-h6 font-weight-bold text-indigo-darken-4">{{ ticket.data.days_parked }}</span>
-                    </div>
-                  </div>
-
-                  <!-- Hours -->
-                  <div v-if="hoursPark > 0" class="info-item mb-4">
-                    <div class="d-flex justify-space-between">
-                      <span class="text-caption text-indigo-darken-4">Number of Hours</span>
-                      <span class="text-sm font-weight-bold text-indigo-darken-4">{{ hoursPark }}</span>
-                    </div>
-                  </div>
-
-                  <v-divider class="my-4"></v-divider>
-
-                  <!-- Total Bill -->
-                  <v-card class="total-card elevation-0" color="indigo-lighten-5" rounded="sm">
-                    <div class="pa-4">
-                      <div class="d-flex justify-space-between">
-                        <p class="text-caption mb-1">Total Parking Fee</p>
-                        <p class="text-md font-weight-bold text-indigo-darken-4 mb-0">
-                          {{ formatCurrency(ticket.data.park_fee) }}
-                        </p>
-                      </div>
-                    </div>
-                  </v-card>
-
-                </div>
-              </v-card>
-            </v-col>
-
-
-            <!-- RIGHT SIDE -->
-            <v-col cols="12" md="7">
-              <v-card class="payment-card elevation-8" rounded="sm">
-
-                <div class="card-header pa-4">
-                  <h3 class="text-sm font-weight-bold text-indigo-darken-4">Payment Method</h3>
-                </div>
-
-                <v-divider></v-divider>
-
-                <div class="pa-6">
-
-                  <!-- Card Search -->
-                  <div class="d-flex align-center mb-4">
-                    <v-text-field
-                      v-model.trim="card_number"
-                      label="Card Number"
-                      variant="outlined"
-                      type="text"
-                      density="compact"
-                      color="indigo-darken-4"
-                      hide-details="auto"
-                      clearable
-                      placeholder="Enter or scan card number"
-                      class="flex-grow-1 mr-3"
-                      @keyup.enter="searchCard"
-                    >
-                      <template #prepend-inner>
-                        <v-icon color="indigo-darken-4">mdi-card-account-details-outline</v-icon>
-                      </template>
-                    </v-text-field>
-
-                    <v-btn
-                      color="indigo-darken-4"
-                      variant="flat"
-                      @click="searchCard"
-                      :disabled="!card_number"
-                    >
-                      <v-icon start size="20">mdi-magnify</v-icon>
-                      Search
-                    </v-btn>
-                  </div>
-
-                  <!-- Scan Button -->
-                  <v-btn
-                    color="indigo-darken-4"
-                    size="large"
-                    block
-                    @click="scanQR"
-                    class="my-6 scan-card-btn text-xs"
-                    style="text-transform: none;"
-                  >
-                    <v-icon start size="24">mdi-qrcode-scan</v-icon>
-                    Scan Card
-                  </v-btn>
-
-                  <!-- Scanned Cards Table -->
-                  <div v-if="items.length > 0" class="cards-section mb-6">
-                    <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">Scanned Cards</h4>
-
-                    <v-data-table-server
-                      :headers="headers"
-                      :items="items"
-                      :items-per-page="5"
-                      density="comfortable"
-                      class="cards-table elevation-2"
-                      disable-sort
-                      hide-default-footer
-                    >
-
-                      <template #item.actions="{ item }">
-                        <v-btn
-                          color="red"
-                          size="small"
-                          variant="text"
-                          @click="deleteCard(item.id)"
-                        >
-                          <v-icon size="18">mdi-delete</v-icon>
-                        </v-btn>
-                      </template>
-
-                      <template #no-data>
-                        <div class="text-center py-8">
-                          <v-icon size="48" color="grey-lighten-1" class="mb-3">
-                            mdi-credit-card-off-outline
-                          </v-icon>
-                          <p class="text-sm text-medium-emphasis">
-                            No cards scanned yet
-                          </p>
-                        </div>
-                      </template>
-
-                    </v-data-table-server>
-                  </div>
-
-                  <!-- Summary -->
-                  <v-card
-                    v-if="items.length > 0"
-                    class="summary-card elevation-0 mb-6"
-                    color="grey-lighten-4"
-                    rounded="lg"
-                  >
-                    <div class="pa-4">
-                      <div class="d-flex justify-space-between mb-3">
-                        <span class="text-sm font-weight-medium">Covered by Cards:</span>
-                        <span class="text-lg font-weight-bold text-success">{{ formatCurrency(totalCovered) }}</span>
-                      </div>
-
-                      <v-divider class="my-3"></v-divider>
-
-                      <div class="d-flex justify-space-between">
-                        <span class="text-sm font-weight-bold text-indigo-darken-4">Amount Due:</span>
-                        <span class="text-lg font-weight-bold text-error">{{ formatCurrency(cashNeeded) }}</span>
-                      </div>
-
-                    </div>
-                  </v-card>
-
-
-                  <!-- Payment Methods -->
-                  <div class="payment-method-section mb-6">
-
-                    <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">Select Payment Method</h4>
-
-                    <v-card class="payment-options elevation-0" rounded="lg" variant="outlined">
-
-                      <v-radio-group
-                        v-model="paymentMethod"
-                        :disabled="disAbledPayment"
-                        hide-details
-                        density="compact"
-                        color="indigo-darken-4"
-                      >
-
-                        <v-radio value="cash">
-                          <template #label>
-                            <div class="d-flex align-center pa-2">
-                              <v-avatar color="green-lighten-4" size="28" class="mr-3">
-                                <v-icon color="green-darken-2" size="16">mdi-cash</v-icon>
-                              </v-avatar>
-                              <div>
-                                <p class="text-xs font-weight-bold mb-0">Cash Payment</p>
-                                <p class="text-xs mb-0">Pay with physical cash</p>
-                              </div>
-                            </div>
-                          </template>
-                        </v-radio>
-
-                        <v-divider></v-divider>
-
-                        <v-radio value="gcash">
-                          <template #label>
-                            <div class="d-flex align-center pa-2">
-                              <v-avatar color="blue-lighten-4" size="28" class="mr-3">
-                                <v-icon color="blue-darken-2" size="16">mdi-cellphone</v-icon>
-                              </v-avatar>
-                              <div>
-                                <p class="text-xs font-weight-bold mb-0">E-wallet</p>
-                                <p class="text-xs mb-0">Pay via E-wallet</p>
-                              </div>
-                            </div>
-                          </template>
-                        </v-radio>
-
-                      </v-radio-group>
-                    </v-card>
-
-                  </div>
-
-
-                  <!-- CASH PAYMENT -->
-                  <v-expand-transition>
-                    <div v-if="paymentMethod === 'cash'">
-                      <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">Cash Amount</h4>
-
-                      <v-text-field
-                        v-model.number="cashAmount"
-                        prefix="₱"
-                        variant="outlined"
-                        type="number"
-                        :disabled="disAbledPayment"
-                        hide-details="auto"
-                        min="0"
-                        step="0.01"
-                        color="indigo-darken-4"
-                      >
-                        <template #prepend-inner>
-                          <v-icon color="green-darken-2">mdi-cash</v-icon>
-                        </template>
-                      </v-text-field>
-
-                      <!-- Change -->
-                      <v-alert
-                        v-if="cashAmount && cashAmount >= cashNeeded"
-                        type="success"
-                        variant="tonal"
-                        class="mt-4"
-                        density="compact"
-                      >
-                        <div class="d-flex justify-space-between">
-                          <span>Change:</span>
-                          <span class="font-weight-bold">{{ formatCurrency(cashAmount - cashNeeded) }}</span>
-                        </div>
-                      </v-alert>
-
-                      <!-- Insufficient -->
-                      <v-alert
-                        v-if="cashAmount && cashAmount < cashNeeded"
-                        type="warning"
-                        variant="tonal"
-                        class="mt-4"
-                        density="compact"
-                      >
-                        <div class="d-flex justify-space-between">
-                          <span>Insufficient Amount:</span>
-                          <span class="font-weight-bold">
-                            Need {{ formatCurrency(cashNeeded - cashAmount) }} more
-                          </span>
-                        </div>
-                      </v-alert>
-                    </div>
-                  </v-expand-transition>
-
-
-                  <!-- GCASH PAYMENT -->
-                  <v-expand-transition>
-                    <div v-if="paymentMethod === 'gcash'">
-                      <h4 class="text-sm font-weight-bold text-indigo-darken-4 mb-3">E-wallet Details</h4>
-
-                      <v-text-field
-                        v-model.number="gcash_amount"
-                        prefix="₱"
-                        variant="outlined"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        hide-details="auto"
-                        color="indigo-darken-4"
-                      >
-                        <template #prepend-inner>
-                          <v-icon color="blue-darken-2">mdi-cash</v-icon>
-                        </template>
-                      </v-text-field>
-
-                      <v-text-field
-                        v-model="gcashReferenceNumber"
-                        label="Reference Number"
-                        variant="outlined"
-                        hide-details="auto"
-                        class="mt-4"
-                        color="indigo-darken-4"
-                      >
-                        <template #prepend-inner>
-                          <v-icon size="small" color="blue-darken-2">mdi-pound</v-icon>
-                        </template>
-                      </v-text-field>
-
-                      <!-- Change -->
-                      <v-alert
-                        v-if="gcash_amount && gcash_amount >= cashNeeded"
-                        type="success"
-                        variant="tonal"
-                        class="mt-4"
-                        density="compact"
-                      >
-                        <div class="d-flex justify-space-between">
-                          <span>Change:</span>
-                          <span class="font-weight-bold">
-                            {{ formatCurrency(gcash_amount - cashNeeded) }}
-                          </span>
-                        </div>
-                      </v-alert>
-
-                      <!-- Insufficient -->
-                      <v-alert
-                        v-if="gcash_amount && gcash_amount < cashNeeded"
-                        type="warning"
-                        variant="tonal"
-                        class="mt-4"
-                        density="compact"
-                      >
-                        <div class="d-flex justify-space-between">
-                          <span>Insufficient Amount:</span>
-                          <span class="font-weight-bold">
-                            Need {{ formatCurrency(cashNeeded - gcash_amount) }} more
-                          </span>
-                        </div>
-                      </v-alert>
-
-                      <v-alert type="info" variant="tonal" class="mt-4" density="compact">
-                        <div class="text-sm">
-                          <strong>Amount to pay:</strong> {{ formatCurrency(cashNeeded) }}
-                        </div>
-                      </v-alert>
-
-                    </div>
-                  </v-expand-transition>
-
-                </div>
-
-                <v-divider></v-divider>
-
-                <!-- ACTION BUTTON -->
-                <div class="pa-4">
-                  <v-btn
-                    :disabled="!isPaymentValid"
-                    :loading="isSubmitting"
-                    block
-                    size="large"
-                    @click="submitPayment"
-                    color="indigo-darken-4"
-                    class="pay-button"
-                  >
-                    <span class="text-sm">Complete Payment</span>
-                  </v-btn>
-                </div>
-
-              </v-card>
-            </v-col>
-
-          </v-row>
-
-        </v-col>
-      </v-row>
-    </v-container>
-  </div>
-
+	<!-- QR Scanner Dialog -->
+	<v-dialog v-model="isScanQR" max-width="600" persistent>
+		<v-card rounded="lg">
+			<v-card-title class="pa-6 pb-4">
+				<div class="d-flex align-center">
+					<v-icon size="28" color="indigo-darken-4" class="mr-3"
+						>mdi-qrcode-scan</v-icon
+					>
+					<span class="text-h6 font-weight-bold">Scan Card QR Code</span>
+				</div>
+			</v-card-title>
+
+			<v-divider></v-divider>
+
+			<v-card-text class="pa-6">
+				<div
+					id="reader"
+					style="
+						width: 100%;
+						height: 400px;
+						border-radius: 12px;
+						overflow: hidden;
+					"
+				></div>
+			</v-card-text>
+
+			<v-divider></v-divider>
+
+			<v-card-actions class="pa-4">
+				<v-spacer></v-spacer>
+
+				<v-btn color="error" variant="outlined" @click="closeScanner">
+					<v-icon start>mdi-close</v-icon>
+					Close
+				</v-btn>
+			</v-card-actions>
+		</v-card>
+	</v-dialog>
+
+	<!-- Main Payment Page -->
+	<div class="payment-wrapper">
+		<v-container fluid class="py-8">
+			<v-row justify="center">
+				<v-col cols="12" md="10" lg="8">
+					<!-- HEADER -->
+					<div class="page-header mb-6 text-center">
+						<h1 class="text-h4 font-weight-bold text-white mb-2">
+							Payment Processing
+						</h1>
+					</div>
+
+					<v-row>
+						<!-- LEFT SIDE -->
+						<v-col cols="12" md="5">
+							<v-card class="ticket-card elevation-8" rounded="sm">
+								<div class="card-header pa-4">
+									<h3 class="text-sm font-weight-bold text-indigo-darken-4">
+										Ticket Details
+									</h3>
+								</div>
+
+								<v-divider></v-divider>
+
+								<div class="pa-6">
+									<!-- Ticket Number -->
+									<div class="info-item mb-4">
+										<div class="d-flex justify-space-between">
+											<span class="text-caption text-indigo-darken-4"
+												>Ticket Number</span
+											>
+											<p
+												class="text-xs font-weight-bold text-indigo-darken-4 mb-0"
+											>
+												{{ ticket.data.ticket_no }}
+											</p>
+										</div>
+									</div>
+
+									<v-divider class="my-4"></v-divider>
+
+									<!-- Park In -->
+									<div class="info-item mb-4">
+										<div
+											class="d-flex justify-space-between text-indigo-darken-4"
+										>
+											<span class="text-caption">Park In</span>
+											<div class="d-flex flex-column align-end">
+												<span class="text-xs font-weight-bold">{{
+													formatDate(ticket.data.park_datetime)
+												}}</span>
+												<span class="text-xs font-weight-bold">{{
+													parkinTime
+												}}</span>
+											</div>
+										</div>
+									</div>
+
+									<!-- Park Out -->
+									<div class="info-item mb-4">
+										<div
+											class="d-flex justify-space-between text-indigo-darken-4"
+										>
+											<span class="text-caption">Park Out</span>
+											<div class="d-flex flex-column align-end">
+												<span class="text-xs font-weight-bold">{{
+													formatDate(ticket.data.park_out_datetime)
+												}}</span>
+												<span class="text-xs font-weight-bold">{{
+													parkoutTime
+												}}</span>
+											</div>
+										</div>
+									</div>
+
+									<v-divider class="my-4"></v-divider>
+
+									<!-- Days -->
+									<div
+										v-if="ticket.data.days_parked > 0"
+										class="info-item mb-4"
+									>
+										<div class="d-flex justify-space-between">
+											<span class="text-caption text-indigo-darken-4"
+												>Number of Days</span
+											>
+											<span
+												class="text-h6 font-weight-bold text-indigo-darken-4"
+												>{{ ticket.data.days_parked }}</span
+											>
+										</div>
+									</div>
+
+									<!-- Hours -->
+									<div v-if="hoursPark > 0" class="info-item mb-4">
+										<div class="d-flex justify-space-between">
+											<span class="text-caption text-indigo-darken-4"
+												>Number of Hours</span
+											>
+											<span
+												class="text-sm font-weight-bold text-indigo-darken-4"
+												>{{ hoursPark }}</span
+											>
+										</div>
+									</div>
+
+									<v-divider class="my-4"></v-divider>
+
+									<!-- Vehicle Type -->
+									<div class="info-item mb-4">
+										<span
+											class="text-caption text-indigo-darken-4 font-weight-bold d-block mb-2"
+											>Vehicle Type</span
+										>
+										<div class="d-flex gap-2">
+											<v-btn
+												:variant="
+													ticket.data.vehicle_type === 'Car'
+														? 'flat'
+														: 'outlined'
+												"
+												:color="
+													ticket.data.vehicle_type === 'Car'
+														? 'indigo-darken-4'
+														: 'default'
+												"
+												size="small"
+												class="flex-grow-1"
+												readonly
+											>
+												Car
+											</v-btn>
+											<v-btn
+												:variant="
+													ticket.data.vehicle_type === 'Motorcycle'
+														? 'flat'
+														: 'outlined'
+												"
+												:color="
+													ticket.data.vehicle_type === 'Motorcycle'
+														? 'indigo-darken-4'
+														: 'default'
+												"
+												size="small"
+												class="flex-grow-1"
+												readonly
+											>
+												Motorcycle
+											</v-btn>
+										</div>
+									</div>
+
+									<v-divider class="my-4"></v-divider>
+
+									<!-- Parking Fee -->
+									<div class="info-item mb-4">
+										<v-text-field
+											:model-value="formatCurrency(ticket.data.park_fee)"
+											label="Parking Fee"
+											variant="outlined"
+											density="compact"
+											readonly
+											hide-details
+											color="indigo-darken-4"
+										/>
+									</div>
+
+									<!-- Discount (Senior, PWD) -->
+									<div class="info-item mb-4">
+										<div class="d-flex align-center mb-2">
+											<v-checkbox
+												v-model="hasDiscount"
+												color="indigo-darken-4"
+												hide-details
+												density="compact"
+												class="mr-1"
+											/>
+											<span
+												class="text-caption font-weight-bold text-indigo-darken-4"
+												>Discount (Senior, PWD)</span
+											>
+										</div>
+										<v-text-field
+											v-if="hasDiscount"
+											v-model="discountId"
+											placeholder="Enter ID number"
+											variant="outlined"
+											density="compact"
+											hide-details
+											color="indigo-darken-4"
+										/>
+									</div>
+
+									<v-divider class="my-4"></v-divider>
+
+									<!-- Total Bill -->
+									<v-card
+										class="total-card elevation-0"
+										color="indigo-lighten-5"
+										rounded="sm"
+									>
+										<div class="pa-4">
+											<div class="d-flex justify-space-between">
+												<p class="text-caption mb-1">Total Parking Fee</p>
+												<p
+													class="text-md font-weight-bold text-indigo-darken-4 mb-0"
+												>
+													{{ formatCurrency(discountedFee) }}
+												</p>
+											</div>
+										</div>
+									</v-card>
+								</div>
+							</v-card>
+						</v-col>
+
+						<!-- RIGHT SIDE -->
+						<v-col cols="12" md="7">
+							<v-card class="payment-card elevation-8" rounded="sm">
+								<div class="card-header pa-4">
+									<h3 class="text-sm font-weight-bold text-indigo-darken-4">
+										Payment Method
+									</h3>
+								</div>
+
+								<v-divider></v-divider>
+
+								<div class="pa-6">
+									<!-- Card Search -->
+									<div class="d-flex align-center mb-4">
+										<v-text-field
+											v-model.trim="card_number"
+											label="Card Number"
+											variant="outlined"
+											type="text"
+											density="compact"
+											color="indigo-darken-4"
+											hide-details="auto"
+											clearable
+											placeholder="Enter or scan card number"
+											class="flex-grow-1 mr-3"
+											@keyup.enter="searchCard"
+										>
+											<template #prepend-inner>
+												<v-icon color="indigo-darken-4"
+													>mdi-card-account-details-outline</v-icon
+												>
+											</template>
+										</v-text-field>
+
+										<v-btn
+											color="indigo-darken-4"
+											variant="flat"
+											@click="searchCard"
+											:disabled="!card_number"
+										>
+											<v-icon start size="20">mdi-magnify</v-icon>
+											Search
+										</v-btn>
+									</div>
+
+									<!-- Scan Button -->
+									<v-btn
+										color="indigo-darken-4"
+										size="large"
+										block
+										@click="scanQR"
+										class="my-6 scan-card-btn text-xs"
+										style="text-transform: none"
+									>
+										<v-icon start size="24">mdi-qrcode-scan</v-icon>
+										Scan Card
+									</v-btn>
+
+									<!-- Scanned Cards Table -->
+									<div v-if="items.length > 0" class="cards-section mb-6">
+										<h4
+											class="text-sm font-weight-bold text-indigo-darken-4 mb-3"
+										>
+											Scanned Cards
+										</h4>
+
+										<v-data-table-server
+											:headers="headers"
+											:items="items"
+											:items-per-page="5"
+											density="comfortable"
+											class="cards-table elevation-2"
+											disable-sort
+											hide-default-footer
+										>
+											<template #item.actions="{ item }">
+												<v-btn
+													color="red"
+													size="small"
+													variant="text"
+													@click="deleteCard(item.id)"
+												>
+													<v-icon size="18">mdi-delete</v-icon>
+												</v-btn>
+											</template>
+
+											<template #no-data>
+												<div class="text-center py-8">
+													<v-icon size="48" color="grey-lighten-1" class="mb-3">
+														mdi-credit-card-off-outline
+													</v-icon>
+													<p class="text-sm text-medium-emphasis">
+														No cards scanned yet
+													</p>
+												</div>
+											</template>
+										</v-data-table-server>
+									</div>
+
+									<!-- Summary -->
+									<v-card
+										v-if="items.length > 0"
+										class="summary-card elevation-0 mb-6"
+										color="grey-lighten-4"
+										rounded="lg"
+									>
+										<div class="pa-4">
+											<div class="d-flex justify-space-between mb-3">
+												<span class="text-sm font-weight-medium"
+													>Covered by Cards:</span
+												>
+												<span class="text-lg font-weight-bold text-success">{{
+													formatCurrency(totalCovered)
+												}}</span>
+											</div>
+
+											<v-divider class="my-3"></v-divider>
+
+											<div class="d-flex justify-space-between">
+												<span
+													class="text-sm font-weight-bold text-indigo-darken-4"
+													>Amount Due:</span
+												>
+												<span class="text-lg font-weight-bold text-error">{{
+													formatCurrency(cashNeeded)
+												}}</span>
+											</div>
+										</div>
+									</v-card>
+
+									<!-- Payment Methods -->
+									<div class="payment-method-section mb-6">
+										<h4
+											class="text-sm font-weight-bold text-indigo-darken-4 mb-3"
+										>
+											Select Payment Method
+										</h4>
+
+										<v-card
+											class="payment-options elevation-0"
+											rounded="lg"
+											variant="outlined"
+										>
+											<v-radio-group
+												v-model="paymentMethod"
+												:disabled="disAbledPayment"
+												hide-details
+												density="compact"
+												color="indigo-darken-4"
+											>
+												<v-radio value="cash">
+													<template #label>
+														<div class="d-flex align-center pa-2">
+															<v-avatar
+																color="green-lighten-4"
+																size="28"
+																class="mr-3"
+															>
+																<v-icon color="green-darken-2" size="16"
+																	>mdi-cash</v-icon
+																>
+															</v-avatar>
+															<div>
+																<p class="text-xs font-weight-bold mb-0">
+																	Cash Payment
+																</p>
+																<p class="text-xs mb-0">
+																	Pay with physical cash
+																</p>
+															</div>
+														</div>
+													</template>
+												</v-radio>
+
+												<v-divider></v-divider>
+
+												<v-radio value="gcash">
+													<template #label>
+														<div class="d-flex align-center pa-2">
+															<v-avatar
+																color="blue-lighten-4"
+																size="28"
+																class="mr-3"
+															>
+																<v-icon color="blue-darken-2" size="16"
+																	>mdi-cellphone</v-icon
+																>
+															</v-avatar>
+															<div>
+																<p class="text-xs font-weight-bold mb-0">
+																	E-wallet
+																</p>
+																<p class="text-xs mb-0">Pay via E-wallet</p>
+															</div>
+														</div>
+													</template>
+												</v-radio>
+											</v-radio-group>
+										</v-card>
+									</div>
+
+									<!-- CASH PAYMENT -->
+									<v-expand-transition>
+										<div v-if="paymentMethod === 'cash'">
+											<h4
+												class="text-sm font-weight-bold text-indigo-darken-4 mb-3"
+											>
+												Cash Amount
+											</h4>
+
+											<v-text-field
+												v-model.number="cashAmount"
+												prefix="₱"
+												variant="outlined"
+												type="number"
+												:disabled="disAbledPayment"
+												hide-details="auto"
+												min="0"
+												step="0.01"
+												color="indigo-darken-4"
+											>
+												<template #prepend-inner>
+													<v-icon color="green-darken-2">mdi-cash</v-icon>
+												</template>
+											</v-text-field>
+
+											<!-- Change -->
+											<v-alert
+												v-if="cashAmount && cashAmount >= cashNeeded"
+												type="success"
+												variant="tonal"
+												class="mt-4"
+												density="compact"
+											>
+												<div class="d-flex justify-space-between">
+													<span>Change:</span>
+													<span class="font-weight-bold">{{
+														formatCurrency(cashAmount - cashNeeded)
+													}}</span>
+												</div>
+											</v-alert>
+
+											<!-- Insufficient -->
+											<v-alert
+												v-if="cashAmount && cashAmount < cashNeeded"
+												type="warning"
+												variant="tonal"
+												class="mt-4"
+												density="compact"
+											>
+												<div class="d-flex justify-space-between">
+													<span>Insufficient Amount:</span>
+													<span class="font-weight-bold">
+														Need
+														{{ formatCurrency(cashNeeded - cashAmount) }} more
+													</span>
+												</div>
+											</v-alert>
+										</div>
+									</v-expand-transition>
+
+									<!-- GCASH PAYMENT -->
+									<v-expand-transition>
+										<div v-if="paymentMethod === 'gcash'">
+											<h4
+												class="text-sm font-weight-bold text-indigo-darken-4 mb-3"
+											>
+												E-wallet Details
+											</h4>
+
+											<v-text-field
+												v-model.number="gcash_amount"
+												prefix="₱"
+												variant="outlined"
+												type="number"
+												min="0"
+												step="0.01"
+												hide-details="auto"
+												color="indigo-darken-4"
+											>
+												<template #prepend-inner>
+													<v-icon color="blue-darken-2">mdi-cash</v-icon>
+												</template>
+											</v-text-field>
+
+											<v-text-field
+												v-model="gcashReferenceNumber"
+												label="Reference Number"
+												variant="outlined"
+												hide-details="auto"
+												class="mt-4"
+												color="indigo-darken-4"
+											>
+												<template #prepend-inner>
+													<v-icon size="small" color="blue-darken-2"
+														>mdi-pound</v-icon
+													>
+												</template>
+											</v-text-field>
+
+											<!-- Change -->
+											<v-alert
+												v-if="gcash_amount && gcash_amount >= cashNeeded"
+												type="success"
+												variant="tonal"
+												class="mt-4"
+												density="compact"
+											>
+												<div class="d-flex justify-space-between">
+													<span>Change:</span>
+													<span class="font-weight-bold">
+														{{ formatCurrency(gcash_amount - cashNeeded) }}
+													</span>
+												</div>
+											</v-alert>
+
+											<!-- Insufficient -->
+											<v-alert
+												v-if="gcash_amount && gcash_amount < cashNeeded"
+												type="warning"
+												variant="tonal"
+												class="mt-4"
+												density="compact"
+											>
+												<div class="d-flex justify-space-between">
+													<span>Insufficient Amount:</span>
+													<span class="font-weight-bold">
+														Need
+														{{ formatCurrency(cashNeeded - gcash_amount) }} more
+													</span>
+												</div>
+											</v-alert>
+
+											<v-alert
+												type="info"
+												variant="tonal"
+												class="mt-4"
+												density="compact"
+											>
+												<div class="text-sm">
+													<strong>Amount to pay:</strong>
+													{{ formatCurrency(cashNeeded) }}
+												</div>
+											</v-alert>
+										</div>
+									</v-expand-transition>
+								</div>
+
+								<v-divider></v-divider>
+
+								<!-- ACTION BUTTON -->
+								<div class="pa-4">
+									<v-btn
+										:disabled="!isPaymentValid"
+										:loading="isSubmitting"
+										block
+										size="large"
+										@click="submitPayment"
+										color="indigo-darken-4"
+										class="pay-button"
+									>
+										<span class="text-sm">Complete Payment</span>
+									</v-btn>
+								</div>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-col>
+			</v-row>
+		</v-container>
+	</div>
 </template>
 
-
-
 <script setup>
-import { computed, ref, onBeforeUnmount } from 'vue'
-import { router, useForm } from '@inertiajs/vue3'
-import { route } from 'ziggy-js'
-import { Html5Qrcode } from 'html5-qrcode'
-import dayjs from 'dayjs'
-import { formatCurrency } from '../../utils/utility'
+import { computed, ref, onBeforeUnmount } from "vue";
+import { router, useForm } from "@inertiajs/vue3";
+import { route } from "ziggy-js";
+import { Html5Qrcode } from "html5-qrcode";
+import dayjs from "dayjs";
+import { formatCurrency } from "../../utils/utility";
 
 const props = defineProps({
-  ticket: Object,
-  scannedCards: Array,
-  totalCovered: Number,
-  cashNeeded: Number,
-})
+	ticket: Object,
+	scannedCards: Array,
+	totalCovered: Number,
+	cashNeeded: Number,
+});
 
 // STATE
-const isScanQR = ref(false)
-const html5QrCode = ref(null)
-const paymentMethod = ref('cash')
-const cashAmount = ref(null)
-const gcash_amount = ref(null)
-const gcashReferenceNumber = ref('')
-const isSubmitting = ref(false)
-const card_number = ref('')
+const isScanQR = ref(false);
+const html5QrCode = ref(null);
+const paymentMethod = ref("cash");
+const cashAmount = ref(null);
+const gcash_amount = ref(null);
+const gcashReferenceNumber = ref("");
+const isSubmitting = ref(false);
+const card_number = ref("");
+
+// Discount state
+const hasDiscount = ref(false);
+const discountId = ref("");
 
 // COMPUTED
-const scannedCards = computed(() => props.scannedCards || [])
-const totalCovered = computed(() => props.totalCovered || 0)
-const cashNeeded = computed(() => props.cashNeeded || 0)
+const scannedCards = computed(() => props.scannedCards || []);
+const totalCovered = computed(() => props.totalCovered || 0);
+const cashNeeded = computed(() => props.cashNeeded || 0);
 
-const hoursPark = computed(() => props.ticket.data.hours_parked)
+const hoursPark = computed(() => props.ticket.data.hours_parked);
 
 const parkinTime = computed(() =>
-  props.ticket.data.park_datetime
-    ? dayjs(props.ticket.data.park_datetime).format('hh:mm A')
-    : null
-)
+	props.ticket.data.park_datetime
+		? dayjs(props.ticket.data.park_datetime).format("hh:mm A")
+		: null,
+);
 
 const parkoutTime = computed(() =>
-  props.ticket.data.park_out_datetime
-    ? dayjs(props.ticket.data.park_out_datetime).format('hh:mm A')
-    : null
-)
+	props.ticket.data.park_out_datetime
+		? dayjs(props.ticket.data.park_out_datetime).format("hh:mm A")
+		: null,
+);
 
-const disAbledPayment = computed(() => totalCovered.value === props.ticket.data.park_fee)
+// Discounted fee: 20% off when Senior/PWD discount is applied
+const DISCOUNT_RATE = 0.2;
+const discountedFee = computed(() => {
+	const fee = props.ticket.data.park_fee || 0;
+	if (hasDiscount.value && discountId.value.trim() !== "") {
+		return fee - fee * DISCOUNT_RATE;
+	}
+	return fee;
+});
+
+const disAbledPayment = computed(
+	() => totalCovered.value === props.ticket.data.park_fee,
+);
 
 const isPaymentValid = computed(() => {
-  if (disAbledPayment.value) return scannedCards.value.length > 0
+	if (disAbledPayment.value) return scannedCards.value.length > 0;
 
-  if (paymentMethod.value === 'cash')
-    return cashAmount.value && cashAmount.value >= cashNeeded.value
+	if (paymentMethod.value === "cash")
+		return cashAmount.value && cashAmount.value >= cashNeeded.value;
 
-  if (paymentMethod.value === 'gcash')
-    return (
-      gcash_amount.value &&
-      gcash_amount.value >= cashNeeded.value &&
-      gcashReferenceNumber.value.trim() !== ''
-    )
+	if (paymentMethod.value === "gcash")
+		return (
+			gcash_amount.value &&
+			gcash_amount.value >= cashNeeded.value &&
+			gcashReferenceNumber.value.trim() !== ""
+		);
 
-  return false
-})
+	return false;
+});
 
 // ---------------------
 // DELETE BUTTON LOGIC
 // ---------------------
 const deleteCard = async (id) => {
-  try {
-    await router.delete(route("scan.qr.cards.delete", id), {
-      data: {
-        ticket_id: props.ticket.data.id  // Pass ticket_id if needed
-      },
-      preserveScroll: true,
-    })
-  } catch (e) {
-    console.error("Delete failed:", e)
-  }
-}
+	try {
+		await router.delete(route("scan.qr.cards.delete", id), {
+			data: {
+				ticket_id: props.ticket.data.id,
+			},
+			preserveScroll: true,
+		});
+	} catch (e) {
+		console.error("Delete failed:", e);
+	}
+};
 
 // SEARCH CARD
 const searchCard = async () => {
-  if (!card_number.value) return
+	if (!card_number.value) return;
 
-  try {
-    isSubmitting.value = true
-    await router.post(route('scan.qr.cards'), {
-      qr_code: card_number.value,
-      ticket_id: props.ticket.data.id,
-      ticket_uuid: props.ticket.data.uuid,
-    })
-  } finally {
-    isSubmitting.value = false
-  }
-}
+	try {
+		isSubmitting.value = true;
+		await router.post(route("scan.qr.cards"), {
+			qr_code: card_number.value,
+			ticket_id: props.ticket.data.id,
+			ticket_uuid: props.ticket.data.uuid,
+		});
+	} finally {
+		isSubmitting.value = false;
+	}
+};
 
 // TABLE HEADERS
 const headers = [
-  { key: 'card_number', title: 'Card Number' },
-  { key: 'price', title: 'Price' },
-  { key: 'balance', title: 'Balance' },
-  { key: 'actions', title: 'Actions' }, // NEW COLUMN
-]
+	{ key: "card_number", title: "Card Number" },
+	{ key: "price", title: "Price" },
+	{ key: "balance", title: "Balance" },
+	{ key: "actions", title: "Actions" },
+];
 
 // TABLE MAPPING
 const items = computed(() => {
-  return scannedCards.value.map(item => ({
-    id: item.id,   // Added ID so deletion works
-    card_number: item.card_number,
-    price: formatCurrency(item.price),
-    balance: formatCurrency(item.balance),
-  }))
-})
+	return scannedCards.value.map((item) => ({
+		id: item.id,
+		card_number: item.card_number,
+		price: formatCurrency(item.price),
+		balance: formatCurrency(item.balance),
+	}));
+});
 
-const formatDate = (date) => date ? dayjs(date).format('MM/DD/YYYY') : 'N/A'
+const formatDate = (date) => (date ? dayjs(date).format("MM/DD/YYYY") : "N/A");
 
 // SUBMIT PAYMENT
 const submitPayment = () => {
-  if (isSubmitting.value) return
+	if (isSubmitting.value) return;
 
-  isSubmitting.value = true
+	isSubmitting.value = true;
 
-  const form = useForm({
-    ticket_id: props.ticket.data.id,
-    hours_parked: props.ticket.data.hours_parked,
-    days_parked: props.ticket.data.days_parked,
-    payment_method: paymentMethod.value,
-    cash_amount: paymentMethod.value === 'cash' ? cashAmount.value : null,
-    gcash_amount: paymentMethod.value === 'gcash' ? gcash_amount.value : null,
-    gcash_reference: paymentMethod.value === 'gcash' ? gcashReferenceNumber.value : null,
-    cards: scannedCards.value.map(c => c.id),
-  })
+	const form = useForm({
+		ticket_id: props.ticket.data.id,
+		hours_parked: props.ticket.data.hours_parked,
+		days_parked: props.ticket.data.days_parked,
+		payment_method: paymentMethod.value,
+		cash_amount: paymentMethod.value === "cash" ? cashAmount.value : null,
+		gcash_amount: paymentMethod.value === "gcash" ? gcash_amount.value : null,
+		gcash_reference:
+			paymentMethod.value === "gcash" ? gcashReferenceNumber.value : null,
+		cards: scannedCards.value.map((c) => c.id),
+		has_discount: hasDiscount.value,
+		discount_id: hasDiscount.value ? discountId.value : null,
+	});
 
-  form.post(route('store.payment'), {
-    onFinish: () => (isSubmitting.value = false),
-  })
-}
+	form.post(route("store.payment"), {
+		onFinish: () => (isSubmitting.value = false),
+	});
+};
 
 // QR SCANNER
 const scanQR = () => {
-  isScanQR.value = true
-  setTimeout(startScanner, 300)
-}
+	isScanQR.value = true;
+	setTimeout(startScanner, 300);
+};
 
 const startScanner = async () => {
-  if (!isScanQR.value) return
+	if (!isScanQR.value) return;
 
-  try {
-    html5QrCode.value = new Html5Qrcode('reader')
+	try {
+		html5QrCode.value = new Html5Qrcode("reader");
 
-    await html5QrCode.value.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      async (decodedText) => {
-        await closeScanner()
+		await html5QrCode.value.start(
+			{ facingMode: "environment" },
+			{ fps: 10, qrbox: { width: 250, height: 250 } },
+			async (decodedText) => {
+				await closeScanner();
 
-        router.post(route('scan.qr.cards'), {
-          qr_code: decodedText,
-          ticket_id: props.ticket.data.id,
-          ticket_uuid: props.ticket.data.uuid,
-        })
-      }
-    )
-  } catch (err) {
-    console.error('Camera error:', err.message)
-  }
-}
+				router.post(route("scan.qr.cards"), {
+					qr_code: decodedText,
+					ticket_id: props.ticket.data.id,
+					ticket_uuid: props.ticket.data.uuid,
+				});
+			},
+		);
+	} catch (err) {
+		console.error("Camera error:", err.message);
+	}
+};
 
 const closeScanner = async () => {
-  if (html5QrCode.value) {
-    try {
-      await html5QrCode.value.stop()
-      await html5QrCode.value.clear()
-    } catch (e) {
-      console.error('Scanner close error:', e)
-    }
-    html5QrCode.value = null
-  }
-  isScanQR.value = false
-}
+	if (html5QrCode.value) {
+		try {
+			await html5QrCode.value.stop();
+			await html5QrCode.value.clear();
+		} catch (e) {
+			console.error("Scanner close error:", e);
+		}
+		html5QrCode.value = null;
+	}
+	isScanQR.value = false;
+};
 
-onBeforeUnmount(closeScanner)
-
+onBeforeUnmount(closeScanner);
 </script>
-
-
 
 <style scoped>
 .payment-wrapper {
-  background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
-  min-height: 100vh;
+	background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+	min-height: 100vh;
 }
 
 .page-header {
-  animation: fadeInDown 0.6s ease-out;
+	animation: fadeInDown 0.6s ease-out;
 }
 
 @keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .ticket-card,
 .payment-card {
-  background: white;
-  animation: fadeInUp 0.6s ease-out;
+	background: white;
+	animation: fadeInUp 0.6s ease-out;
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .card-header {
-  background: linear-gradient(135deg, rgba(26, 35, 126, 0.05) 0%, rgba(26, 35, 126, 0.02) 100%);
+	background: linear-gradient(
+		135deg,
+		rgba(26, 35, 126, 0.05) 0%,
+		rgba(26, 35, 126, 0.02) 100%
+	);
 }
 
 .info-item {
-  transition: all 0.2s ease;
+	transition: all 0.2s ease;
 }
 
 .total-card {
-  border: 2px solid #c5cae9;
+	border: 2px solid #c5cae9;
 }
 
 .scan-card-btn {
-  background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
-  transition: all 0.3s ease;
+	background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
+	transition: all 0.3s ease;
 }
 
 .scan-card-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(26, 35, 126, 0.3);
+	transform: translateY(-2px);
+	box-shadow: 0 8px 24px rgba(26, 35, 126, 0.3);
 }
 
 .cards-table :deep(thead) {
-  background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+	background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
 }
 
 .cards-table :deep(thead th) {
-  color: white !important;
-  font-weight: 600 !important;
+	color: white !important;
+	font-weight: 600 !important;
 }
 
 .summary-card {
-  border-left: 4px solid #1a237e;
+	border-left: 4px solid #1a237e;
 }
 
 .payment-options {
-  border: 2px solid #e0e0e0;
-  transition: all 0.3s ease;
+	border: 2px solid #e0e0e0;
+	transition: all 0.3s ease;
 }
 
 /* Highlight the card border when a radio is selected */
 .payment-options:has(.v-selection-control--dirty) {
-  border-color: #1a237e !important;
-  background-color: rgba(26, 35, 126, 0.02);
+	border-color: #1a237e !important;
+	background-color: rgba(26, 35, 126, 0.02);
 }
 
 /* Style individual radio option when selected */
 .payment-option-radio:has(.v-selection-control--dirty) {
-  background-color: rgba(26, 35, 126, 0.05);
+	background-color: rgba(26, 35, 126, 0.05);
 }
 
 /* Change text color when selected */
 .payment-option-radio:has(.v-selection-control--dirty) .text-xs {
-  color: #1a237e !important;
+	color: #1a237e !important;
 }
 
 .payment-option-radio:has(.v-selection-control--dirty) .font-weight-bold {
-  color: #1a237e !important;
+	color: #1a237e !important;
 }
 .gcash-section :deep(.v-field-label) {
-  background: white;
-  padding: 0 4px;
+	background: white;
+	padding: 0 4px;
 }
 
 .gcash-section :deep(.v-field--focused .v-field-label),
 .gcash-section :deep(.v-field--active .v-field-label) {
-  background: white;
+	background: white;
 }
 
 .cash-section :deep(.v-field-label) {
-  background: white;
-  padding: 0 4px;
+	background: white;
+	padding: 0 4px;
 }
 
 .cash-section :deep(.v-field--focused .v-field-label),
 .cash-section :deep(.v-field--active .v-field-label) {
-  background: white;
+	background: white;
 }
 .pay-button {
-  background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
-  transition: all 0.3s ease;
+	background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
+	transition: all 0.3s ease;
 }
 
 .pay-button:not(:disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(26, 35, 126, 0.4) !important;
+	transform: translateY(-2px);
+	box-shadow: 0 8px 24px rgba(26, 35, 126, 0.4) !important;
 }
 
 @media (max-width: 960px) {
-  .page-header h1 {
-    font-size: 1.75rem;
-  }
+	.page-header h1 {
+		font-size: 1.75rem;
+	}
 }
 </style>
