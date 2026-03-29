@@ -378,7 +378,7 @@
 													>Amount Due:</span
 												>
 												<span class="text-lg font-weight-bold text-error">{{
-													formatCurrency(cashNeeded)
+													formatCurrency(effectiveCashNeeded)
 												}}</span>
 											</div>
 										</div>
@@ -482,7 +482,7 @@
 
 											<!-- Change -->
 											<v-alert
-												v-if="cashAmount && cashAmount >= cashNeeded"
+												v-if="cashAmount && cashAmount >= effectiveCashNeeded"
 												type="success"
 												variant="tonal"
 												class="mt-4"
@@ -491,14 +491,14 @@
 												<div class="d-flex justify-space-between">
 													<span>Change:</span>
 													<span class="font-weight-bold">{{
-														formatCurrency(cashAmount - cashNeeded)
+														formatCurrency(cashAmount - effectiveCashNeeded)
 													}}</span>
 												</div>
 											</v-alert>
 
 											<!-- Insufficient -->
 											<v-alert
-												v-if="cashAmount && cashAmount < cashNeeded"
+												v-if="cashAmount && cashAmount < effectiveCashNeeded"
 												type="warning"
 												variant="tonal"
 												class="mt-4"
@@ -508,7 +508,10 @@
 													<span>Insufficient Amount:</span>
 													<span class="font-weight-bold">
 														Need
-														{{ formatCurrency(cashNeeded - cashAmount) }} more
+														{{
+															formatCurrency(effectiveCashNeeded - cashAmount)
+														}}
+														more
 													</span>
 												</div>
 											</v-alert>
@@ -556,7 +559,9 @@
 
 											<!-- Change -->
 											<v-alert
-												v-if="gcash_amount && gcash_amount >= cashNeeded"
+												v-if="
+													gcash_amount && gcash_amount >= effectiveCashNeeded
+												"
 												type="success"
 												variant="tonal"
 												class="mt-4"
@@ -565,14 +570,18 @@
 												<div class="d-flex justify-space-between">
 													<span>Change:</span>
 													<span class="font-weight-bold">
-														{{ formatCurrency(gcash_amount - cashNeeded) }}
+														{{
+															formatCurrency(gcash_amount - effectiveCashNeeded)
+														}}
 													</span>
 												</div>
 											</v-alert>
 
 											<!-- Insufficient -->
 											<v-alert
-												v-if="gcash_amount && gcash_amount < cashNeeded"
+												v-if="
+													gcash_amount && gcash_amount < effectiveCashNeeded
+												"
 												type="warning"
 												variant="tonal"
 												class="mt-4"
@@ -582,7 +591,10 @@
 													<span>Insufficient Amount:</span>
 													<span class="font-weight-bold">
 														Need
-														{{ formatCurrency(cashNeeded - gcash_amount) }} more
+														{{
+															formatCurrency(effectiveCashNeeded - gcash_amount)
+														}}
+														more
 													</span>
 												</div>
 											</v-alert>
@@ -595,7 +607,7 @@
 											>
 												<div class="text-sm">
 													<strong>Amount to pay:</strong>
-													{{ formatCurrency(cashNeeded) }}
+													{{ formatCurrency(effectiveCashNeeded) }}
 												</div>
 											</v-alert>
 										</div>
@@ -655,11 +667,11 @@ const card_number = ref("");
 // Discount state
 const hasDiscount = ref(false);
 const discountId = ref("");
+const DISCOUNT_RATE = 0.2;
 
 // COMPUTED
 const scannedCards = computed(() => props.scannedCards || []);
 const totalCovered = computed(() => props.totalCovered || 0);
-const cashNeeded = computed(() => props.cashNeeded || 0);
 
 const hoursPark = computed(() => props.ticket.data.hours_parked);
 
@@ -675,30 +687,35 @@ const parkoutTime = computed(() =>
 		: null,
 );
 
-// Discounted fee: 20% off when Senior/PWD discount is applied
-const DISCOUNT_RATE = 0.2;
+// Discounted fee: 20% off as soon as hasDiscount is checked (no discountId required)
 const discountedFee = computed(() => {
 	const fee = props.ticket.data.park_fee || 0;
-	if (hasDiscount.value && discountId.value.trim() !== "") {
+	if (hasDiscount.value) {
 		return fee - fee * DISCOUNT_RATE;
 	}
 	return fee;
 });
 
+// The actual amount the customer still needs to pay after cards and discount
+const effectiveCashNeeded = computed(() => {
+	const remaining = discountedFee.value - totalCovered.value;
+	return Math.max(0, remaining);
+});
+
 const disAbledPayment = computed(
-	() => totalCovered.value === props.ticket.data.park_fee,
+	() => totalCovered.value >= discountedFee.value,
 );
 
 const isPaymentValid = computed(() => {
 	if (disAbledPayment.value) return scannedCards.value.length > 0;
 
 	if (paymentMethod.value === "cash")
-		return cashAmount.value && cashAmount.value >= cashNeeded.value;
+		return cashAmount.value && cashAmount.value >= effectiveCashNeeded.value;
 
 	if (paymentMethod.value === "gcash")
 		return (
 			gcash_amount.value &&
-			gcash_amount.value >= cashNeeded.value &&
+			gcash_amount.value >= effectiveCashNeeded.value &&
 			gcashReferenceNumber.value.trim() !== ""
 		);
 
@@ -775,6 +792,7 @@ const submitPayment = () => {
 		cards: scannedCards.value.map((c) => c.id),
 		has_discount: hasDiscount.value,
 		discount_id: hasDiscount.value ? discountId.value : null,
+		discounted_fee: discountedFee.value,
 	});
 
 	form.post(route("store.payment"), {
@@ -910,18 +928,15 @@ onBeforeUnmount(closeScanner);
 	transition: all 0.3s ease;
 }
 
-/* Highlight the card border when a radio is selected */
 .payment-options:has(.v-selection-control--dirty) {
 	border-color: #1a237e !important;
 	background-color: rgba(26, 35, 126, 0.02);
 }
 
-/* Style individual radio option when selected */
 .payment-option-radio:has(.v-selection-control--dirty) {
 	background-color: rgba(26, 35, 126, 0.05);
 }
 
-/* Change text color when selected */
 .payment-option-radio:has(.v-selection-control--dirty) .text-xs {
 	color: #1a237e !important;
 }
@@ -929,6 +944,7 @@ onBeforeUnmount(closeScanner);
 .payment-option-radio:has(.v-selection-control--dirty) .font-weight-bold {
 	color: #1a237e !important;
 }
+
 .gcash-section :deep(.v-field-label) {
 	background: white;
 	padding: 0 4px;
@@ -948,6 +964,7 @@ onBeforeUnmount(closeScanner);
 .cash-section :deep(.v-field--active .v-field-label) {
 	background: white;
 }
+
 .pay-button {
 	background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
 	transition: all 0.3s ease;
