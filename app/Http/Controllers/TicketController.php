@@ -724,7 +724,9 @@ public function submit_payment(Request $request)
         'gcash_amount' => 'nullable|numeric|min:0',
         'gcash_reference' => 'nullable|regex:/^[A-Za-z0-9]{8,15}$/',
         'payment_method'      => 'required|string',
-        'cards'       => 'nullable|array',         
+        'cards'       => 'nullable|array',    
+            'has_discount'    => 'nullable|boolean',
+        'discount_id'     => 'nullable|string',     
     ]);
 
 
@@ -738,13 +740,19 @@ public function submit_payment(Request $request)
                          ->with(['error' => 'This ticket has already been paid']);
     }
 
-    $cards       = $data['cards'] ?? [];
-    $totalPaid   = 0;
-    $amountToPay = $ticket->park_fee ?? 0;
-    $payment     = null;
+     $cards        = $data['cards'] ?? [];
+    $totalPaid    = 0;
+    $payment      = null;
+    $parkFee      = (float) $ticket->park_fee;
+ 
 
+    $hasDiscount  = !empty($data['has_discount']);
+    $discountRate = 0.20;
+    $amountToPay  = $hasDiscount
+                        ? round($parkFee - ($parkFee * $discountRate), 2)
+                        : $parkFee;
     try {
-        DB::transaction(function () use ($ticket, $cards, $data, &$payment, &$totalPaid, &$amountToPay, $request) {
+     DB::transaction(function () use ($ticket, $cards, $data, &$payment, &$totalPaid, &$amountToPay, $hasDiscount, $parkFee, $request) {
 
       
              $ticket->remarks = 'Paid';
@@ -775,6 +783,8 @@ public function submit_payment(Request $request)
                 'payment_type'   => 'ticket',
                 'payment_method' => $ticket->mode_of_payment,
                 'gcash_reference' => $data['gcash_reference'],
+                'has_discount' => $hasDiscount,
+                'discount_id'  => $hasDiscount ? ($data['discount_id'] ?? null) : null,
                 'status'         => 'paid',
                 'processed_by'    => Auth::id(),
                 'paid_at'        => now(),
@@ -782,7 +792,7 @@ public function submit_payment(Request $request)
 
                         // Daily parking rate
             $dailyParkingRate = $ticket->days_parked > 0 
-                ? ($ticket->park_fee / $ticket->days_parked) 
+                ? ($parkFee / $ticket->days_parked) 
                 : 0;
             
 
@@ -886,11 +896,20 @@ foreach ($cards as $cardId) {
 }
 
 
+           $amountToPay = round($amountToPay, 2);
+            $totalCash   = round($cashAmount + $gcashAmount, 2);
+
            
                 // Check if total non-card payment covers remaining fee
-                if (($cashAmount + $gcashAmount) < $amountToPay) {
-                    throw new \Exception('Insufficient Amount.');
-                }
+                // if (($cashAmount + $gcashAmount) < $amountToPay) {
+                //     throw new \Exception('Insufficient Amount.');
+                // }
+
+
+                      if ($totalCash < $amountToPay) {
+                throw new \Exception('Insufficient Amount.');
+            }
+ 
 
                 // Applied from cash/GCash
                 $appliedAmount = $amountToPay;
@@ -911,7 +930,6 @@ foreach ($cards as $cardId) {
 
         // Clear scanned cards from session
         session()->forget('scanned_cards');
-     
          Cache::forget('dashboard.revenueData');
          Cache::forget('dashboard.totalRevenue');
        

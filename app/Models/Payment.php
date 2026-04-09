@@ -18,6 +18,8 @@ class Payment extends Model
         'payment_type',
         'payment_method',
         'gcash_reference',
+        'has_discount',
+        'discount_id',
         'status',
         'processed_by',
         'paid_at',
