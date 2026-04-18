@@ -28,6 +28,7 @@ class TicketResource extends JsonResource
             'remarks' => $this->remarks,
             'mode_of_payment' => $this->mode_of_payment,
             'park_fee' => $this->park_fee,
+            'vehicle_type' => $this->vehicle_type,
         ];
     }
 }

@@ -442,38 +442,6 @@
 										}}</span>
 									</div>
 								</v-col>
-
-								<!-- Discount (Senior, PWD) -->
-								<v-col cols="12" sm="6">
-									<div class="detail-item">
-										<span class="detail-label">Discount (Senior, PWD):</span>
-										<v-chip
-											:color="
-												selectedPayment.has_discount ? 'success' : 'default'
-											"
-											variant="flat"
-											size="small"
-											class="ml-2"
-										>
-											<v-icon start size="12">
-												{{
-													selectedPayment.has_discount
-														? "mdi-check"
-														: "mdi-close"
-												}}
-											</v-icon>
-											{{ selectedPayment.has_discount ? "Yes" : "No" }}
-										</v-chip>
-									</div>
-								</v-col>
-								<v-col cols="12" sm="6" v-if="selectedPayment.has_discount">
-									<div class="detail-item">
-										<span class="detail-label">Discount ID:</span>
-										<span class="detail-value font-weight-bold">{{
-											selectedPayment.discount_id || "N/A"
-										}}</span>
-									</div>
-								</v-col>
 							</v-row>
 						</div>
 

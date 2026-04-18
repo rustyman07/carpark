@@ -29,7 +29,6 @@
 
 			<v-card-actions class="pa-4">
 				<v-spacer></v-spacer>
-
 				<v-btn color="error" variant="outlined" @click="closeScanner">
 					<v-icon start>mdi-close</v-icon>
 					Close
@@ -146,44 +145,37 @@
 
 									<v-divider class="my-4"></v-divider>
 
-									<!-- Vehicle Type -->
+									<!-- Vehicle Type — read-only, active button reflects ticket value -->
 									<div class="info-item mb-4">
 										<span
 											class="text-caption text-indigo-darken-4 font-weight-bold d-block mb-2"
-											>Vehicle Type</span
 										>
+											Vehicle Type
+										</span>
 										<div class="d-flex gap-2">
 											<v-btn
-												:variant="
-													ticket.data.vehicle_type === 'Car'
-														? 'flat'
-														: 'outlined'
-												"
+												:variant="!isMotorcycle ? 'flat' : 'outlined'"
 												:color="
-													ticket.data.vehicle_type === 'Car'
-														? 'indigo-darken-4'
-														: 'default'
+													!isMotorcycle ? 'indigo-darken-4' : 'grey-lighten-1'
 												"
 												size="small"
 												class="flex-grow-1"
+												prepend-icon="mdi-car"
 												readonly
+												:elevation="!isMotorcycle ? 2 : 0"
 											>
 												Car
 											</v-btn>
 											<v-btn
-												:variant="
-													ticket.data.vehicle_type === 'Motorcycle'
-														? 'flat'
-														: 'outlined'
-												"
+												:variant="isMotorcycle ? 'flat' : 'outlined'"
 												:color="
-													ticket.data.vehicle_type === 'Motorcycle'
-														? 'indigo-darken-4'
-														: 'default'
+													isMotorcycle ? 'indigo-darken-4' : 'grey-lighten-1'
 												"
 												size="small"
 												class="flex-grow-1"
+												prepend-icon="mdi-motorbike"
 												readonly
+												:elevation="isMotorcycle ? 2 : 0"
 											>
 												Motorcycle
 											</v-btn>
@@ -217,18 +209,45 @@
 											/>
 											<span
 												class="text-caption font-weight-bold text-indigo-darken-4"
-												>Discount (Senior, PWD)</span
 											>
+												Discount (Senior, PWD)
+											</span>
 										</div>
-										<v-text-field
-											v-if="hasDiscount"
-											v-model="discountId"
-											placeholder="Enter ID number"
-											variant="outlined"
-											density="compact"
-											hide-details
-											color="indigo-darken-4"
-										/>
+
+										<v-expand-transition>
+											<div v-if="hasDiscount">
+												<v-text-field
+													v-model="discountId"
+													placeholder="Enter ID number"
+													variant="outlined"
+													density="compact"
+													hide-details
+													color="indigo-darken-4"
+													class="mb-3"
+												/>
+												<!-- Discount breakdown -->
+												<div class="discount-breakdown pa-3 rounded">
+													<div
+														class="d-flex justify-space-between text-caption mb-1"
+													>
+														<span class="text-medium-emphasis"
+															>Original Fee:</span
+														>
+														<span class="font-weight-medium">{{
+															formatCurrency(ticket.data.park_fee)
+														}}</span>
+													</div>
+													<div
+														class="d-flex justify-space-between text-caption text-red-darken-2"
+													>
+														<span>Discount (20%):</span>
+														<span class="font-weight-medium"
+															>- {{ formatCurrency(discountAmount) }}</span
+														>
+													</div>
+												</div>
+											</div>
+										</v-expand-transition>
 									</div>
 
 									<v-divider class="my-4"></v-divider>
@@ -280,6 +299,7 @@
 											placeholder="Enter or scan card number"
 											class="flex-grow-1 mr-3"
 											@keyup.enter="searchCard"
+											:disabled="isMotorcycle"
 										>
 											<template #prepend-inner>
 												<v-icon color="indigo-darken-4"
@@ -307,6 +327,7 @@
 										@click="scanQR"
 										class="my-6 scan-card-btn text-xs"
 										style="text-transform: none"
+										:disabled="isMotorcycle"
 									>
 										<v-icon start size="24">mdi-qrcode-scan</v-icon>
 										Scan Card
@@ -342,9 +363,9 @@
 
 											<template #no-data>
 												<div class="text-center py-8">
-													<v-icon size="48" color="grey-lighten-1" class="mb-3">
-														mdi-credit-card-off-outline
-													</v-icon>
+													<v-icon size="48" color="grey-lighten-1" class="mb-3"
+														>mdi-credit-card-off-outline</v-icon
+													>
 													<p class="text-sm text-medium-emphasis">
 														No cards scanned yet
 													</p>
@@ -480,7 +501,6 @@
 												</template>
 											</v-text-field>
 
-											<!-- Change -->
 											<v-alert
 												v-if="cashAmount && cashAmount >= effectiveCashNeeded"
 												type="success"
@@ -496,7 +516,6 @@
 												</div>
 											</v-alert>
 
-											<!-- Insufficient -->
 											<v-alert
 												v-if="cashAmount && cashAmount < effectiveCashNeeded"
 												type="warning"
@@ -506,13 +525,13 @@
 											>
 												<div class="d-flex justify-space-between">
 													<span>Insufficient Amount:</span>
-													<span class="font-weight-bold">
-														Need
+													<span class="font-weight-bold"
+														>Need
 														{{
 															formatCurrency(effectiveCashNeeded - cashAmount)
 														}}
-														more
-													</span>
+														more</span
+													>
 												</div>
 											</v-alert>
 										</div>
@@ -557,7 +576,6 @@
 												</template>
 											</v-text-field>
 
-											<!-- Change -->
 											<v-alert
 												v-if="
 													gcash_amount && gcash_amount >= effectiveCashNeeded
@@ -569,15 +587,12 @@
 											>
 												<div class="d-flex justify-space-between">
 													<span>Change:</span>
-													<span class="font-weight-bold">
-														{{
-															formatCurrency(gcash_amount - effectiveCashNeeded)
-														}}
-													</span>
+													<span class="font-weight-bold">{{
+														formatCurrency(gcash_amount - effectiveCashNeeded)
+													}}</span>
 												</div>
 											</v-alert>
 
-											<!-- Insufficient -->
 											<v-alert
 												v-if="
 													gcash_amount && gcash_amount < effectiveCashNeeded
@@ -589,13 +604,13 @@
 											>
 												<div class="d-flex justify-space-between">
 													<span>Insufficient Amount:</span>
-													<span class="font-weight-bold">
-														Need
+													<span class="font-weight-bold"
+														>Need
 														{{
 															formatCurrency(effectiveCashNeeded - gcash_amount)
 														}}
-														more
-													</span>
+														more</span
+													>
 												</div>
 											</v-alert>
 
@@ -652,6 +667,7 @@ const props = defineProps({
 	scannedCards: Array,
 	totalCovered: Number,
 	cashNeeded: Number,
+	company: Object,
 });
 
 // STATE
@@ -672,8 +688,14 @@ const DISCOUNT_RATE = 0.2;
 // COMPUTED
 const scannedCards = computed(() => props.scannedCards || []);
 const totalCovered = computed(() => props.totalCovered || 0);
-
 const hoursPark = computed(() => props.ticket.data.hours_parked);
+
+// Detect vehicle type
+const isMotorcycle = computed(
+	() => props.ticket.data.vehicle_type === "motorcycle",
+
+	console.log(props.ticket.data.vehicle_type),
+);
 
 const parkinTime = computed(() =>
 	props.ticket.data.park_datetime
@@ -687,19 +709,21 @@ const parkoutTime = computed(() =>
 		: null,
 );
 
-// Discounted fee: 20% off as soon as hasDiscount is checked (no discountId required)
-const discountedFee = computed(() => {
+// Discount amount (20% of park_fee)
+const discountAmount = computed(() => {
 	const fee = props.ticket.data.park_fee || 0;
-	if (hasDiscount.value) {
-		return fee - fee * DISCOUNT_RATE;
-	}
-	return fee;
+	return fee * DISCOUNT_RATE;
 });
 
-// The actual amount the customer still needs to pay after cards and discount
+// Discounted fee — 20% off when hasDiscount is checked
+const discountedFee = computed(() => {
+	const fee = props.ticket.data.park_fee || 0;
+	return hasDiscount.value ? fee - discountAmount.value : fee;
+});
+
+// Amount still owed after card coverage and discount
 const effectiveCashNeeded = computed(() => {
-	const remaining = discountedFee.value - totalCovered.value;
-	return Math.max(0, remaining);
+	return Math.max(0, discountedFee.value - totalCovered.value);
 });
 
 const disAbledPayment = computed(
@@ -722,15 +746,11 @@ const isPaymentValid = computed(() => {
 	return false;
 });
 
-// ---------------------
-// DELETE BUTTON LOGIC
-// ---------------------
+// DELETE CARD
 const deleteCard = async (id) => {
 	try {
 		await router.delete(route("scan.qr.cards.delete", id), {
-			data: {
-				ticket_id: props.ticket.data.id,
-			},
+			data: { ticket_id: props.ticket.data.id },
 			preserveScroll: true,
 		});
 	} catch (e) {
@@ -741,7 +761,6 @@ const deleteCard = async (id) => {
 // SEARCH CARD
 const searchCard = async () => {
 	if (!card_number.value) return;
-
 	try {
 		isSubmitting.value = true;
 		await router.post(route("scan.qr.cards"), {
@@ -762,22 +781,20 @@ const headers = [
 	{ key: "actions", title: "Actions" },
 ];
 
-// TABLE MAPPING
-const items = computed(() => {
-	return scannedCards.value.map((item) => ({
+const items = computed(() =>
+	scannedCards.value.map((item) => ({
 		id: item.id,
 		card_number: item.card_number,
 		price: formatCurrency(item.price),
 		balance: formatCurrency(item.balance),
-	}));
-});
+	})),
+);
 
 const formatDate = (date) => (date ? dayjs(date).format("MM/DD/YYYY") : "N/A");
 
 // SUBMIT PAYMENT
 const submitPayment = () => {
 	if (isSubmitting.value) return;
-
 	isSubmitting.value = true;
 
 	const form = useForm({
@@ -792,7 +809,6 @@ const submitPayment = () => {
 		cards: scannedCards.value.map((c) => c.id),
 		has_discount: hasDiscount.value,
 		discount_id: hasDiscount.value ? discountId.value : null,
-		discounted_fee: discountedFee.value,
 	});
 
 	form.post(route("store.payment"), {
@@ -808,16 +824,13 @@ const scanQR = () => {
 
 const startScanner = async () => {
 	if (!isScanQR.value) return;
-
 	try {
 		html5QrCode.value = new Html5Qrcode("reader");
-
 		await html5QrCode.value.start(
 			{ facingMode: "environment" },
 			{ fps: 10, qrbox: { width: 250, height: 250 } },
 			async (decodedText) => {
 				await closeScanner();
-
 				router.post(route("scan.qr.cards"), {
 					qr_code: decodedText,
 					ticket_id: props.ticket.data.id,
@@ -895,9 +908,13 @@ onBeforeUnmount(closeScanner);
 .info-item {
 	transition: all 0.2s ease;
 }
-
 .total-card {
 	border: 2px solid #c5cae9;
+}
+
+.discount-breakdown {
+	background: rgba(26, 35, 126, 0.04);
+	border: 1px solid rgba(26, 35, 126, 0.12);
 }
 
 .scan-card-btn {
@@ -933,33 +950,14 @@ onBeforeUnmount(closeScanner);
 	background-color: rgba(26, 35, 126, 0.02);
 }
 
-.payment-option-radio:has(.v-selection-control--dirty) {
-	background-color: rgba(26, 35, 126, 0.05);
-}
-
-.payment-option-radio:has(.v-selection-control--dirty) .text-xs {
-	color: #1a237e !important;
-}
-
-.payment-option-radio:has(.v-selection-control--dirty) .font-weight-bold {
-	color: #1a237e !important;
-}
-
-.gcash-section :deep(.v-field-label) {
-	background: white;
-	padding: 0 4px;
-}
-
-.gcash-section :deep(.v-field--focused .v-field-label),
-.gcash-section :deep(.v-field--active .v-field-label) {
-	background: white;
-}
-
+.gcash-section :deep(.v-field-label),
 .cash-section :deep(.v-field-label) {
 	background: white;
 	padding: 0 4px;
 }
 
+.gcash-section :deep(.v-field--focused .v-field-label),
+.gcash-section :deep(.v-field--active .v-field-label),
 .cash-section :deep(.v-field--focused .v-field-label),
 .cash-section :deep(.v-field--active .v-field-label) {
 	background: white;

@@ -65,6 +65,7 @@
         tfoot td { padding: 16px; font-weight: bold; font-size: 16px; }
         .text-right { text-align: right; }
         .font-weight-500 { font-weight: 500; }
+        .discount-badge { color: #dc2626; font-size: 11px; }
 
         .footer { padding-left:48px; padding-top: 12px ; margin-top: 15px; border-top: 1px solid #e5e7eb; text-align: left; width: fit-content; }
         .signature-grid { display: flex; justify-content: flex-start; }
@@ -143,6 +144,8 @@
                             <th>Payment</th>
                             <th>Card Number</th>
                             <th>Reference No</th>
+                            <th class='text-right'>Park Fee</th>
+                            <th class='text-right'>Discount</th>
                             <th class='text-right'>Amount</th>
                         </tr>
                     </thead>
@@ -167,6 +170,11 @@
                                 if ($hours > 0) $durationParts[] = "{$hours}h";
                                 if ($minutes > 0 || empty($durationParts)) $durationParts[] = "{$minutes}m";
                                 $duration = implode(' ', $durationParts);
+
+                                $hasDiscount   = $ticket->payment->has_discount ?? false;
+                                $totalAmount   = $ticket->payment->total_amount ?? 0;
+                                $originalFee   = $hasDiscount ? round($totalAmount / 0.80, 2) : $totalAmount;
+                                $discountAmount = $hasDiscount ? round($originalFee - $totalAmount, 2) : 0;
                             @endphp
                             <tr>
                                 <td class='font-weight-500'>{{ $ticket->ticket_no }}</td>
@@ -177,16 +185,20 @@
                                 <td>{{ $ticket->mode_of_payment ?? 'Cash' }}</td>
                                 <td>{{ $ticket->card_numbers }}</td>
                                 <td>{{ $ticket->gcash_reference ?? 'N/A' }}</td>
-                                <td class='text-right font-weight-500'>{{ number_format($ticket->payment->total_amount ?? 0, 2) }}</td>
+                                <td class='text-right'>{{ number_format($originalFee, 2) }}</td>
+                                <td class='text-right discount-badge'>
+                                    {{ $hasDiscount ? '- ' . number_format($discountAmount, 2) : '—' }}
+                                </td>
+                                <td class='text-right font-weight-500'>{{ number_format($totalAmount, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
-    <tr>
-        <td colspan='8' class='text-right'>SUBTOTAL:</td>
-        <td class='text-right'>{{ number_format($group['total'], 2) }}</td>
-    </tr>
-</tfoot>
+                        <tr>
+                            <td colspan='10' class='text-right'>SUBTOTAL:</td>
+                            <td class='text-right'>{{ number_format($group['total'], 2) }}</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         @endforeach

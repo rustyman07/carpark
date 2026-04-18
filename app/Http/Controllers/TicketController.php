@@ -718,14 +718,14 @@ public function show_payment(string $uuid)
 public function submit_payment(Request $request)
 {
   
-    $data = $request->validate([
+        $data = $request->validate([
         'ticket_id'   => 'required|exists:tickets,id',
         'cash_amount' => 'nullable|numeric|min:0', 
         'gcash_amount' => 'nullable|numeric|min:0',
         'gcash_reference' => 'nullable|regex:/^[A-Za-z0-9]{8,15}$/',
         'payment_method'      => 'required|string',
         'cards'       => 'nullable|array',    
-            'has_discount'    => 'nullable|boolean',
+          'has_discount'    => 'nullable|boolean',
         'discount_id'     => 'nullable|string',     
     ]);
 
@@ -848,56 +848,56 @@ public function submit_payment(Request $request)
 
 
             // Deduct progressively from cards
-foreach ($cards as $cardId) {
-    if ($amountToPay <= 0) break;
+    foreach ($cards as $cardId) {
+        if ($amountToPay <= 0) break;
 
-    $cardInventory = CardInventoryDetail::findOrFail($cardId);
+        $cardInventory = CardInventoryDetail::findOrFail($cardId);
 
-    $deduct = min($cardInventory->balance, $amountToPay);
-    $cardInventory->balance -= $deduct;
-    if ($cardInventory->balance <= 0) {
-        $cardInventory->status = 'Consumed';
+        $deduct = min($cardInventory->balance, $amountToPay);
+        $cardInventory->balance -= $deduct;
+        if ($cardInventory->balance <= 0) {
+            $cardInventory->status = 'Consumed';
+        }
+        $cardInventory->save();
+
+        $payment->details()->create([
+            'card_id'     => $cardInventory->id,
+            'card_number' => $cardInventory->card_number,
+            'qr_code'     => $cardInventory->qr_code,
+            'amount'      => $deduct,
+            'balance'     => $cardInventory->balance,
+            'card_name'   => $cardInventory->card_name,
+            'discount'    => $cardInventory->discount ?? 0,
+            'no_of_days'  => $cardInventory->no_of_days ?? 0,
+        ]);
+
+        $amountToPay -= $deduct;
+
+        // Calculate discount percentage and apply to deducted amount
+        if ($cardInventory->discount && $cardInventory->no_of_days > 0) {
+            $company = Company::find(1);
+            $ratePerDay = (float) $company->rate_perday; // e.g., ₱350
+            
+            // Total discount per day
+            $discountPerDay = $cardInventory->discount / $cardInventory->no_of_days; // e.g., 217 / 7 = 31
+            
+            // Calculate discount percentage
+            // Discount % = (discount per day / rate per day) × 100
+            $discountPercentage = ($discountPerDay / $ratePerDay) * 100; // e.g., (31 / 350) × 100 = 8.857%
+            
+            // Apply discount percentage to the deducted amount 
+            $discountAmount = ($discountPercentage / 100) * $deduct; // e.g., (8.857% / 100) × 50 = 4.43
+            
+            // Add to total paid (deducted amount minus discount)
+            $totalPaid += $deduct - $discountAmount; // e.g., 50 - 4.43 = 45.57
+        } else {
+            $totalPaid += $deduct;
+        }
     }
-    $cardInventory->save();
-
-    $payment->details()->create([
-        'card_id'     => $cardInventory->id,
-        'card_number' => $cardInventory->card_number,
-        'qr_code'     => $cardInventory->qr_code,
-        'amount'      => $deduct,
-        'balance'     => $cardInventory->balance,
-        'card_name'   => $cardInventory->card_name,
-        'discount'    => $cardInventory->discount ?? 0,
-        'no_of_days'  => $cardInventory->no_of_days ?? 0,
-    ]);
-
-    $amountToPay -= $deduct;
-
-    // Calculate discount percentage and apply to deducted amount
-    if ($cardInventory->discount && $cardInventory->no_of_days > 0) {
-        $company = Company::find(1);
-        $ratePerDay = (float) $company->rate_perday; // e.g., ₱350
-        
-        // Total discount per day
-        $discountPerDay = $cardInventory->discount / $cardInventory->no_of_days; // e.g., 217 / 7 = 31
-        
-        // Calculate discount percentage
-        // Discount % = (discount per day / rate per day) × 100
-        $discountPercentage = ($discountPerDay / $ratePerDay) * 100; // e.g., (31 / 350) × 100 = 8.857%
-        
-        // Apply discount percentage to the deducted amount 
-        $discountAmount = ($discountPercentage / 100) * $deduct; // e.g., (8.857% / 100) × 50 = 4.43
-        
-        // Add to total paid (deducted amount minus discount)
-        $totalPaid += $deduct - $discountAmount; // e.g., 50 - 4.43 = 45.57
-    } else {
-        $totalPaid += $deduct;
-    }
-}
 
 
-           $amountToPay = round($amountToPay, 2);
-            $totalCash   = round($cashAmount + $gcashAmount, 2);
+         $amountToPay = round($amountToPay, 2);
+        $totalCash   = round($cashAmount + $gcashAmount, 2);
 
            
                 // Check if total non-card payment covers remaining fee
@@ -949,6 +949,148 @@ foreach ($cards as $cardId) {
         return back()->with('error', $e->getMessage());
     }
 }
+
+
+// public function submit_payment(Request $request)
+// {
+//     $data = $request->validate([
+//         'ticket_id'   => 'required|exists:tickets,id',
+//         'cash_amount' => 'nullable|numeric|min:0', 
+//         'gcash_amount' => 'nullable|numeric|min:0',
+//         'cards'       => 'nullable|array',         
+//     ]);
+
+
+   
+
+//     $ticket  = Ticket::findOrFail($request->ticket_id);
+//     $company = Company::find(1);
+
+//     if ($ticket->remarks === 'Paid') {
+//         return redirect()->route('parkin.index')
+//                          ->with(['error' => 'This ticket has already been paid']);
+//     }
+
+//     $cards       = $data['cards'] ?? [];
+//     $totalPaid   = 0;
+//     $amountToPay = $ticket->park_fee ?? 0;
+//     $payment     = null;
+
+//     try {
+//         DB::transaction(function () use ($ticket, $cards, $data, &$payment, &$totalPaid, &$amountToPay, $request) {
+
+      
+//              $ticket->remarks = 'Paid';
+
+//             // Updated mode_of_payment logic
+//             $cashAmount  = $data['cash_amount'] ?? 0;
+//             $gcashAmount = $data['gcash_amount'] ?? 0;
+
+//         if (!empty($cards) && $cashAmount > 0) {
+//             $ticket->mode_of_payment = 'Card w/ Cash';
+//         } elseif (!empty($cards) && $gcashAmount > 0) {
+//             $ticket->mode_of_payment = 'Card w/ Gcash';
+//         } elseif (!empty($cards)) {
+//             $ticket->mode_of_payment = 'Card';
+//         } elseif ($gcashAmount > 0) {
+//             $ticket->mode_of_payment = 'Gcash';
+//         } else {
+//             $ticket->mode_of_payment = 'Cash';
+//         }
+
+//             $ticket->save();
+          
+//             $payment = Payment::create([
+//                 'ticket_id'      => $ticket->id,
+//                 'ticket_no'      => $ticket->ticket_no,
+//                 'days_deducted'  => $ticket->days_parked ?? 0,
+//                 'payment_type'   => 'ticket',
+//                 'payment_method' => $ticket->mode_of_payment,
+//                 'status'         => 'paid',
+//                 'processed_by'    => Auth::id(),
+//                 'paid_at'        => now(),
+//             ]);
+
+//             // Deduct progressively from cards
+//             foreach ($cards as $cardId) {
+//                 if ($amountToPay <= 0) break;
+
+//                 $cardInventory = CardInventoryDetail::findOrFail($cardId);
+
+//                 $deduct = min($cardInventory->balance, $amountToPay);
+//                 $cardInventory->balance -= $deduct;
+//                 if ($cardInventory->balance <= 0) {
+//                     $cardInventory->status = 'Consumed';
+//                 }
+//                 $cardInventory->save();
+
+//                 $payment->details()->create([
+//                     'card_id'     => $cardInventory->id,
+//                     'card_number' => $cardInventory->card_number,
+//                     'qr_code'     => $cardInventory->qr_code,
+//                     'amount'      => $deduct,
+//                     'balance'     => $cardInventory->balance,
+//                     'card_name'   => $cardInventory->card_name,
+//                     'discount'    => $cardInventory->discount ?? 0,
+//                     'no_of_days'  => $cardInventory->no_of_days ?? 0,
+//                 ]);
+
+//                 $amountToPay -= $deduct;
+//                 $totalPaid += $deduct;
+//             }
+
+
+           
+//                 // Check if total non-card payment covers remaining fee
+//                 if (($cashAmount + $gcashAmount) < $amountToPay) {
+//                     throw new \Exception('Insufficient Amount.');
+//                 }
+
+//                 // Applied from cash/GCash
+//                 $appliedAmount = $amountToPay;
+
+//                 // Change only from cash overpayment
+//                 $change = max(0, $cashAmount - $appliedAmount);
+
+//                 // Update Payment table
+//                 $payment->update([
+//                     'amount'          => $cashAmount + $gcashAmount,
+//                     'total_amount'    => $totalPaid + $appliedAmount,
+//                     'Gcash_reference' => $data['Gcash_reference'] ?? null,
+//                     'change'          => $change,
+//                 ]);
+
+
+
+           
+//         });
+
+//         // Clear scanned cards from session
+//         session()->forget('scanned_cards');
+     
+//          Cache::forget('dashboard.revenueData');
+//          Cache::forget('dashboard.totalRevenue');
+       
+       
+
+//         // Redirect with success
+//         return redirect()->route('receipt.index', ['id' => $ticket->uuid])
+//                          ->with([
+                             
+//                              'id'      => $ticket->uuid,
+//                              'company' => $company,
+//                              'cards'   => $cards,
+//                          ]);
+
+//     } catch (\Exception $e) {
+
+//         return back()->with('error', $e->getMessage());
+//     }
+// }
+
+
+
+
 
 
 
