@@ -37,6 +37,8 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('parkout', [TicketController::class, 'submit_park_out'])->name('parkout.submit');
     Route::get('parkout/payment/{uuid}', [TicketController::class, 'show_payment'])->name('show.payment');
     Route::post('parkout/payment', [TicketController::class, 'submit_payment'])->name('store.payment');
+    Route::patch('/tickets/{id}/vehicle-type', [TicketController::class, 'updateVehicleType'])
+     ->name('ticket.update.vehicle_type');
 
 
     // Route::prefix('sales-person')->name('sales-person.')->group(function () {

@@ -274,285 +274,359 @@ public function show(string $uuid)
 
 public function update_parkindatetime(Request $request, $id)
 {
-    $data = $request->validate([
-        'park_year'   => 'required|integer',
-        'park_month'  => 'required|integer',
-        'park_day'    => 'required|integer',
-        'park_hour'   => 'required|integer',
-        'park_minute' => 'required|integer',
-        'park_second' => 'required|integer',
-    ]);
+        $data = $request->validate([
+            'park_year'   => 'required|integer',
+            'park_month'  => 'required|integer',
+            'park_day'    => 'required|integer',
+            'park_hour'   => 'required|integer',
+            'park_minute' => 'required|integer',
+            'park_second' => 'required|integer',
+        ]);
 
-    $ticket = Ticket::findOrFail($id);
-    
-    // Build park_datetime from inputs
-    $park_datetime = Carbon::create(
-        $data['park_year'],
-        $data['park_month'],
-        $data['park_day'],
-        $data['park_hour'],
-        $data['park_minute'],
-        $data['park_second']
-    );
-    
-    // Update all fields
-    $ticket->update([
-        'park_year'     => $data['park_year'],
-        'park_month'    => $data['park_month'],
-        'park_day'      => $data['park_day'],
-        'park_hour'     => $data['park_hour'],
-        'park_minute'   => $data['park_minute'],
-        'park_second'   => $data['park_second'],
-        'park_datetime' => $park_datetime,
-    ]);
+        $ticket = Ticket::findOrFail($id);
+        
+        // Build park_datetime from inputs
+        $park_datetime = Carbon::create(
+            $data['park_year'],
+            $data['park_month'],
+            $data['park_day'],
+            $data['park_hour'],
+            $data['park_minute'],
+            $data['park_second']
+        );
+        
+        // Update all fields
+        $ticket->update([
+            'park_year'     => $data['park_year'],
+            'park_month'    => $data['park_month'],
+            'park_day'      => $data['park_day'],
+            'park_hour'     => $data['park_hour'],
+            'park_minute'   => $data['park_minute'],
+            'park_second'   => $data['park_second'],
+            'park_datetime' => $park_datetime,
+        ]);
 
-    return back()->with('success', 'Park-in time updated successfully');
-}
-
-
-public function park_out()
-{
-
-    return inertia('Parkout/Index', [
-        'ticket' => session('ticket'),
-        'success' => session('success'),
-    ]);
-}
-
-
-public function submit_park_out(Request $request)
-{
-
-   session()->forget('scanned_cards');
-
-
-      $rules = [
-        'park_out_year'   => 'nullable|integer',
-        'park_out_month'  => 'nullable|integer',
-        'park_out_day'    => 'nullable|integer',
-        'park_out_hour'   => 'nullable|integer',
-        'park_out_minute' => 'nullable|integer',
-        'park_out_second' => 'nullable|integer',
-    ];
-
- 
-    if ($request->boolean('is_scan_qr')) {
-        $rules['qr_code'] = 'required|string|exists:tickets,qr_code';
-    } else {
-        $rules['plate_no'] = 'required|string|exists:tickets,plate_no';
+        return back()->with('success', 'Park-in time updated successfully');
     }
 
-    $data = $request->validate($rules, [
-        'plate_no.required' => 'Plate number is required',
-        'plate_no.exists'   => 'Plate number not found',
-        'qr_code.required'  => 'QR code is required',
-        'qr_code.exists'    => 'Invalid QR code',
-    ]);
-    
+
+    public function park_out()
+    {
+
+        return inertia('Parkout/Index', [
+            'ticket' => session('ticket'),
+            'success' => session('success'),
+        ]);
+    }
 
 
-  
-  $park_out_datetime = isset($data['park_out_year'], $data['park_out_month'], $data['park_out_day'])
-    ? Carbon::create(
-        $data['park_out_year'],
-        $data['park_out_month'],
-        $data['park_out_day'],
-        $data['park_out_hour']   ?? 0,
-        $data['park_out_minute'] ?? 0,
-        $data['park_out_second'] ?? 0
-    )
-    : now();
 
-        $data['park_out_year']   = $park_out_datetime->year;
-        $data['park_out_month']  = $park_out_datetime->month;
-        $data['park_out_day']    = $park_out_datetime->day;
-        $data['park_out_hour']   = $park_out_datetime->hour;
-        $data['park_out_minute'] = $park_out_datetime->minute;
-        $data['park_out_second'] = $park_out_datetime->second;
-        $data['park_out_datetime'] = $park_out_datetime;
-       
+private function calculateParkFee(Ticket $ticket, Company $company): array
+{
+    $start       = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
+    $end         = Carbon::parse($ticket->park_out_datetime)->timezone(config('app.timezone'));
+    $minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
 
-    //  $ticket = Ticket::where('plate_no', $data['plate_no'])
-    //      ->where('remarks',0)
-    //     ->latest('park_datetime')
-    //     ->first();
+    $isMotor                = strtolower($ticket->vehicle_type) === 'motorcycle';
+    $rateType               = $isMotor ? $company->motor_rate                        : $company->rate;
+    $ratePerHour            = (float) ($isMotor ? $company->motor_rate_perhour       : $company->rate_perhour);
+    $ratePerDay             = (float) ($isMotor ? $company->motor_rate_perday        : $company->rate_perday);
+    $hourly_limit           = (int)   ($isMotor ? $company->motor_hourly_billing_limit : $company->hourly_billing_limit) * 60;
+    $freeMinutes            = (int)   ($isMotor ? $company->motor_grace_minutes        : $company->grace_minutes);
+    $additionalHourBlock    = (int)   ($isMotor ? $company->motor_additional_hour_block      : $company->additional_hour_block);
+    $additionalRatePerBlock = (float) ($isMotor ? $company->motor_additional_rate_per_block  : $company->additional_rate_per_block);
 
-        if ($request->boolean('is_scan_qr')) {
-            $ticket = Ticket::where('qr_code', $data['qr_code'])
-                ->WhereNull('deleted_at')
-                ->first();
+    $rate = $daysParked = $hoursParked = $remainingMinutes = 0;
 
+    if ($rateType === 'perhour') {
+        $hoursParked = max(1, ceil($minutesDiff / 60));
+        $rate        = $hoursParked * $ratePerHour;
 
-                    
-        if (!$ticket) {
-            return redirect()->back()->with([
-                'error' => 'Ticket not found for this QR code.',
-                'success' => false
-            ]);
-        }
+    } elseif ($rateType === 'perday') {
+        $fullDays         = floor($minutesDiff / 1440);
+        $remainingMinutes = $minutesDiff % 1440;
+        $daysParked       = $remainingMinutes > $freeMinutes ? $fullDays + 1 : max(1, $fullDays);
+        $hoursParked      = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60);
+        $rate             = $daysParked * $ratePerDay;
 
-    
+    } else { // combination
+        $additionalBlockMinutes = $additionalHourBlock * 60;
+
+        if ($minutesDiff <= $hourly_limit) {
+            $hoursParked = max(1, ceil($minutesDiff / 60));
+            $rate        = $hoursParked * $ratePerHour;
+            $daysParked  = 0;
+
+        } elseif ($minutesDiff <= 1440) {
+            $daysParked  = 1;
+            $hoursParked = 0;
+            $rate        = $ratePerDay;
 
         } else {
+            $fullDays         = floor($minutesDiff / 1440);
+            $daysParked       = $fullDays;
+            $rate             = $fullDays * $ratePerDay;
+            $remainingMinutes = $minutesDiff % 1440;
 
-             $existingUnpaid = Ticket::where('plate_no', $data['plate_no'])
-        ->where('remarks', 'unpaid')
-        ->whereNotNull('park_out_datetime')
-        ->whereNull('deleted_at')
-        ->latest('park_out_datetime')
-        ->first();
+            if ($remainingMinutes > $freeMinutes) {
+                $minutesBeyondGrace = $remainingMinutes - $freeMinutes;
+                $additionalBlocks   = ceil($minutesBeyondGrace / $additionalBlockMinutes);
+                $rate              += $additionalBlocks * $additionalRatePerBlock;
+                $hoursParked        = floor($remainingMinutes / 60);
+            } else {
+                $hoursParked = floor($remainingMinutes / 60);
+            }
+        }
+    }
 
-            if ($existingUnpaid) {
+    return [
+        'park_fee'     => $rate,
+        'days_parked'  => $daysParked,
+        'hours_parked' => $hoursParked,
+        'total_minutes' => $minutesDiff,
+    ];
+}
+
+
+
+
+    public function submit_park_out(Request $request)
+    {
+        
+
+    session()->forget('scanned_cards');
+
+
+        $rules = [
+            'park_out_year'   => 'nullable|integer',
+            'park_out_month'  => 'nullable|integer',
+            'park_out_day'    => 'nullable|integer',
+            'park_out_hour'   => 'nullable|integer',
+            'park_out_minute' => 'nullable|integer',
+            'park_out_second' => 'nullable|integer',
+        ];
+
     
-                return redirect()->route('show.payment', [
-                    'uuid' => $existingUnpaid->uuid
-                ])->with([
-                    'info' => 'Existing unpaid record found. Using that record instead.',
-                    'success' => true
+        if ($request->boolean('is_scan_qr')) {
+            $rules['qr_code'] = 'required|string|exists:tickets,qr_code';
+        } else {
+            $rules['plate_no'] = 'required|string|exists:tickets,plate_no';
+        }
+
+        $data = $request->validate($rules, [
+            'plate_no.required' => 'Plate number is required',
+            'plate_no.exists'   => 'Plate number not found',
+            'qr_code.required'  => 'QR code is required',
+            'qr_code.exists'    => 'Invalid QR code',
+        ]);
+        
+
+
+    
+    $park_out_datetime = isset($data['park_out_year'], $data['park_out_month'], $data['park_out_day'])
+        ? Carbon::create(
+            $data['park_out_year'],
+            $data['park_out_month'],
+            $data['park_out_day'],
+            $data['park_out_hour']   ?? 0,
+            $data['park_out_minute'] ?? 0,
+            $data['park_out_second'] ?? 0
+        )
+        : now();
+
+            $data['park_out_year']   = $park_out_datetime->year;
+            $data['park_out_month']  = $park_out_datetime->month;
+            $data['park_out_day']    = $park_out_datetime->day;
+            $data['park_out_hour']   = $park_out_datetime->hour;
+            $data['park_out_minute'] = $park_out_datetime->minute;
+            $data['park_out_second'] = $park_out_datetime->second;
+            $data['park_out_datetime'] = $park_out_datetime;
+        
+
+        //  $ticket = Ticket::where('plate_no', $data['plate_no'])
+        //      ->where('remarks',0)
+        //     ->latest('park_datetime')
+        //     ->first();
+
+            if ($request->boolean('is_scan_qr')) {
+                $ticket = Ticket::where('qr_code', $data['qr_code'])
+                    ->WhereNull('deleted_at')
+                    ->first();
+
+
+                        
+            if (!$ticket) {
+                return redirect()->back()->with([
+                    'error' => 'Ticket not found for this QR code.',
+                    'success' => false
                 ]);
             }
 
+        
 
-                $ticket = Ticket::where('plate_no', $data['plate_no'])
-                ->where(function ($q) {
-                    $q->whereIn('remarks', ['UNPAID'])
-                    ->orWhereNull('remarks');
-                })
-                 ->WhereNull('deleted_at')
-                ->latest('park_datetime')
-                ->first();
+            } else {
 
-                        
-                if (!$ticket){
-                    return redirect()->back()->with([ 
-                        'error' => "Hasn't Park in Yet",
-                        'success' => false
-                
-                ]);
+                $existingUnpaid = Ticket::where('plate_no', $data['plate_no'])
+            ->where('remarks', 'unpaid')
+            ->whereNotNull('park_out_datetime')
+            ->whereNull('deleted_at')
+            ->latest('park_out_datetime')
+            ->first();
+
+                if ($existingUnpaid) {
+        
+                    return redirect()->route('show.payment', [
+                        'uuid' => $existingUnpaid->uuid
+                    ])->with([
+                        'info' => 'Existing unpaid record found. Using that record instead.',
+                        'success' => true
+                    ]);
                 }
 
-        }
+
+                    $ticket = Ticket::where('plate_no', $data['plate_no'])
+                    ->where(function ($q) {
+                        $q->whereIn('remarks', ['UNPAID'])
+                        ->orWhereNull('remarks');
+                    })
+                    ->WhereNull('deleted_at')
+                    ->latest('park_datetime')
+                    ->first();
+
+                            
+                    if (!$ticket){
+                        return redirect()->back()->with([ 
+                            'error' => "Hasn't Park in Yet",
+                            'success' => false
+                    
+                    ]);
+                    }
+
+            }
 
 
-//     $company = Company::find(1);
+    //     $company = Company::find(1);
 
-//     $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
-//     $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
+    //     $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
+    //     $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
 
-//     $minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
+    //     $minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
 
-//     $ratePerHour = (float) $company->rate_perhour;
-//     $ratePerDay  = (float) $company->rate_perday;
+    //     $ratePerHour = (float) $company->rate_perhour;
+    //     $ratePerDay  = (float) $company->rate_perday;
 
-//     $hourly_limit = (int) $company->hourly_billing_limit * 60; //  10 hours * 60
-//     $freeMinutes  = (int) $company->grace_minutes;             
+    //     $hourly_limit = (int) $company->hourly_billing_limit * 60; //  10 hours * 60
+    //     $freeMinutes  = (int) $company->grace_minutes;             
 
-//     $rate = 0;
-//     $daysParked = 0;
-//     $hoursParked = 0;
-//     $remainingMinutes = 0;
+    //     $rate = 0;
+    //     $daysParked = 0;
+    //     $hoursParked = 0;
+    //     $remainingMinutes = 0;
 
-//     if ($company->rate == 'perhour') {
+    //     if ($company->rate == 'perhour') {
 
-//         $hoursParked = max(1, ceil($minutesDiff / 60));
-//         $rate = $hoursParked * $ratePerHour;
+    //         $hoursParked = max(1, ceil($minutesDiff / 60));
+    //         $rate = $hoursParked * $ratePerHour;
 
-//     } elseif ($company->rate == 'perday') {
+    //     } elseif ($company->rate == 'perday') {
 
-//         $fullDays = floor($minutesDiff / 1440);        // full 24-hour days
-//         $remainingMinutes = $minutesDiff % 1440;       // leftover minutes
+    //         $fullDays = floor($minutesDiff / 1440);        // full 24-hour days
+    //         $remainingMinutes = $minutesDiff % 1440;       // leftover minutes
 
-//         // Apply grace period
-//         if ($remainingMinutes > $freeMinutes) {
-//             $daysParked = $fullDays + 1;               // extra day
-//         } else {
-//             $daysParked = max(1, $fullDays);           // at least 1 day
-//         }
+    //         // Apply grace period
+    //         if ($remainingMinutes > $freeMinutes) {
+    //             $daysParked = $fullDays + 1;               // extra day
+    //         } else {
+    //             $daysParked = max(1, $fullDays);           // at least 1 day
+    //         }
 
-//         $hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60); // display only
-     
-//         $rate = $daysParked * $ratePerDay;
-
-  
-// } else { // combination
-
-//     $additionalHourBlock = (int) $company->additional_hour_block; // 3
-//     $additionalRatePerBlock = (float) $company->additional_rate_per_block; // 50
-//     $additionalBlockMinutes = $additionalHourBlock * 60; // 180 minutes
-    
-//     if ($minutesDiff <= $hourly_limit) {
-//         // First 12 hours: Charge hourly
-//         $hoursParked = max(1, ceil($minutesDiff / 60));
-//         $rate = $hoursParked * $ratePerHour;
-//         $daysParked = 0;
+    //         $hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60); // display only
         
-//     } elseif ($minutesDiff <= 1440) {
-//         // 12-24 hours: Daily rate
-//         $daysParked = 1;
-//         $hoursParked = 0;
-//         $rate = $ratePerDay; // ₱350
-        
-//     } else {
-//         // More than 24 hours - daily-based billing
-        
-//         // Calculate full days
-//         $fullDays = floor($minutesDiff / 1440);
-//         $daysParked = $fullDays;
-        
-//         // Charge for full days
-//         $rate = $fullDays * $ratePerDay;
-        
-//         // Calculate remaining minutes after full days
-//         $remainingMinutes = $minutesDiff % 1440;
-        
-//         // Grace period in minutes
-//         // If grace_minutes is stored as hours (e.g., 3), multiply by 60
-//         // If grace_minutes is stored as minutes (e.g., 180), use directly
-//         $graceMinutes = $freeMinutes ;
-        
-//         // Apply grace period
-//         if ($remainingMinutes > $graceMinutes) {
-//             // Time exceeds grace period, calculate blocks
-//             $minutesBeyondGrace = $remainingMinutes - $graceMinutes;
-            
-//             // Calculate number of blocks needed (round up)
-//             $additionalBlocks = ceil($minutesBeyondGrace / $additionalBlockMinutes);
-            
-//             // Add block charges
-//             $rate += ($additionalBlocks * $additionalRatePerBlock);
-            
-//             // For display: show actual hours remaining
-//             $hoursParked = floor($remainingMinutes / 60);
-//         } else {
-//             // Within grace period, no additional charge
-//             $hoursParked = floor($remainingMinutes / 60);
-//         }
-//     }
-// }
-
-//     $ticket->park_fee = $rate;
-
-
-//         $ticket->fill([
-//             'is_park_out'     => 1,
-//             'park_out_year'   => $data['park_out_year'],
-//             'park_out_month'  => $data['park_out_month'],
-//             'park_out_day'    => $data['park_out_day'],
-//             'park_out_hour'   => $data['park_out_hour'],
-//             'park_out_minute' => $data['park_out_minute'],
-//             'park_out_second' => $data['park_out_second'],
-//             'total_minutes'  => $minutesDiff,
-//             'days_parked'   => $daysParked,
-//             'hours_parked'  => $hoursParked,
-//             'park_out_datetime' => $end,
-//             'park_out_by'     =>  Auth::id()
-//         ])->save();
+    //         $rate = $daysParked * $ratePerDay;
 
     
-//         Cache::forget('dashboard.latestParkout');
-//         return redirect()->route('show.payment', [
-//             'uuid' => $ticket->uuid
-//         ]);
+    // } else { // combination
+
+    //     $additionalHourBlock = (int) $company->additional_hour_block; // 3
+    //     $additionalRatePerBlock = (float) $company->additional_rate_per_block; // 50
+    //     $additionalBlockMinutes = $additionalHourBlock * 60; // 180 minutes
+        
+    //     if ($minutesDiff <= $hourly_limit) {
+    //         // First 12 hours: Charge hourly
+    //         $hoursParked = max(1, ceil($minutesDiff / 60));
+    //         $rate = $hoursParked * $ratePerHour;
+    //         $daysParked = 0;
+            
+    //     } elseif ($minutesDiff <= 1440) {
+    //         // 12-24 hours: Daily rate
+    //         $daysParked = 1;
+    //         $hoursParked = 0;
+    //         $rate = $ratePerDay; // ₱350
+            
+    //     } else {
+    //         // More than 24 hours - daily-based billing
+            
+    //         // Calculate full days
+    //         $fullDays = floor($minutesDiff / 1440);
+    //         $daysParked = $fullDays;
+            
+    //         // Charge for full days
+    //         $rate = $fullDays * $ratePerDay;
+            
+    //         // Calculate remaining minutes after full days
+    //         $remainingMinutes = $minutesDiff % 1440;
+            
+    //         // Grace period in minutes
+    //         // If grace_minutes is stored as hours (e.g., 3), multiply by 60
+    //         // If grace_minutes is stored as minutes (e.g., 180), use directly
+    //         $graceMinutes = $freeMinutes ;
+            
+    //         // Apply grace period
+    //         if ($remainingMinutes > $graceMinutes) {
+    //             // Time exceeds grace period, calculate blocks
+    //             $minutesBeyondGrace = $remainingMinutes - $graceMinutes;
+                
+    //             // Calculate number of blocks needed (round up)
+    //             $additionalBlocks = ceil($minutesBeyondGrace / $additionalBlockMinutes);
+                
+    //             // Add block charges
+    //             $rate += ($additionalBlocks * $additionalRatePerBlock);
+                
+    //             // For display: show actual hours remaining
+    //             $hoursParked = floor($remainingMinutes / 60);
+    //         } else {
+    //             // Within grace period, no additional charge
+    //             $hoursParked = floor($remainingMinutes / 60);
+    //         }
+    //     }
+    // }
+
+    //     $ticket->park_fee = $rate;
+
+
+    //         $ticket->fill([
+    //             'is_park_out'     => 1,
+    //             'park_out_year'   => $data['park_out_year'],
+    //             'park_out_month'  => $data['park_out_month'],
+    //             'park_out_day'    => $data['park_out_day'],
+    //             'park_out_hour'   => $data['park_out_hour'],
+    //             'park_out_minute' => $data['park_out_minute'],
+    //             'park_out_second' => $data['park_out_second'],
+    //             'total_minutes'  => $minutesDiff,
+    //             'days_parked'   => $daysParked,
+    //             'hours_parked'  => $hoursParked,
+    //             'park_out_datetime' => $end,
+    //             'park_out_by'     =>  Auth::id()
+    //         ])->save();
+
+        
+    //         Cache::forget('dashboard.latestParkout');
+    //         return redirect()->route('show.payment', [
+    //             'uuid' => $ticket->uuid
+    //         ]);
+
+
+    
 $company = Company::find(1);
  
 $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
@@ -1088,6 +1162,19 @@ public function submit_payment(Request $request)
 //     }
 // }
 
+
+public function updateVehicleType(Request $request, $id)
+{
+    $request->validate([
+        'vehicle_type' => 'required|in:car,motorcycle',
+    ]);
+
+    Ticket::findOrFail($id)->update([
+        'vehicle_type' => $request->vehicle_type,
+    ]);
+
+    return back()->with('success', 'Vehicle type updated.');
+}
 
 
 

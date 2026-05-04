@@ -145,41 +145,84 @@
 
 									<v-divider class="my-4"></v-divider>
 
-									<!-- Vehicle Type — read-only, active button reflects ticket value -->
+									<!-- Vehicle Type — clickable, updates ticket -->
 									<div class="info-item mb-4">
-										<span
-											class="text-caption text-indigo-darken-4 font-weight-bold d-block mb-2"
-										>
-											Vehicle Type
-										</span>
+										<div class="d-flex align-center justify-space-between mb-2">
+											<span
+												class="text-caption text-indigo-darken-4 font-weight-bold"
+											>
+												Vehicle Type
+											</span>
+											<!-- warning badge if not yet set -->
+											<v-chip
+												v-if="!selectedVehicleType"
+												color="warning"
+												size="x-small"
+												variant="tonal"
+												prepend-icon="mdi-alert"
+											>
+												Not set
+											</v-chip>
+										</div>
+
 										<div class="d-flex gap-2">
 											<v-btn
-												:variant="!isMotorcycle ? 'flat' : 'outlined'"
+												:variant="
+													selectedVehicleType === 'car' ? 'flat' : 'outlined'
+												"
 												:color="
-													!isMotorcycle ? 'indigo-darken-4' : 'grey-lighten-1'
+													selectedVehicleType === 'car'
+														? 'indigo-darken-4'
+														: 'grey-lighten-1'
 												"
 												size="small"
 												class="flex-grow-1"
 												prepend-icon="mdi-car"
-												readonly
-												:elevation="!isMotorcycle ? 2 : 0"
+												:elevation="selectedVehicleType === 'car' ? 2 : 0"
+												:loading="
+													savingVehicleType && selectedVehicleType === 'car'
+												"
+												@click="setVehicleType('car')"
 											>
 												Car
 											</v-btn>
 											<v-btn
-												:variant="isMotorcycle ? 'flat' : 'outlined'"
+												:variant="
+													selectedVehicleType === 'motorcycle'
+														? 'flat'
+														: 'outlined'
+												"
 												:color="
-													isMotorcycle ? 'indigo-darken-4' : 'grey-lighten-1'
+													selectedVehicleType === 'motorcycle'
+														? 'indigo-darken-4'
+														: 'grey-lighten-1'
 												"
 												size="small"
 												class="flex-grow-1"
 												prepend-icon="mdi-motorbike"
-												readonly
-												:elevation="isMotorcycle ? 2 : 0"
+												:elevation="
+													selectedVehicleType === 'motorcycle' ? 2 : 0
+												"
+												:loading="
+													savingVehicleType &&
+													selectedVehicleType === 'motorcycle'
+												"
+												@click="setVehicleType('motorcycle')"
 											>
 												Motorcycle
 											</v-btn>
 										</div>
+
+										<!-- saved confirmation -->
+										<v-slide-y-transition>
+											<div
+												v-if="vehicleTypeSaved"
+												class="text-caption text-success mt-1 d-flex align-center"
+											>
+												<v-icon size="12" class="mr-1">mdi-check-circle</v-icon>
+												Vehicle type updated
+											</div>
+										</v-slide-y-transition>
 									</div>
 
 									<v-divider class="my-4"></v-divider>
@@ -312,7 +355,7 @@
 											color="indigo-darken-4"
 											variant="flat"
 											@click="searchCard"
-											:disabled="!card_number"
+											:disabled="!card_number || isMotorcycle"
 										>
 											<v-icon start size="20">mdi-magnify</v-icon>
 											Search
@@ -633,8 +676,20 @@
 
 								<!-- ACTION BUTTON -->
 								<div class="pa-4">
+									<!-- Block payment if vehicle type is not yet set -->
+									<v-alert
+										v-if="!selectedVehicleType"
+										type="warning"
+										variant="tonal"
+										density="compact"
+										class="mb-3"
+										icon="mdi-alert"
+									>
+										Please select a vehicle type before proceeding.
+									</v-alert>
+
 									<v-btn
-										:disabled="!isPaymentValid"
+										:disabled="!isPaymentValid || !selectedVehicleType"
 										:loading="isSubmitting"
 										block
 										size="large"
@@ -679,6 +734,11 @@ const gcash_amount = ref(null);
 const gcashReferenceNumber = ref("");
 const isSubmitting = ref(false);
 const card_number = ref("");
+const savingVehicleType = ref(false);
+const vehicleTypeSaved = ref(false);
+
+// Vehicle type — initialized from ticket, editable
+const selectedVehicleType = ref(props.ticket.data.vehicle_type || null);
 
 // Discount state
 const hasDiscount = ref(false);
@@ -690,12 +750,7 @@ const scannedCards = computed(() => props.scannedCards || []);
 const totalCovered = computed(() => props.totalCovered || 0);
 const hoursPark = computed(() => props.ticket.data.hours_parked);
 
-// Detect vehicle type
-const isMotorcycle = computed(
-	() => props.ticket.data.vehicle_type === "motorcycle",
-
-	console.log(props.ticket.data.vehicle_type),
-);
+const isMotorcycle = computed(() => selectedVehicleType.value === "motorcycle");
 
 const parkinTime = computed(() =>
 	props.ticket.data.park_datetime
@@ -709,19 +764,16 @@ const parkoutTime = computed(() =>
 		: null,
 );
 
-// Discount amount (20% of park_fee)
 const discountAmount = computed(() => {
 	const fee = props.ticket.data.park_fee || 0;
 	return fee * DISCOUNT_RATE;
 });
 
-// Discounted fee — 20% off when hasDiscount is checked
 const discountedFee = computed(() => {
 	const fee = props.ticket.data.park_fee || 0;
 	return hasDiscount.value ? fee - discountAmount.value : fee;
 });
 
-// Amount still owed after card coverage and discount
 const effectiveCashNeeded = computed(() => {
 	return Math.max(0, discountedFee.value - totalCovered.value);
 });
@@ -745,6 +797,28 @@ const isPaymentValid = computed(() => {
 
 	return false;
 });
+
+// SET VEHICLE TYPE — saves immediately to backend
+const setVehicleType = async (type) => {
+	if (selectedVehicleType.value === type) return; // no change needed
+	savingVehicleType.value = true;
+	vehicleTypeSaved.value = false;
+
+	try {
+		await router.patch(
+			route("ticket.update.vehicle_type", props.ticket.data.id),
+			{ vehicle_type: type },
+			{ preserveScroll: true },
+		);
+		selectedVehicleType.value = type;
+		vehicleTypeSaved.value = true;
+		setTimeout(() => (vehicleTypeSaved.value = false), 2000);
+	} catch (e) {
+		console.error("Failed to update vehicle type:", e);
+	} finally {
+		savingVehicleType.value = false;
+	}
+};
 
 // DELETE CARD
 const deleteCard = async (id) => {
