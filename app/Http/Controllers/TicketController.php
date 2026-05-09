@@ -626,86 +626,112 @@ private function calculateParkFee(Ticket $ticket, Company $company): array
     //         ]);
 
 
-    
+
+// $company = Company::find(1);
+ 
+// $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
+// $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
+ 
+// $minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
+ 
+// $isMotor = $ticket->vehicle_type === 'motorcycle';
+ 
+// // Pick the correct rate fields based on vehicle type
+// $rateType    = $isMotor ? $company->motor_rate        : $company->rate;
+// $ratePerHour = (float) ($isMotor ? $company->motor_rate_perhour              : $company->rate_perhour);
+// $ratePerDay  = (float) ($isMotor ? $company->motor_rate_perday               : $company->rate_perday);
+// $hourly_limit = (int)  ($isMotor ? $company->motor_hourly_billing_limit       : $company->hourly_billing_limit) * 60;
+// $freeMinutes  = (int)  ($isMotor ? $company->motor_grace_minutes              : $company->grace_minutes);
+// $additionalHourBlock    = (int)   ($isMotor ? $company->motor_additional_hour_block      : $company->additional_hour_block);
+// $additionalRatePerBlock = (float) ($isMotor ? $company->motor_additional_rate_per_block  : $company->additional_rate_per_block);
+ 
+// $rate             = 0;
+// $daysParked       = 0;
+// $hoursParked      = 0;
+// $remainingMinutes = 0;
+ 
+// if ($rateType === 'perhour') {
+ 
+//     $hoursParked = max(1, ceil($minutesDiff / 60));
+//     $rate = $hoursParked * $ratePerHour;
+ 
+// } elseif ($rateType === 'perday') {
+ 
+//     $fullDays         = floor($minutesDiff / 1440);
+//     $remainingMinutes = $minutesDiff % 1440;
+ 
+//     if ($remainingMinutes > $freeMinutes) {
+//         $daysParked = $fullDays + 1;
+//     } else {
+//         $daysParked = max(1, $fullDays);
+//     }
+ 
+//     $hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60);
+ 
+//     $rate = $daysParked * $ratePerDay;
+ 
+// } else { // combination
+ 
+//     $additionalBlockMinutes = $additionalHourBlock * 60;
+ 
+//     if ($minutesDiff <= $hourly_limit) {
+//         // Within hourly limit: charge per hour
+//         $hoursParked = max(1, ceil($minutesDiff / 60));
+//         $rate        = $hoursParked * $ratePerHour;
+//         $daysParked  = 0;
+ 
+//     } elseif ($minutesDiff <= 1440) {
+//         // Hourly limit to 24 hours: flat daily rate
+//         $daysParked  = 1;
+//         $hoursParked = 0;
+//         $rate        = $ratePerDay;
+ 
+//     } else {
+//         // Over 24 hours: daily-based billing with block charges
+//         $fullDays         = floor($minutesDiff / 1440);
+//         $daysParked       = $fullDays;
+//         $rate             = $fullDays * $ratePerDay;
+//         $remainingMinutes = $minutesDiff % 1440;
+ 
+//         if ($remainingMinutes > $freeMinutes) {
+//             $minutesBeyondGrace = $remainingMinutes - $freeMinutes;
+//             $additionalBlocks   = ceil($minutesBeyondGrace / $additionalBlockMinutes);
+//             $rate              += ($additionalBlocks * $additionalRatePerBlock);
+//             $hoursParked        = floor($remainingMinutes / 60);
+//         } else {
+//             $hoursParked = floor($remainingMinutes / 60);
+//         }
+//     }
+// }
+ 
+// $ticket->park_fee = $rate;
+ 
+// $ticket->fill([
+//     'is_park_out'       => 1,
+//     'park_out_year'     => $data['park_out_year'],
+//     'park_out_month'    => $data['park_out_month'],
+//     'park_out_day'      => $data['park_out_day'],
+//     'park_out_hour'     => $data['park_out_hour'],
+//     'park_out_minute'   => $data['park_out_minute'],
+//     'park_out_second'   => $data['park_out_second'],
+//     'total_minutes'     => $minutesDiff,
+//     'days_parked'       => $daysParked,
+//     'hours_parked'      => $hoursParked,
+//     'park_out_datetime' => $end,
+//     'park_out_by'       => Auth::id(),
+// ])->save();
+
+
+
 $company = Company::find(1);
- 
-$start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
-$end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
- 
-$minutesDiff = (int) ceil($start->diffInSeconds($end) / 60);
- 
-$isMotor = $ticket->vehicle_type === 'motorcycle';
- 
-// Pick the correct rate fields based on vehicle type
-$rateType    = $isMotor ? $company->motor_rate        : $company->rate;
-$ratePerHour = (float) ($isMotor ? $company->motor_rate_perhour              : $company->rate_perhour);
-$ratePerDay  = (float) ($isMotor ? $company->motor_rate_perday               : $company->rate_perday);
-$hourly_limit = (int)  ($isMotor ? $company->motor_hourly_billing_limit       : $company->hourly_billing_limit) * 60;
-$freeMinutes  = (int)  ($isMotor ? $company->motor_grace_minutes              : $company->grace_minutes);
-$additionalHourBlock    = (int)   ($isMotor ? $company->motor_additional_hour_block      : $company->additional_hour_block);
-$additionalRatePerBlock = (float) ($isMotor ? $company->motor_additional_rate_per_block  : $company->additional_rate_per_block);
- 
-$rate             = 0;
-$daysParked       = 0;
-$hoursParked      = 0;
-$remainingMinutes = 0;
- 
-if ($rateType === 'perhour') {
- 
-    $hoursParked = max(1, ceil($minutesDiff / 60));
-    $rate = $hoursParked * $ratePerHour;
- 
-} elseif ($rateType === 'perday') {
- 
-    $fullDays         = floor($minutesDiff / 1440);
-    $remainingMinutes = $minutesDiff % 1440;
- 
-    if ($remainingMinutes > $freeMinutes) {
-        $daysParked = $fullDays + 1;
-    } else {
-        $daysParked = max(1, $fullDays);
-    }
- 
-    $hoursParked = $remainingMinutes <= $freeMinutes ? 0 : ceil($remainingMinutes / 60);
- 
-    $rate = $daysParked * $ratePerDay;
- 
-} else { // combination
- 
-    $additionalBlockMinutes = $additionalHourBlock * 60;
- 
-    if ($minutesDiff <= $hourly_limit) {
-        // Within hourly limit: charge per hour
-        $hoursParked = max(1, ceil($minutesDiff / 60));
-        $rate        = $hoursParked * $ratePerHour;
-        $daysParked  = 0;
- 
-    } elseif ($minutesDiff <= 1440) {
-        // Hourly limit to 24 hours: flat daily rate
-        $daysParked  = 1;
-        $hoursParked = 0;
-        $rate        = $ratePerDay;
- 
-    } else {
-        // Over 24 hours: daily-based billing with block charges
-        $fullDays         = floor($minutesDiff / 1440);
-        $daysParked       = $fullDays;
-        $rate             = $fullDays * $ratePerDay;
-        $remainingMinutes = $minutesDiff % 1440;
- 
-        if ($remainingMinutes > $freeMinutes) {
-            $minutesBeyondGrace = $remainingMinutes - $freeMinutes;
-            $additionalBlocks   = ceil($minutesBeyondGrace / $additionalBlockMinutes);
-            $rate              += ($additionalBlocks * $additionalRatePerBlock);
-            $hoursParked        = floor($remainingMinutes / 60);
-        } else {
-            $hoursParked = floor($remainingMinutes / 60);
-        }
-    }
-}
- 
-$ticket->park_fee = $rate;
- 
+
+    $start = Carbon::parse($ticket->park_datetime)->timezone(config('app.timezone'));
+    $end   = Carbon::parse($data['park_out_datetime'])->timezone(config('app.timezone'));
+
+
+$result  = $this->calculateParkFee($ticket, $company);
+
+$ticket->park_fee = $result['park_fee'];
 $ticket->fill([
     'is_park_out'       => 1,
     'park_out_year'     => $data['park_out_year'],
@@ -714,9 +740,9 @@ $ticket->fill([
     'park_out_hour'     => $data['park_out_hour'],
     'park_out_minute'   => $data['park_out_minute'],
     'park_out_second'   => $data['park_out_second'],
-    'total_minutes'     => $minutesDiff,
-    'days_parked'       => $daysParked,
-    'hours_parked'      => $hoursParked,
+    'total_minutes'     => $result['total_minutes'],
+    'days_parked'       => $result['days_parked'],
+    'hours_parked'      => $result['hours_parked'],
     'park_out_datetime' => $end,
     'park_out_by'       => Auth::id(),
 ])->save();
@@ -788,6 +814,8 @@ public function show_payment(string $uuid)
         'cashNeeded'   => $cashNeeded,
     ]);
 }
+
+
 
 public function submit_payment(Request $request)
 {
@@ -1025,6 +1053,8 @@ public function submit_payment(Request $request)
 }
 
 
+
+
 // public function submit_payment(Request $request)
 // {
 //     $data = $request->validate([
@@ -1169,13 +1199,17 @@ public function updateVehicleType(Request $request, $id)
         'vehicle_type' => 'required|in:car,motorcycle',
     ]);
 
-    Ticket::findOrFail($id)->update([
-        'vehicle_type' => $request->vehicle_type,
-    ]);
+    $ticket  = Ticket::findOrFail($id);
+    $company = Company::find(1);
+
+    $ticket->update(['vehicle_type' => $request->vehicle_type]);
+
+    $result = $this->calculateParkFee($ticket, $company);
+
+    $ticket->update($result);
 
     return back()->with('success', 'Vehicle type updated.');
 }
-
 
 
 
