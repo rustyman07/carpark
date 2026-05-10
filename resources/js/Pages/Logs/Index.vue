@@ -1,6 +1,6 @@
 <template>
 	<div class="logs-wrapper">
-		<v-container class="py-8 px-6">
+		<v-container class="py-8 px-6 wide-container">
 			<!-- Page Header -->
 			<div class="page-header mb-8">
 				<div>
@@ -44,7 +44,8 @@
 								bg-color="white"
 							/>
 						</v-col>
-						<v-col cols="12" md="3">
+
+						<v-col cols="12" md="2">
 							<v-select
 								label="Staff"
 								:items="[
@@ -63,7 +64,7 @@
 							/>
 						</v-col>
 
-						<v-col cols="12" md="3">
+						<v-col cols="12" md="2">
 							<v-select
 								label="Log Type"
 								:items="types"
@@ -75,6 +76,21 @@
 								variant="outlined"
 								bg-color="white"
 								prepend-inner-icon="mdi-filter"
+							/>
+						</v-col>
+
+						<v-col cols="12" md="2">
+							<v-select
+								label="Mode of Payment"
+								:items="paymentModes"
+								item-title="label"
+								item-value="value"
+								v-model="selectedPaymentMode"
+								density="comfortable"
+								hide-details="auto"
+								variant="outlined"
+								bg-color="white"
+								prepend-inner-icon="mdi-credit-card-outline"
 							/>
 						</v-col>
 
@@ -181,6 +197,7 @@
 							Active
 						</v-chip>
 					</template>
+
 					<template v-slot:item.park_fee="{ item }">
 						<span class="text-body-2">{{ formatCurrency(item.park_fee) }}</span>
 					</template>
@@ -189,6 +206,22 @@
 						<span class="text-body-2">{{
 							formatCurrency(item.total_amount)
 						}}</span>
+					</template>
+
+					<template v-slot:item.mode_of_payment="{ item }">
+						<v-chip
+							v-if="item.mode_of_payment"
+							:color="paymentModeColor(item.mode_of_payment)"
+							variant="flat"
+							size="small"
+							class="font-weight-medium"
+						>
+							<v-icon start size="12">{{
+								paymentModeIcon(item.mode_of_payment)
+							}}</v-icon>
+							{{ item.mode_of_payment }}
+						</v-chip>
+						<span v-else class="text-medium-emphasis">-</span>
 					</template>
 
 					<template v-slot:item.remarks="{ item }">
@@ -238,25 +271,37 @@
 							</v-chip>
 						</div>
 					</template>
+
 					<template v-slot:body.append>
 						<tr class="summary-row">
+							<!-- col 1: ticket_no + col 2: plate_no -->
 							<td
 								colspan="2"
 								class="text-left font-weight-bold text-indigo-darken-4"
 							>
 								No of Records: {{ items.length }}
 							</td>
-
+							<!-- col 3: vehicle_type -->
 							<td></td>
+							<!-- col 4: park_datetime -->
 							<td></td>
+							<!-- col 5: park_out_datetime -->
+							<td></td>
+							<!-- col 6: park_fee -->
 							<td class="font-weight-bold text-indigo-darken-4">
 								{{ formatCurrency(totalParkFee) }}
 							</td>
+							<!-- col 7: total_amount -->
 							<td class="font-weight-bold text-indigo-darken-4">
 								{{ formatCurrency(totalPaid) }}
 							</td>
+							<!-- col 8: mode_of_payment -->
 							<td></td>
+							<!-- col 9: remarks -->
 							<td></td>
+							<!-- col 10: park_out_user.name -->
+							<td></td>
+							<!-- col 11: action -->
 							<td>
 								<v-btn
 									variant="text"
@@ -511,6 +556,7 @@ const maxDate = dayjs().format("YYYY-MM-DD");
 const dateFrom = ref(today);
 const dateTo = ref(today);
 const selectedType = ref("PARK-IN");
+const selectedPaymentMode = ref("All");
 
 const headers = [
 	{ key: "ticket_no", title: "Ticket No", sortable: true },
@@ -520,6 +566,7 @@ const headers = [
 	{ key: "park_out_datetime", title: "Park Out", sortable: true },
 	{ key: "park_fee", title: "Park Fee", align: "center" },
 	{ key: "total_amount", title: "Total Paid", align: "center" },
+	{ key: "mode_of_payment", title: "Payment Mode", align: "center" },
 	{ key: "remarks", title: "Remarks", align: "center" },
 	{ key: "park_out_user.name", title: "Parked Out By", align: "center" },
 	{ key: "action", title: "Action", align: "center", sortable: false },
@@ -529,6 +576,37 @@ const types = [
 	{ label: "Park In Records", value: "PARK-IN" },
 	{ label: "Park Out Records", value: "PARK-OUT" },
 ];
+
+const paymentModes = [
+	{ label: "All", value: "All" },
+	{ label: "Cash", value: "Cash" },
+	{ label: "GCash", value: "Gcash" },
+	{ label: "Card", value: "Card" },
+	{ label: "Card w/ Cash", value: "Card w/ Cash" },
+	{ label: "Card w/ GCash", value: "Card w/ Gcash" },
+];
+
+function paymentModeColor(mode) {
+	const map = {
+		Cash: "green-darken-2",
+		Gcash: "blue-darken-2",
+		Card: "purple-darken-2",
+		"Card w/ Cash": "deep-orange-darken-2",
+		"Card w/ Gcash": "teal-darken-2",
+	};
+	return map[mode] || "grey-darken-1";
+}
+
+function paymentModeIcon(mode) {
+	const map = {
+		Cash: "mdi-cash",
+		Gcash: "mdi-cellphone",
+		Card: "mdi-credit-card",
+		"Card w/ Cash": "mdi-credit-card-plus",
+		"Card w/ Gcash": "mdi-credit-card-wireless",
+	};
+	return map[mode] || "mdi-credit-card-outline";
+}
 
 // Computed property for Ticket PDF URL
 const ticketPdfUrl = computed(() => {
@@ -642,6 +720,7 @@ function fetchLogs({ url = "/logs", append = false } = {}) {
 		dateTo: dayjs(dateTo.value).format("YYYY-MM-DD"),
 		type: selectedType.value,
 		staff: selectedStaff.value.value,
+		payment_mode: selectedPaymentMode.value,
 	};
 
 	router.get(url, params, {
@@ -758,6 +837,10 @@ const confirmUpdate = () => {
 </script>
 
 <style scoped>
+.wide-container {
+	max-width: 1800px !important;
+}
+
 .logs-wrapper {
 	background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 	min-height: 100vh;
@@ -802,6 +885,11 @@ const confirmUpdate = () => {
 
 :deep(.custom-data-table .v-table__wrapper) {
 	background: white;
+	overflow-x: auto;
+}
+
+:deep(.custom-data-table table) {
+	min-width: 1500px;
 }
 
 :deep(.custom-data-table thead) {
@@ -814,6 +902,7 @@ const confirmUpdate = () => {
 	text-transform: uppercase;
 	font-size: 0.75rem;
 	letter-spacing: 0.5px;
+	white-space: nowrap;
 }
 
 :deep(.custom-data-table tbody tr) {
@@ -822,6 +911,10 @@ const confirmUpdate = () => {
 
 :deep(.custom-data-table tbody tr:hover) {
 	background: rgba(26, 35, 126, 0.04) !important;
+}
+
+:deep(.custom-data-table tbody td) {
+	white-space: nowrap;
 }
 
 .load-more-section {

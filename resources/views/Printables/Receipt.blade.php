@@ -148,6 +148,21 @@
         <span><span class="peso">&#8369;</span>{{ number_format($ticket->park_fee, 2) }}</span>
     </div>
 
+    @if($payment->has_discount)
+    @php
+        $discountAmount = $ticket->park_fee * 0.20;
+        $discountedPrice = $ticket->park_fee - $discountAmount;
+    @endphp
+    <div class="row">
+        <span>Discount Type:</span>
+        <span class="bold">Senior / PWD</span>
+    </div>
+    <div class="row">
+        <span>Discount (20%):</span>
+        <span>- <span class="peso">&#8369;</span>{{ number_format($discountAmount, 2) }}</span>
+    </div>
+    @endif
+
     @if($payment->amount > 0)
     <div class="row">
         <span>Amount Received:</span>

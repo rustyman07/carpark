@@ -249,6 +249,7 @@
 												hide-details
 												density="compact"
 												class="mr-1"
+												:disabled="scannedCards.length > 0"
 											/>
 											<span
 												class="text-caption font-weight-bold text-indigo-darken-4"
@@ -710,7 +711,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onBeforeUnmount } from "vue";
+import { computed, watch, ref, onBeforeUnmount } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { Html5Qrcode } from "html5-qrcode";
@@ -797,6 +798,16 @@ const isPaymentValid = computed(() => {
 
 	return false;
 });
+
+watch(
+	() => props.scannedCards,
+	(newVal) => {
+		if (newVal.length > 0) {
+			hasDiscount.value = false;
+		}
+	},
+	{ deep: true },
+);
 
 // SET VEHICLE TYPE — saves immediately to backend
 const setVehicleType = async (type) => {

@@ -70,6 +70,52 @@ public function printReceipt($uuid)
     return $pdf->stream('receipt-' . $ticket->ticket_no . '.pdf');
 }
 
+// public function printReceipt($uuid)
+// {
+//     $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+
+//     $payment = Payment::where('ticket_id', $ticket->id)->firstOrFail();
+
+//     $details = $payment->details;
+
+//     $company = Company::findOrFail(1);
+//     $logoPath = public_path('images/comlogo.png');
+
+//     $barcodeGenerator = new \Picqer\Barcode\BarcodeGeneratorPNG();
+//     $barcode = base64_encode($barcodeGenerator->getBarcode($ticket->ticket_no, $barcodeGenerator::TYPE_CODE_128));
+
+//     // 👇 Fetch discount if applicable
+//     $discount = null;
+//     $discountAmount = 0;
+//     $discountedPrice = $ticket->park_fee;
+
+//     if ($payment->has_discount && $payment->discount_id) {
+//         $discount = \App\Models\Discount::find($payment->discount_id);
+
+//         if ($discount) {
+//             $discountAmount = $ticket->park_fee * ($discount->percent / 100);
+//             $discountedPrice = $ticket->park_fee - $discountAmount;
+//         }
+//     }
+
+//     $data = [
+//         'ticket'          => $ticket,
+//         'payment'         => $payment,
+//         'details'         => $details,
+//         'company'         => $company,
+//         'barcode'         => $barcode,
+//         'logoPath'        => $logoPath,
+//         'discount'        => $discount,        // 👈 discount model (has name, percent, etc.)
+//         'discountAmount'  => $discountAmount,  // 👈 peso amount deducted
+//         'discountedPrice' => $discountedPrice, // 👈 park_fee after discount
+//     ];
+
+//     $pdf = Pdf::loadView('Printables.Receipt', $data)
+//         ->setPaper([0, 0, 226.77, 841.89], 'portrait');
+
+//     return $pdf->stream('receipt-' . $ticket->ticket_no . '.pdf');
+// }
+
 
     
 }

@@ -220,27 +220,26 @@ public function show(string $uuid)
     return redirect()->back()->with('success', 'Ticket deleted successfully.');
     }
 
-    public function showLogs(Request $request)
+public function showLogs(Request $request)
 {   
-
-    
     $user = Auth::user();
-
 
     $staff = User::where('deleted_at', null)
         ->where('role', 2)
         ->get();
 
-    $type     = $request->input('type', 'PARK-IN');
-    $dateFrom = $request->input('dateFrom', now()->toDateString());
-    $dateTo   = $request->input('dateTo', now()->toDateString());
+    $type        = $request->input('type', 'PARK-IN');
+    $dateFrom    = $request->input('dateFrom', now()->toDateString());
+    $dateTo      = $request->input('dateTo', now()->toDateString());
+    $paymentMode = $request->input('payment_mode', 'All'); // 👈 new
     $request->input('staff', 'All');
 
     $tickets = Ticket::whereNull('tickets.deleted_at')
         ->where('tickets.is_park_out', $type === 'PARK-IN' ? 0 : 1)
-        ->with('parkOutUser:id,name') // 👈 eager load only needed fields
+        ->with('parkOutUser:id,name')
         ->leftJoin('payments', 'payments.ticket_id', '=', 'tickets.id')
-          ->select('tickets.*', 'payments.total_amount');
+        ->select('tickets.*', 'payments.total_amount');
+
     $dateColumn = $type === 'PARK-IN' ? 'tickets.park_datetime' : 'tickets.park_out_datetime';
 
     if ($dateFrom && $dateTo) {
@@ -248,27 +247,30 @@ public function show(string $uuid)
                 ->whereDate($dateColumn, '<=', $dateTo);
     }
 
-
     if ($type === 'PARK-OUT' && $user->role == 2) {
         $tickets->where('tickets.park_out_by', $user->id);
     }
-    
+
     if ($type === 'PARK-OUT' && $user->role != 2 && $request->filled('staff') && $request->input('staff') != 'All') {
-        $tickets->where('tickets.park_out_by',(int) $request->input('staff'));
+        $tickets->where('tickets.park_out_by', (int) $request->input('staff'));
     }
-    
+
+    // 👇 filter by mode of payment
+    if ($paymentMode && $paymentMode !== 'All') {
+        $tickets->where('tickets.mode_of_payment', $paymentMode);
+    }
 
     return inertia('Logs/Index', [
         'Tickets' => $tickets->orderByDesc('tickets.created_at')->get(),
         'filters' => [
-            'type' => $type,
-            'dateFrom' => $dateFrom,
-            'dateTo' => $dateTo,
-            'staff' => $staff
+            'type'         => $type,
+            'dateFrom'     => $dateFrom,
+            'dateTo'       => $dateTo,
+            'staff'        => $staff,
+            'payment_mode' => $paymentMode, // 👈 pass back to frontend
         ]
     ]);
 }
-
 
 
 
