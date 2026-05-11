@@ -350,16 +350,39 @@ public function sell_card_payment(Request $request)
 }
 
 
+// public function transactions($card_id)
+// {
+//     $transactions = PaymentDetail::where('card_id', $card_id)
+//         ->whereHas('payment.ticket') // Only include if payment has a ticket
+//         ->with([
+//             'payment.ticket' => function ($query) {
+//                 $query->select('id', 'plate_no', 'ticket_no');
+//             }
+            
+//         ])
+//         ->get();
+
+//     return response()->json([
+//         'transactions' => $transactions,
+//     ]);
+// }
+
 public function transactions($card_id)
 {
     $transactions = PaymentDetail::where('card_id', $card_id)
-        ->whereHas('payment.ticket') // Only include if payment has a ticket
+        ->whereHas('payment.ticket')
         ->with([
-            'payment.ticket' => function ($query) {
-                $query->select('id', 'plate_no', 'ticket_no');
-            }
-            
-        ])
+            'payment' => function ($query) {
+                $query->select(
+                    'id', 'ticket_id', 'customer', 'amount', 'total_amount',
+                    'change', 'payment_type', 'payment_method', 'gcash_reference',
+                    'has_discount', 'status', 'processed_by', 'paid_at'
+                )->with(['user:id,name']);
+                },
+    'payment.ticket' => function ($query) {
+        $query->select('id', 'plate_no', 'ticket_no', 'park_datetime', 'park_out_datetime');
+    }
+            ])
         ->get();
 
     return response()->json([
