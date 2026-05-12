@@ -7,7 +7,9 @@ use App\Models\Ticket;
 use App\Models\Company;
 use App\Models\User;
 use App\Models\CardInventoryDetail;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Output\QRMarkupSVG;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -148,43 +150,75 @@ public function show(string $uuid)
 }
 
 
-    public function print_ticket($uuid)
+
+
+// public function print_ticket($uuid)
+// {
+//     $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+//     $company = Company::first();
+
+//     // Generate QR Code using PNG with error handling
+//     try {
+//         $qrCodeSvg = QrCode::format('svg')
+//             ->size(200)
+//             ->errorCorrection('H')
+//             ->generate($ticket->qr_code);
+//         $qrCode = base64_encode($qrCodeSvg);
+//     } catch (\Exception $e) {
+//         // Fallback: use a simple text placeholder if QR fails
+//         $qrCode = null;
+//     }
+
+//     $logoPath = public_path('images/comlogo.png');
+
+//     $data = [
+//         'ticket' => $ticket,
+//         'company' => $company,
+//         'qrCode' => $qrCode,
+//         'logoPath' => $logoPath
+//     ];
+
+//     return Pdf::loadView('Printables.Ticket', $data)
+//         ->setPaper([0, 0, 226.77, 566.93], 'portrait')
+//         ->setOption('margin-top', 0)
+//         ->setOption('margin-right', 0)
+//         ->setOption('margin-bottom', 0)
+//         ->setOption('margin-left', 0)
+//         ->stream('ticket-' . $ticket->ticket_no . '.pdf');
+// }
+
+public function print_ticket($uuid)
 {
-     $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
+    $ticket = Ticket::where('uuid', $uuid)->firstOrFail();
     $company = Company::first();
 
-    // Generate QR Code as base64
-   $qrCodeSvg = QrCode::format('svg')
-        ->size(200)
-        ->errorCorrection('H')
-        ->generate($ticket->qr_code);
-    
-    // Convert SVG to base64
-    $qrCode = base64_encode($qrCodeSvg);
+    try {
+        $options = new QROptions([
+            'outputType' => QRMarkupSVG::class,
+            'eccLevel'   => 'H',
+        ]);
+        $qrCodeEncoded = (new QRCode($options))->render($ticket->qr_code);
+    } catch (\Throwable $e) {
+        \Log::error('QR Code Error: ' . $e->getMessage());
+        $qrCodeEncoded = null;
+    }
+        $logoPath = public_path('images/comlogo.png');
 
-    // Get logo path
-    $logoPath = public_path('images/comlogo.png');
+        $data = [
+            'ticket'   => $ticket,
+            'company'  => $company,
+            'qrCode'   => $qrCodeEncoded,
+            'logoPath' => $logoPath
+        ];
 
-    // Prepare data for the view
-    $data = [
-        'ticket' => $ticket,
-        'company' => $company,
-        'qrCode' => $qrCode,
-        'logoPath' => $logoPath
-    ];
-
-    // Generate and stream PDF for thermal printer
     return Pdf::loadView('Printables.Ticket', $data)
-        ->setPaper([0, 0, 226.77, 566.93], 'portrait') // 80mm width, auto height
+        ->setPaper([0, 0, 226.77, 566.93], 'portrait')
         ->setOption('margin-top', 0)
         ->setOption('margin-right', 0)
         ->setOption('margin-bottom', 0)
         ->setOption('margin-left', 0)
         ->stream('ticket-' . $ticket->ticket_no . '.pdf');
 }
-
-
-
 
 
     /**
